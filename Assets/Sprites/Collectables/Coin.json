@@ -1,0 +1,115 @@
+{
+  "frames": [
+    {
+      "filename": "Coin1.png",
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 8,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "filename": "Coin2.png",
+      "frame": {
+        "x": 0,
+        "y": 16,
+        "w": 8,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 8,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "filename": "Coin3.png",
+      "frame": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 8,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "filename": "Coin4.png",
+      "frame": {
+        "x": 0,
+        "y": 32,
+        "w": 8,
+        "h": 16
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 16
+      },
+      "sourceSize": {
+        "w": 8,
+        "h": 16
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  ],
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.7",
+    "image": "BigSpriteSheet.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 16,
+      "h": 48
+    },
+    "scale": 1
+  }
+}
