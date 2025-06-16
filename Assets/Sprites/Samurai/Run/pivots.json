@@ -1,0 +1,162 @@
+{
+    "Run1.png": {
+        "pivot_pixel": {
+            "x": 21,
+            "y": 4
+        },
+        "pivot_relativo": {
+            "x": 0.3281,
+            "y": 0.0625
+        }
+    },
+    "Run10.png": {
+        "pivot_pixel": {
+            "x": 22,
+            "y": 5
+        },
+        "pivot_relativo": {
+            "x": 0.3438,
+            "y": 0.0781
+        }
+    },
+    "Run11.png": {
+        "pivot_pixel": {
+            "x": 22,
+            "y": 5
+        },
+        "pivot_relativo": {
+            "x": 0.3438,
+            "y": 0.0781
+        }
+    },
+    "Run12.png": {
+        "pivot_pixel": {
+            "x": 23,
+            "y": 5
+        },
+        "pivot_relativo": {
+            "x": 0.3594,
+            "y": 0.0781
+        }
+    },
+    "Run13.png": {
+        "pivot_pixel": {
+            "x": 21,
+            "y": 4
+        },
+        "pivot_relativo": {
+            "x": 0.3281,
+            "y": 0.0625
+        }
+    },
+    "Run14.png": {
+        "pivot_pixel": {
+            "x": 20,
+            "y": 5
+        },
+        "pivot_relativo": {
+            "x": 0.3125,
+            "y": 0.0781
+        }
+    },
+    "Run15.png": {
+        "pivot_pixel": {
+            "x": 19,
+            "y": 6
+        },
+        "pivot_relativo": {
+            "x": 0.2969,
+            "y": 0.0938
+        }
+    },
+    "Run16.png": {
+        "pivot_pixel": {
+            "x": 18,
+            "y": 5
+        },
+        "pivot_relativo": {
+            "x": 0.2812,
+            "y": 0.0781
+        }
+    },
+    "Run2.png": {
+        "pivot_pixel": {
+            "x": 25,
+            "y": 4
+        },
+        "pivot_relativo": {
+            "x": 0.3906,
+            "y": 0.0625
+        }
+    },
+    "Run3.png": {
+        "pivot_pixel": {
+            "x": 25,
+            "y": 4
+        },
+        "pivot_relativo": {
+            "x": 0.3906,
+            "y": 0.0625
+        }
+    },
+    "Run4.png": {
+        "pivot_pixel": {
+            "x": 24,
+            "y": 4
+        },
+        "pivot_relativo": {
+            "x": 0.375,
+            "y": 0.0625
+        }
+    },
+    "Run5.png": {
+        "pivot_pixel": {
+            "x": 23,
+            "y": 5
+        },
+        "pivot_relativo": {
+            "x": 0.3594,
+            "y": 0.0781
+        }
+    },
+    "Run6.png": {
+        "pivot_pixel": {
+            "x": 22,
+            "y": 5
+        },
+        "pivot_relativo": {
+            "x": 0.3438,
+            "y": 0.0781
+        }
+    },
+    "Run7.png": {
+        "pivot_pixel": {
+            "x": 22,
+            "y": 5
+        },
+        "pivot_relativo": {
+            "x": 0.3438,
+            "y": 0.0781
+        }
+    },
+    "Run8.png": {
+        "pivot_pixel": {
+            "x": 23,
+            "y": 6
+        },
+        "pivot_relativo": {
+            "x": 0.3594,
+            "y": 0.0938
+        }
+    },
+    "Run9.png": {
+        "pivot_pixel": {
+            "x": 22,
+            "y": 4
+        },
+        "pivot_relativo": {
+            "x": 0.3438,
+            "y": 0.0625
+        }
+    }
+}

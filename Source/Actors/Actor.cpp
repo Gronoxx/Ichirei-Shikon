@@ -130,3 +130,15 @@ bool Actor::IsVisibleOnCamera() const
     return (mPosition.x >= cameraPosition.x && mPosition.x <= cameraPosition.x + screenWidth &&
             mPosition.y >= cameraPosition.y && mPosition.y <= cameraPosition.y + screenHeight);
 }
+
+// void Actor::SetScale(float scale, bool adjustPosition)
+// {
+//     if (adjustPosition)
+//     {
+//         float deltaScale = scale / mScale;
+//         Vector2 currentPosition = GetPosition();
+//         SetPosition( currentPosition - Vector2(Game::TILE_SIZE * deltaScale, Game::TILE_SIZE * deltaScale) );
+//     }
+//
+//     mScale = scale;
+// }

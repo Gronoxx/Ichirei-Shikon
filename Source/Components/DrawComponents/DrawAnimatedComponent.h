@@ -10,7 +10,13 @@
 class DrawAnimatedComponent : public DrawSpriteComponent {
 public:
     // (Lower draw order corresponds with further back)
-    DrawAnimatedComponent(class Actor* owner, const std::string &spriteSheetPath, const std::string &spriteSheetData, int drawOrder = 100);
+    //New Constructor
+    DrawAnimatedComponent(class Actor* owner, const std::string &spriteSheetPath, const std::string &spriteSheetData, const std::string animName,const std::vector<int>& images, int drawOrder = 100);
+    //Old Version (Legacy)
+    DrawAnimatedComponent(class Actor* owner,
+                          const std::string& spriteSheetPath,
+                          const std::string& spriteSheetData,
+                          int drawOrder = 100);
     ~DrawAnimatedComponent() override;
 
     void Draw(SDL_Renderer* renderer, const Vector3 &modColor = Color::White) override;
@@ -28,13 +34,20 @@ public:
     // Add an animation of the corresponding name to the animation map
     void AddAnimation(const std::string& name, const std::vector<int>& images);
 
+    // Offsets
+    std::vector<Vector2> NormalizeOffsets(const std::vector<Vector2>& originalOffsets);
+    void AddAnimationOffsets(const std::string& animName, const std::vector<Vector2>& offsets);
+    void LoadSpriteSheetForAnimation(const std::string& animName, const std::string& texturePath, const std::string& dataPath);
+
 private:
-    void LoadSpriteSheet(const std::string& texturePath, const std::string& dataPath);
 
-    // Vector of sprites
-    std::vector<SDL_Rect*> mSpriteSheetData;
+    // Mapa animação -> textura (spritesheet)
+    std::unordered_map<std::string, SDL_Texture*> mSpriteSheetTextures;
 
-    // Map of animation name to vector of textures corresponding to the animation
+    // Mapa animação -> Datas (SDL_Rect)
+    std::unordered_map<std::string, std::vector<SDL_Rect *>> mSpriteSheetDatas;
+
+    // Mapa animação -> sequência de índices dos frames (ordem da animação)
     std::unordered_map<std::string, std::vector<int>> mAnimations;
 
     // Name of current animation
@@ -48,4 +61,11 @@ private:
 
     // Whether or not the animation is paused (defaults to false)
     bool mIsPaused = false;
+
+    //Offsets
+    std::unordered_map<std::string, std::vector<Vector2>> mAnimFrameOffsets;
+
+    //Legacy
+    bool mIsSingleSheet = false; // Flag para indicar o modo de operação
+    const std::string SINGLE_SHEET_KEY = "default_sheet"; // Chave interna para a folha única
 };

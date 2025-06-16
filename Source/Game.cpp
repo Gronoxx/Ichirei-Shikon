@@ -336,7 +336,7 @@ void Game::BuildLevel(int** levelData, int width, int height)
             if(tile == 16) // Mario
             {
                 mMario = new Mario(this);
-                mMario->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
+                mMario->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner
             {

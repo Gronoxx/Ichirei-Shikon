@@ -22,17 +22,71 @@ Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
                                                    ColliderLayer::Player);
 
     mDrawComponent = new DrawAnimatedComponent(this,
-                                              "../Assets/Sprites/Mario/Mario.png",
-                                              "../Assets/Sprites/Mario/Mario.json");
+                                              "../Assets/Sprites/Samurai/Idle/texture.png",
+                                              "../Assets/Sprites/Samurai/Idle/texture.json",
+                                              "idle",
+                                              {0,2,3,4,5,6,7,8,9,1}
+                                              );
 
-    mDrawComponent->AddAnimation("Dead", {0});
-    mDrawComponent->AddAnimation("idle", {1});
-    mDrawComponent->AddAnimation("jump", {2});
-    mDrawComponent->AddAnimation("run", {3, 4, 5});
-    mDrawComponent->AddAnimation("win", {7});
+        std::vector<Vector2> idleOffsets = {
+        Vector2(8, 34), //IDLE1
+        Vector2(10, 34), //IDLE10
+        Vector2(8, 33), //IDLE2
+        Vector2(8, 33), //IDLE3
+        Vector2(8, 33), //IDLE4
+        Vector2(9, 33), //IDLE5
+        Vector2(10, 33), //IDLE6
+        Vector2(10, 33),//IDLE7
+        Vector2(10, 33), //IDLE8
+        Vector2(10, 33) //IDLE9
+    };
 
-    mDrawComponent->SetAnimation("idle");
-    mDrawComponent->SetAnimFPS(10.0f);
+    mDrawComponent->AddAnimationOffsets("idle",idleOffsets);
+    mDrawComponent->SetAnimFPS(14.0f);
+
+    mDrawComponent -> LoadSpriteSheetForAnimation("run",
+    "../Assets/Sprites/Samurai/Run/texture.png",
+    "../Assets/Sprites/Samurai/Run/texture.json");
+
+    std::vector<Vector2> runOffsets = {
+        Vector2(25, 4), // Run3.png
+        Vector2(20, 5), // Run14.png
+        Vector2(24, 4), // Run4.png
+        Vector2(19, 6), // Run15.png
+        Vector2(23, 5), // Run5.png
+        Vector2(23, 5), // Run12.png
+        Vector2(18, 5), // Run16.png
+        Vector2(25, 4), // Run2.png
+        Vector2(22, 5), // Run6.png
+        Vector2(21, 4), // Run13.png
+        Vector2(21, 4), // Run1.png
+        Vector2(22, 5), // Run10.png
+        Vector2(22, 5), // Run7.png
+        Vector2(23, 6), // Run8.png
+        Vector2(22, 4), // Run9.png
+        Vector2(22, 5), // Run11.png
+    };
+
+    mDrawComponent->AddAnimation("run", {
+    2, // Run3.png
+    13, // Run14.png
+    3, // Run4.png
+    14, // Run15.png
+    4, // Run5.png
+    11, // Run12.png
+    15, // Run16.png
+    1, // Run2.png
+    5, // Run6.png
+    12, // Run13.png
+    0, // Run1.png
+    9, // Run10.png
+    6, // Run7.png
+    7, // Run8.png
+    8, // Run9.png
+    10, // Run11.png
+});
+
+    mDrawComponent->AddAnimationOffsets("run",runOffsets);
 }
 
 void Mario::OnProcessInput(const uint8_t* state)
