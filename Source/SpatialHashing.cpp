@@ -2,6 +2,7 @@
 // Created by Lucas N. Ferreira on 29/05/25.
 //
 
+#include <algorithm>
 #include "SpatialHashing.h"
 #include <SDL.h>
 
