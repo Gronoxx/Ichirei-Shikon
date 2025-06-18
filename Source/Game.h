@@ -24,6 +24,7 @@ public:
 
     enum class GameScene
     {
+        Intro,
         MainMenu,
         Level1,
         Level2

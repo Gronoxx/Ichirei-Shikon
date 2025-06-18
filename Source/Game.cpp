@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------
 // From Game Programming in C++ by Sanjay Madhav
 // Copyright (C) 2017 Sanjay Madhav. All rights reserved.
-// 
+//
 // Released under the BSD License
 // See LICENSE in root directory for full details.
 // ----------------------------------------------------------------
@@ -46,8 +46,8 @@ Game::Game(int windowWidth, int windowHeight)
         ,mGameTimeLimit(0)
         ,mSceneManagerTimer(0.0f)
         ,mSceneManagerState(SceneManagerState::None)
-        ,mGameScene(GameScene::MainMenu)
-        ,mNextScene(GameScene::MainMenu)
+        ,mGameScene(GameScene::Intro)
+        ,mNextScene(GameScene::Intro)
         ,mBackgroundTexture(nullptr)
         ,mBackgroundSize(Vector2::Zero)
         ,mBackgroundPosition(Vector2::Zero)
@@ -111,11 +111,11 @@ bool Game::Initialize()
     mTicksCount = SDL_GetTicks();
 
     // Init all game actors
-    mNextScene = GameScene::MainMenu;
+    mNextScene = GameScene::Intro;
     ChangeScene();
 
     // Garanta que a máquina de estados comece desligada.
-    mSceneManagerState = SceneManagerState::None;
+    //mSceneManagerState = SceneManagerState::None;
 
     return true;
 }
@@ -161,8 +161,22 @@ void Game::ChangeScene()
     // Reset scene manager state
     mSpatialHashing = new SpatialHashing(TILE_SIZE * 4.0f, LEVEL_WIDTH * TILE_SIZE, LEVEL_HEIGHT * TILE_SIZE);
 
+    mSceneManagerState = SceneManagerState::FadeIn;
+
     // Scene Manager FSM: using if/else instead of switch
-    if (mNextScene == GameScene::MainMenu)
+    if (mNextScene == GameScene::Intro) {
+        // Cor de fundo preta
+        mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
+
+        // Crie uma tela de UI para a intro
+        auto introScreen = new UIScreen(this, "../Assets/Fonts/SMB.ttf");
+
+        introScreen->AddImage("../Assets/Sprites/Intro.png", Vector2(50.0f, 0.0f), Vector2(512.0f, 420.0f));
+
+        // Timer para transição automática (ex: 2 segundos)
+        mSceneManagerTimer = TRANSITION_TIME;
+    }
+    else if (mNextScene == GameScene::MainMenu)
     {
         // Set background color
         mBackgroundColor.Set(107.0f, 140.0f, 255.0f);
@@ -234,11 +248,10 @@ void Game::LoadMainMenu()
 
     SetBackgroundImage("../Assets/Sprites/MarioBG.png", Vector2(0,5), Vector2(1280/2.0,892/2.0));
     mainMenu->AddImage("../Assets/Sprites/Logo.png", titlePos, titleSize);
-    auto button1 = mainMenu->AddButton("1 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 264.0f), Vector2(200.0f, 40.0f),
+
+    mainMenu->AddButton("1 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 264.0f), Vector2(200.0f, 40.0f),
     [this]() { SetGameScene(GameScene::Level1);});
-
-
-    auto button2 = mainMenu->AddButton("2 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 314.0f), Vector2(200.0f, 40.0f),
+    mainMenu->AddButton("2 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 314.0f), Vector2(200.0f, 40.0f),
                                            nullptr);
 
 
@@ -523,11 +536,21 @@ void Game::UpdateGame()
 
     UpdateSceneManager(deltaTime);
 
-    if (mGameScene != GameScene::MainMenu && mGamePlayState == GamePlayState::Playing)
+    if (mGameScene != GameScene::Intro && mGameScene != GameScene::MainMenu && mGamePlayState == GamePlayState::Playing)
         UpdateLevelTime(deltaTime);
 }
 
 void Game::UpdateSceneManager(float deltaTime) {
+    if (mGameScene == GameScene::Intro) {
+        mSceneManagerTimer -= deltaTime;
+        if (mSceneManagerTimer <= 0) {
+            mNextScene = GameScene::MainMenu;
+            ChangeScene();
+            mSceneManagerState = SceneManagerState::FadeOut;
+        }
+        return;
+    }
+
     if (SceneManagerState::Entering == mSceneManagerState) {
         mSceneManagerTimer-=deltaTime;
         if (mSceneManagerTimer <= 0) {
@@ -542,20 +565,20 @@ void Game::UpdateSceneManager(float deltaTime) {
     }
 
     if (SceneManagerState::FadeOut == mSceneManagerState) {
-            mSceneManagerTimer-=deltaTime;
-            if (mSceneManagerTimer <= 0) {
-                mSceneManagerTimer = TRANSITION_TIME;
-                ChangeScene();
-                mSceneManagerState = SceneManagerState::FadeIn;
-            }
-        }
-        else if (SceneManagerState::FadeIn == mSceneManagerState) {
-            mSceneManagerTimer-=deltaTime;
-            if (mSceneManagerTimer <= 0) {
-                mSceneManagerState = SceneManagerState::None;
-            }
+        mSceneManagerTimer-=deltaTime;
+        if (mSceneManagerTimer <= 0) {
+            mSceneManagerTimer = TRANSITION_TIME;
+            ChangeScene();
+            mSceneManagerState = SceneManagerState::FadeIn;
         }
     }
+    else if (SceneManagerState::FadeIn == mSceneManagerState) {
+        mSceneManagerTimer-=deltaTime;
+        if (mSceneManagerTimer <= 0) {
+            mSceneManagerState = SceneManagerState::None;
+        }
+    }
+}
 
 
 void Game::UpdateLevelTime(float deltaTime)
