@@ -9,13 +9,6 @@
 HUD::HUD(class Game* game, const std::string& fontName)
     :UIScreen(game, fontName)
 {
-    // --------------
-    // TODO - PARTE 3
-    // --------------
-
-    // TODO 1.: Adicione um texto com a string "Time" no canto superior direito da tela, como no jogo orginal. Note que
-    //  a classe HUD tem constantes WORD_HEIGHT, WORD_OFFSET, CHAR_WIDTH, POINT_SIZE e HUD_POS_Y que podem ser usadas
-    //  para posicionar e definir o tamanho do texto.
     const float timeTextPosX = mGame->GetWindowWidth() - WORD_OFFSET - (4 * CHAR_WIDTH);
     const float timeTextPosY = HUD_POS_Y;
     const float timeWidth = 4 * CHAR_WIDTH;
@@ -24,10 +17,6 @@ HUD::HUD(class Game* game, const std::string& fontName)
 
     AddText("Time", Vector2(timeTextPosX, timeTextPosY),timeDimensions,POINT_SIZE);
 
-
-
-    // TODO 2.: Adicione um texto com a string "400" (400 segundos) logo abaixo do texto "Time".
-    //  Guarde o ponteiro do texto em um membro chamado mTimeText.
     const float secondsTextPosX = mGame->GetWindowWidth() - WORD_OFFSET - (3 * CHAR_WIDTH);;
     const float secondsTextPosY = HUD_POS_Y * 2.0 + WORD_HEIGHT;
     const float secondsWidth = 3 * CHAR_WIDTH;
@@ -36,8 +25,6 @@ HUD::HUD(class Game* game, const std::string& fontName)
 
     mTimeText = AddText("400", Vector2(secondsTextPosX, secondsTextPosY),secondsDimensions,POINT_SIZE);
 
-
-    // TODO 3.: Adicione um texto com a string "World" à esquerda do texto "Time", como no jogo original.
     const float worldWidth = 5 * CHAR_WIDTH;
     const float worldHeight = WORD_HEIGHT;
     float worldTextPosX = timeTextPosX - worldWidth - WORD_OFFSET;
@@ -46,7 +33,6 @@ HUD::HUD(class Game* game, const std::string& fontName)
 
     AddText("World", Vector2(worldTextPosX, worldTextPosY),worldDimensions,POINT_SIZE);
 
-    // TODO 4.: Adicione um texto com a string "1-1" logo abaixo do texto "World".
     const float one_one_Width = 3 * CHAR_WIDTH;
     const float one_one_Height = WORD_HEIGHT;
     float one_one_TextPosX = worldTextPosX;
@@ -55,8 +41,6 @@ HUD::HUD(class Game* game, const std::string& fontName)
 
     mLevelName = AddText("1-1", Vector2(one_one_TextPosX, one_one_TextPosY),one_one_Dimensions,POINT_SIZE);
 
-
-    // TODO 5.: Adicione um texto com a string "Mario" no canto superior esquerdo da tela, como no jogo original.
     const float mario_Width = 5 * CHAR_WIDTH;
     const float mario_Height = WORD_HEIGHT;
     float mario_TextPosX = WORD_OFFSET;
@@ -65,7 +49,6 @@ HUD::HUD(class Game* game, const std::string& fontName)
 
     AddText("Mario", Vector2(mario_TextPosX, mario_TextPosY),mario_Dimensions,POINT_SIZE);
 
-    // TODO 6.: Adicione um texto com a string "000000" logo abaixo do texto "Mario".
     const float points_Width = 6 * CHAR_WIDTH;
     const float points_Height = WORD_HEIGHT;
     float points_TextPosX = WORD_OFFSET;
@@ -73,8 +56,6 @@ HUD::HUD(class Game* game, const std::string& fontName)
     Vector2 points_Dimensions(points_Width, points_Height);
 
     mScoreCounter = AddText("000000", Vector2(points_TextPosX, points_TextPosY),points_Dimensions,POINT_SIZE);
-
-    //TODO CUSTOMIZAÇÃO.: Adicione o contador de moedas.
 
     const float coinsWidth = 3 * CHAR_WIDTH;
     const float coinsHeight = WORD_HEIGHT;
@@ -97,18 +78,9 @@ HUD::~HUD()
 
 void HUD::SetTime(int time)
 {
-    // --------------
-    // TODO - PARTE 3
-    // --------------
-
-    // TODO 1.: Utilize o método SetText() do mTimeText para atualizar o texto com o tempo restante. Lembre-se que
-    //  o tempo é um inteiro que representa os segundos restantes, e deve ser convertido para string.
     std::string timeStr = std::to_string(time);
     mTimeText->SetText(timeStr);
 
-    // TODO 2.: A posição e o tamanho do texto irão mudar dependendo do número de dígitos na variável time.
-    //  Ajuste a posição e o tamanho do mTimeText de acordo com o número de dígitos, de tal forma que
-    //  o texto fique alinhado à direita com o texto "Time" e o tamanho do texto seja proporcional ao número de dígitos.
     int numDigits = timeStr.length();
     float newWidth = numDigits * CHAR_WIDTH;
     Vector2 newSize(newWidth, WORD_HEIGHT);
@@ -125,11 +97,6 @@ void HUD::SetTime(int time)
 
 void HUD::SetLevelName(const std::string &levelName)
 {
-    // --------------
-    // TODO - PARTE 3
-    // --------------
-
-    // TODO 1.: Utilize o método SetText() do mLevelName para atualizar o texto com o nome do nível.
     mLevelName->SetText(levelName);
 }
 

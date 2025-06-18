@@ -10,12 +10,6 @@ UIImage::UIImage(SDL_Renderer * renderer, const std::string &imagePath, const Ve
     mRenderer(renderer),
     mIsVisible(true)
 {
-    // --------------
-    // TODO - PARTE 1-3
-    // --------------
-
-    // TODO 1.: Replique o código do método LoadTexture da classe Game, mas desta vez carregue a imagem
-    //  a partir do caminho imagePath passado como parâmetro. Arma zene o resultado em mTexture.
     SDL_Surface* surface = IMG_Load(imagePath.c_str());
 
     if (!surface) {
@@ -44,22 +38,14 @@ UIImage::~UIImage()
 
 void UIImage::Draw(SDL_Renderer* renderer, const Vector2 &screenPos)
 {
-    // --------------
-    // TODO - PARTE 1-3
-    // --------------
-
-    // TODO 1.: Verifique se mTexture é nula. Se for, retorne imediatamente.
     if (!mTexture || !mIsVisible) {
         return;
     }
 
-    // TODO 2.: Crie um SDL_Rect para definir a posição e o tamanho da imagem na tela. A posição deve ser
-    //  relativa ao screenPos passado como parâmetro, ou seja, some screenPos com mPosition.
     SDL_Rect src = {static_cast<int>(screenPos.x + mPosition.x),
                          static_cast<int>(screenPos.y + mPosition.y),
                          static_cast<int>(mSize.x),
                          static_cast<int>(mSize.y)};
 
-    // TODO 3.: Desenhe a textura mTexture no renderer usando SDL_RenderCopy.
     SDL_RenderCopyEx(renderer,mTexture,NULL,&src,0.0,NULL,SDL_FLIP_NONE);
 }
