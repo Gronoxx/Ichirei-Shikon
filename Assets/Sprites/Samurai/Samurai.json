@@ -1,0 +1,62 @@
+{
+  "animations": {
+    "attack": {
+      "texturePath": "/Users/gustavo/CLionProjects/TPFINAL/Assets/Sprites/Samurai/Attack/ATTACK.png",
+      "dataPath": "/Users/gustavo/CLionProjects/TPFINAL/Assets/Sprites/Samurai/Attack/ATTACK.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "fps": 18.0
+    },
+    "idle": {
+      "texturePath": "/Users/gustavo/CLionProjects/TPFINAL/Assets/Sprites/Samurai/Idle/IDLE.png",
+      "dataPath": "/Users/gustavo/CLionProjects/TPFINAL/Assets/Sprites/Samurai/Idle/IDLE.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "fps": 10.0
+    },
+    "run": {
+      "texturePath": "/Users/gustavo/CLionProjects/TPFINAL/Assets/Sprites/Samurai/Run/RUN.png",
+      "dataPath": "/Users/gustavo/CLionProjects/TPFINAL/Assets/Sprites/Samurai/Run/RUN.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "fps": 22.0
+    }
+  },
+  "renderOffset": {
+    "x": 30.0,
+    "y": 49.0
+  }
+}

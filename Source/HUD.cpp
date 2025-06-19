@@ -109,7 +109,6 @@ void HUD::SetCoins()
 
 void HUD::SetScore()
 {
-    SDL_Log("HUD::SetScore()");
     int score = mGame->GetScore();
     std::stringstream ss;
     ss << std::setw(6) << std::setfill('0') << score;

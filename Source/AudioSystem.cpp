@@ -234,7 +234,7 @@ void AudioSystem::CacheSound(const std::string& soundName)
 //       "Assets/Sounds/ChompLoop.wav".
 Mix_Chunk* AudioSystem::GetSound(const std::string& soundName)
 {
-	std::string fileName = "../Assets/Sounds/";
+	std::string fileName = "Assets/Sounds/";
 	fileName += soundName;
 
 	Mix_Chunk* chunk = nullptr;

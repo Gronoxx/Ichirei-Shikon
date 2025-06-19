@@ -21,28 +21,28 @@ Goomba::Goomba(Game* game, float forwardSpeed, float deathTime)
                                                    Game::TILE_SIZE, Game::TILE_SIZE,
                                                    ColliderLayer::Enemy);
 
-    mDrawComponent = new DrawAnimatedComponent(this,
-                                                  "../Assets/Sprites/Goomba/Goomba.png",
-                                                  "../Assets/Sprites/Goomba/Goomba.json");
-
-    mDrawComponent->AddAnimation("Dead", {0});
-    mDrawComponent->AddAnimation("Idle", {1});
-    mDrawComponent->AddAnimation("walk", {1, 2});
-    mDrawComponent->SetAnimation("walk");
-    mDrawComponent->SetAnimFPS(5.0f);
+    // mDrawComponent = new DrawAnimatedComponent(this,
+    //                                               "../Assets/Sprites/Goomba/Goomba.png",
+    //                                               "../Assets/Sprites/Goomba/Goomba.json");
+    //
+    // mDrawComponent->AddAnimation("Dead", {0});
+    // mDrawComponent->AddAnimation("Idle", {1});
+    // mDrawComponent->AddAnimation("walk", {1, 2});
+    // mDrawComponent->SetAnimation("walk");
+    // mDrawComponent->SetAnimFPS(5.0f);
 }
 
 void Goomba::Kill()
 {
     mIsDying = true;
-    mDrawComponent->SetAnimation("Dead");
+    // mDrawComponent->SetAnimation("Dead");
     mRigidBodyComponent->SetEnabled(false);
     mColliderComponent->SetEnabled(false);
 }
 
 void Goomba::BumpKill(const float bumpForce)
 {
-    mDrawComponent->SetAnimation("Idle");
+    // mDrawComponent->SetAnimation("Idle");
 
     mRigidBodyComponent->SetVelocity(Vector2(bumpForce/2.0f, -bumpForce));
     mColliderComponent->SetEnabled(false);

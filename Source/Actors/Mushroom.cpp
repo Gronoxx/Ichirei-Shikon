@@ -16,7 +16,7 @@ Mushroom::Mushroom(Game* game,Vector2 position, int marioXVelocity):
     mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE - 4.0f,Game::TILE_SIZE,
                                                    ColliderLayer::Mushroom);
     mColliderComponent->SetEnabled(false);
-    mDrawComponent = new DrawSpriteComponent(this, "../Assets/Sprites/Collectables/Mushroom.png", 32, 32);
+    mDrawComponent = new DrawSpriteComponent(this, "Assets/Sprites/Collectables/Mushroom.png", 32, 32);
     mGame->GetAudio()->PlaySound("Mushroom.wav");
     marioXVelocity >= 0 ? mForwardSpeed = 100.0f : mForwardSpeed = -100.0f;
     mMushroomState = MushroomState::Emerging;
