@@ -29,6 +29,7 @@
 #include "Components/DrawComponents/DrawPolygonComponent.h"
 #include "Components/ColliderComponents/AABBColliderComponent.h"
 
+
 Game::Game(int windowWidth, int windowHeight)
         :mWindow(nullptr)
         ,mRenderer(nullptr)
@@ -169,9 +170,9 @@ void Game::ChangeScene()
         mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
 
         // Crie uma tela de UI para a intro
-        auto introScreen = new UIScreen(this, "../Assets/Fonts/SMB.ttf");
+        auto introScreen = new UIScreen(this, "Assets/Fonts/SMB.ttf");
 
-        introScreen->AddImage("../Assets/Sprites/Intro.png", Vector2(50.0f, 0.0f), Vector2(512.0f, 420.0f));
+        introScreen->AddImage("Assets/Sprites/Intro.png", Vector2(50.0f, 0.0f), Vector2(512.0f, 420.0f));
 
         // Timer para transição automática (ex: 2 segundos)
         mSceneManagerTimer = TRANSITION_TIME;
@@ -181,14 +182,12 @@ void Game::ChangeScene()
         // Set background color
         mBackgroundColor.Set(107.0f, 140.0f, 255.0f);
 
-        // Set background color
-
         // Initialize main menu actors
         LoadMainMenu();
     }
     else if (mNextScene == GameScene::Level1)
     {
-        mHUD = new HUD(this, "../Assets/Fonts/SMB.ttf");
+        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf");
 
         mGameTimeLimit = 400;
         mHUD->SetTime(mGameTimeLimit);
@@ -200,24 +199,24 @@ void Game::ChangeScene()
         mBackgroundColor.Set(107.0f, 140.0f, 255.0f);
 
         // Set background color
-        SetBackgroundImage("../Assets/Sprites/Background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
+        SetBackgroundImage("Assets/Sprites/Background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
 
         // Draw Flag
         auto flag = new Actor(this);
         flag->SetPosition(Vector2(LEVEL_WIDTH * TILE_SIZE - (16 * TILE_SIZE) - 16, 3 * TILE_SIZE));
 
         // Add a flag sprite
-        new DrawSpriteComponent(flag, "../Assets/Sprites/Background_Flag.png", 32.0f, 32.0f, 1);
+        new DrawSpriteComponent(flag, "Assets/Sprites/Background_Flag.png", 32.0f, 32.0f, 1);
 
         // Add a flag pole taking the entire height
         new AABBColliderComponent(flag, 30, 0, 4, TILE_SIZE * LEVEL_HEIGHT, ColliderLayer::Pole, true);
 
         // Initialize actors
-        LoadLevel("../Assets/Levels/level1-1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+        LoadLevel("Assets/Levels/level1-1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
     }
     else if (mNextScene == GameScene::Level2)
     {
-        mHUD = new HUD(this, "../Assets/Fonts/SMB.ttf");
+        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf");
 
         mGameTimeLimit = 400;
         mHUD->SetTime(mGameTimeLimit);
@@ -232,7 +231,7 @@ void Game::ChangeScene()
         mModColor.Set(0.0f, 255.0f, 200.0f);
 
         // Initialize actors
-        LoadLevel("../Assets/Levels/level1-2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+        LoadLevel("Assets/Levels/level1-2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
     }
 
     // Set new scene
@@ -242,12 +241,12 @@ void Game::ChangeScene()
 
 void Game::LoadMainMenu()
 {
-    auto mainMenu = new UIScreen(this, "../Assets/Fonts/SMB.ttf");
+    auto mainMenu = new UIScreen(this, "Assets/Fonts/SMB.ttf");
     const Vector2 titleSize = Vector2(178.0f, 88.0f) * 2.0f;
     const Vector2 titlePos = Vector2(mWindowWidth/2.0f - titleSize.x/2.0f, 64.0f);
 
-    SetBackgroundImage("../Assets/Sprites/MarioBG.png", Vector2(0,5), Vector2(1280/2.0,892/2.0));
-    mainMenu->AddImage("../Assets/Sprites/Logo.png", titlePos, titleSize);
+    SetBackgroundImage("Assets/Sprites/MarioBG.png", Vector2(0,5), Vector2(1280/2.0,892/2.0));
+    mainMenu->AddImage("Assets/Sprites/Logo.png", titlePos, titleSize);
 
     mainMenu->AddButton("1 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 264.0f), Vector2(200.0f, 40.0f),
     [this]() { SetGameScene(GameScene::Level1);});
@@ -276,14 +275,14 @@ void Game::BuildLevel(int** levelData, int width, int height)
 
     // Const map to convert tile ID to block type
     const std::map<int, const std::string> tileMap = {
-            {0, "../Assets/Sprites/Blocks/BlockA.png"},
-            {1, "../Assets/Sprites/Blocks/BlockC.png"},
-            {2, "../Assets/Sprites/Blocks/BlockF.png"},
-            {4, "../Assets/Sprites/Blocks/BlockB.png"},
-            {6, "../Assets/Sprites/Blocks/BlockI.png"},
-            {8, "../Assets/Sprites/Blocks/BlockD.png"},
-            {9, "../Assets/Sprites/Blocks/BlockH.png"},
-            {12, "../Assets/Sprites/Blocks/BlockG.png"}
+            {0, "Assets/Sprites/Blocks/BlockA.png"},
+            {1, "Assets/Sprites/Blocks/BlockC.png"},
+            {2, "Assets/Sprites/Blocks/BlockF.png"},
+            {4, "Assets/Sprites/Blocks/BlockB.png"},
+            {6, "Assets/Sprites/Blocks/BlockI.png"},
+            {8, "Assets/Sprites/Blocks/BlockD.png"},
+            {9, "Assets/Sprites/Blocks/BlockH.png"},
+            {12, "Assets/Sprites/Blocks/BlockG.png"}
     };
 
     for (int y = 0; y < LEVEL_HEIGHT; ++y)
@@ -303,15 +302,15 @@ void Game::BuildLevel(int** levelData, int width, int height)
                 spawner->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
             else if (tile == 1) { // Special Block With One Coin
-                Block* block = new Block(this, "../Assets/Sprites/Blocks/BlockC.png", 1);
+                Block* block = new Block(this, "Assets/Sprites/Blocks/BlockC.png", 1);
                 block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
             else if (tile == 14) { //Special Block With One Mushroom
-                Block* block = new Block(this, "../Assets/Sprites/Blocks/BlockC.png", 0,true,true);
+                Block* block = new Block(this, "Assets/Sprites/Blocks/BlockC.png", 0,true,true);
                 block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
             else if (tile == 30) {
-                Block* block = new Block(this, "../Assets/Sprites/Blocks/BlockB.png", 10);
+                Block* block = new Block(this, "Assets/Sprites/Blocks/BlockB.png", 10);
                 block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
             else // Blocks
@@ -869,18 +868,3 @@ void Game::Shutdown()
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
 }
-
-// void Game::AddDrawable(class DrawComponent *drawable)
-// {
-//     mDrawables.emplace_back(drawable);
-//
-//     std::sort(mDrawables.begin(), mDrawables.end(),[](DrawComponent* a, DrawComponent* b) {
-//         return a->GetDrawOrder() < b->GetDrawOrder();
-//     });
-// }
-
-// void Game::RemoveDrawable(class DrawComponent *drawable)
-// {
-//     auto iter = std::find(mDrawables.begin(), mDrawables.end(), drawable);
-//     mDrawables.erase(iter);
-// }

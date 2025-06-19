@@ -49,7 +49,7 @@ void UIButton::Draw(SDL_Renderer *renderer, const Vector2 &screenPos)
         if (mIcon == nullptr){
             Vector2 dims (24.0f,24.0f);
             Vector2 pos (screenPos.x + mPosition.x - dims.x - iconPadding, screenPos.y + mPosition.y);
-            mIcon = mMainMenu->AddImage("../Assets/Sprites/Collectables/HUDMushroom.png", pos, dims);
+            mIcon = mMainMenu->AddImage("Assets/Sprites/Collectables/HUDMushroom.png", pos, dims);
         }
         else if (mIcon->GetVisible() == false) {
             mIcon->SetVisible(true);
