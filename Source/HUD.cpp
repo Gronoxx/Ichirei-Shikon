@@ -67,7 +67,7 @@ HUD::HUD(class Game* game, const std::string& fontName)
     const float coinsImageWidth = 1 * CHAR_WIDTH;
     const float coinsImageHeight = WORD_HEIGHT;
     Vector2 coinsImageDimensions(coinsImageWidth, coinsImageHeight);
-    mCoinImage = AddImage("../Assets/Sprites/CoinHUD.png",Vector2(coinsTextPosX - coinsImageDimensions.x, coinsTextPosY), coinsImageDimensions);
+    mCoinImage = AddImage("/Assets/Sprites/CoinHUD.png",Vector2(coinsTextPosX - coinsImageDimensions.x, coinsTextPosY), coinsImageDimensions);
 
 }
 
@@ -109,7 +109,6 @@ void HUD::SetCoins()
 
 void HUD::SetScore()
 {
-    SDL_Log("HUD::SetScore()");
     int score = mGame->GetScore();
     std::stringstream ss;
     ss << std::setw(6) << std::setfill('0') << score;

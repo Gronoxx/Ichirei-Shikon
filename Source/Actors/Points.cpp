@@ -15,7 +15,7 @@ Points::Points(Game* game, Vector2 position)
     SetPosition(position);
 
     mDrawComponent = new DrawSpriteComponent(this,
-    "../Assets/Sprites/Collectables/200Points.png",
+    "Assets/Sprites/Collectables/200Points.png",
     16,8);
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 0.0f, false);
     SetScale(1.6f);

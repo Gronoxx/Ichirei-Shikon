@@ -16,11 +16,11 @@ Coin::Coin(Game* game, Vector2 position)
     SetPosition(position);
     mOriginalPosition = GetPosition();
 
-    mDrawComponent = new DrawAnimatedComponent(this,
-    "../Assets/Sprites/Collectables/Coin.png",
-    "../Assets/Sprites/Collectables/Coin.json");
-    mDrawComponent->AddAnimation("Flip", {0,1,2,3});
-    mDrawComponent->SetAnimFPS(10.0f);
+    // mDrawComponent = new DrawAnimatedComponent(this,
+    // "../Assets/Sprites/Collectables/Coin.png",
+    // "../Assets/Sprites/Collectables/Coin.json");
+    // mDrawComponent->AddAnimation("Flip", {0,1,2,3});
+    // mDrawComponent->SetAnimFPS(10.0f);
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 0.0f, true);
     SetScale(1.6f);
     mGame->GetAudio()->PlaySound("Coin.wav");

@@ -20,17 +20,24 @@ public:
     void Kill() override;
     void Win(AABBColliderComponent *poleCollider);
 
+    void LoadAnimationsFromFile(const std::string& filePath);
+
 private:
     static const int POLE_SLIDE_TIME = 1; // Time in seconds to slide down the pole
+    const float ATTACK_TIME = 0.5f;
+
+
 
     void ManageAnimations();
 
     float mForwardSpeed;
     float mJumpSpeed;
     float mPoleSlideTimer;
+    float mAttackTimer;
     bool mIsRunning;
     bool mIsOnPole;
     bool mIsDying;
+    bool mIsAttacking;
 
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;

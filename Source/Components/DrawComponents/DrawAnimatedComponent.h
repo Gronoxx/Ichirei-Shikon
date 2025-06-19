@@ -1,71 +1,56 @@
-//
-// Created by Lucas N. Ferreira on 28/09/23.
-//
-
 #pragma once
-
 #include "DrawSpriteComponent.h"
-#include <unordered_map>
+#include <string>
+#include <vector>
+#include <map>
 
-class DrawAnimatedComponent : public DrawSpriteComponent {
+class DrawAnimatedComponent : public DrawSpriteComponent
+{
 public:
-    // (Lower draw order corresponds with further back)
-    //New Constructor
-    DrawAnimatedComponent(class Actor* owner, const std::string &spriteSheetPath, const std::string &spriteSheetData, const std::string animName,const std::vector<int>& images, int drawOrder = 100);
-    //Old Version (Legacy)
-    DrawAnimatedComponent(class Actor* owner,
-                          const std::string& spriteSheetPath,
-                          const std::string& spriteSheetData,
-                          int drawOrder = 100);
-    ~DrawAnimatedComponent() override;
+    // Construtor simplificado
+    DrawAnimatedComponent(class Actor* owner, int drawOrder = 100);
+    DrawAnimatedComponent(Actor* owner,
+                                             const std::string& defaultTexturePath,
+                                             const std::string& defaultDataPath,
+                                             const std::string animName,
+                                             const std::vector<int>& images,
+                                             int drawOrder);
+    ~DrawAnimatedComponent();
 
-    void Draw(SDL_Renderer* renderer, const Vector3 &modColor = Color::White) override;
+    // Sobrescreve Draw e Update
+    void Draw(SDL_Renderer* renderer, const Vector3& modColor = Color::White) override;
     void Update(float deltaTime) override;
+    
+    void LoadCharacterAnimations(const std::string& characterJsonPath);
 
-    // Use to change the FPS of the animation
-    void SetAnimFPS(float fps) { mAnimFPS = fps; }
-
-    // Set the current active animation
+    // Funções de controle
     void SetAnimation(const std::string& name);
-
-    // Use to pause/unpause the animation
-    void SetIsPaused(bool pause) { mIsPaused = pause; }
-
-    // Add an animation of the corresponding name to the animation map
-    void AddAnimation(const std::string& name, const std::vector<int>& images);
-
-    // Offsets
-    std::vector<Vector2> NormalizeOffsets(const std::vector<Vector2>& originalOffsets);
-    void AddAnimationOffsets(const std::string& animName, const std::vector<Vector2>& offsets);
-    void LoadSpriteSheetForAnimation(const std::string& animName, const std::string& texturePath, const std::string& dataPath);
+    const std::string& GetAnimation() const { return mCurrentAnimationName; }
+    void SetIsPaused(bool paused) { mIsPaused = paused; }
+    void SetRenderOffset(const Vector2& offset) { mRenderOffset = offset; }
 
 private:
+    // Carrega a textura e os dados do spritesheet para UMA animação.
+    void LoadSpriteSheetForAnimation(const std::string& animName, const std::string& texturePath, const std::string& dataPath);
 
-    // Mapa animação -> textura (spritesheet)
-    std::unordered_map<std::string, SDL_Texture*> mSpriteSheetTextures;
+    // Armazena a ordem dos frames para cada animação. Ex: "run" -> {0, 1, 2, 3...}
+    std::map<std::string, std::vector<int>> mAnimationFrames;
 
-    // Mapa animação -> Datas (SDL_Rect)
-    std::unordered_map<std::string, std::vector<SDL_Rect *>> mSpriteSheetDatas;
+    // Armazena o FPS para cada animação. Ex: "run" -> 24.0
+    std::map<std::string, float> mAnimationFPS;
 
-    // Mapa animação -> sequência de índices dos frames (ordem da animação)
-    std::unordered_map<std::string, std::vector<int>> mAnimations;
+    // Armazena as texturas de cada animação (um spritesheet por animação).
+    std::map<std::string, SDL_Texture*> mSpriteSheetTextures;
 
-    // Name of current animation
-    std::string mAnimName;
+    // Armazena os retângulos de cada frame de cada spritesheet.
+    std::map<std::string, std::vector<SDL_Rect*>> mSpriteSheetData;
 
-    // Tracks current elapsed time in animation
-    float mAnimTimer = 0.0f;
-
-    // The frames per second the animation should run at
-    float mAnimFPS = 10.0f;
-
-    // Whether or not the animation is paused (defaults to false)
-    bool mIsPaused = false;
+    // Estado da animação atual
+    std::string mCurrentAnimationName;
+    float mCurrentFrame;
+    bool mIsPaused;
 
     //Offsets
-    std::unordered_map<std::string, std::vector<Vector2>> mAnimFrameOffsets;
+    Vector2 mRenderOffset;
 
-    //Legacy
-    bool mIsSingleSheet = false; // Flag para indicar o modo de operação
-    const std::string SINGLE_SHEET_KEY = "default_sheet"; // Chave interna para a folha única
 };

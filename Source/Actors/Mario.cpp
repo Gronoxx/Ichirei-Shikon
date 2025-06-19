@@ -7,6 +7,9 @@
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
+#include "../Json.h"
+#include <fstream>
+#include <string>
 
 Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
         : Actor(game)
@@ -21,72 +24,14 @@ Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
     mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE - 4.0f,Game::TILE_SIZE,
                                                    ColliderLayer::Player);
 
-    mDrawComponent = new DrawAnimatedComponent(this,
-                                              "../Assets/Sprites/Samurai/Idle/texture.png",
-                                              "../Assets/Sprites/Samurai/Idle/texture.json",
-                                              "idle",
-                                              {0,2,3,4,5,6,7,8,9,1}
-                                              );
+    mDrawComponent = new DrawAnimatedComponent(this, 150);
 
-        std::vector<Vector2> idleOffsets = {
-        Vector2(8, 34), //IDLE1
-        Vector2(10, 34), //IDLE10
-        Vector2(8, 33), //IDLE2
-        Vector2(8, 33), //IDLE3
-        Vector2(8, 33), //IDLE4
-        Vector2(9, 33), //IDLE5
-        Vector2(10, 33), //IDLE6
-        Vector2(10, 33),//IDLE7
-        Vector2(10, 33), //IDLE8
-        Vector2(10, 33) //IDLE9
-    };
+    mDrawComponent->LoadCharacterAnimations("Assets/Sprites/Samurai/Samurai.json");
 
-    mDrawComponent->AddAnimationOffsets("idle",idleOffsets);
-    mDrawComponent->SetAnimFPS(14.0f);
+    // Define a animação inicial
+    mDrawComponent->SetAnimation("idle");
+    SetScale(1.25);
 
-    mDrawComponent -> LoadSpriteSheetForAnimation("run",
-    "../Assets/Sprites/Samurai/Run/texture.png",
-    "../Assets/Sprites/Samurai/Run/texture.json");
-
-    std::vector<Vector2> runOffsets = {
-        Vector2(25, 4), // Run3.png
-        Vector2(20, 5), // Run14.png
-        Vector2(24, 4), // Run4.png
-        Vector2(19, 6), // Run15.png
-        Vector2(23, 5), // Run5.png
-        Vector2(23, 5), // Run12.png
-        Vector2(18, 5), // Run16.png
-        Vector2(25, 4), // Run2.png
-        Vector2(22, 5), // Run6.png
-        Vector2(21, 4), // Run13.png
-        Vector2(21, 4), // Run1.png
-        Vector2(22, 5), // Run10.png
-        Vector2(22, 5), // Run7.png
-        Vector2(23, 6), // Run8.png
-        Vector2(22, 4), // Run9.png
-        Vector2(22, 5), // Run11.png
-    };
-
-    mDrawComponent->AddAnimation("run", {
-    2, // Run3.png
-    13, // Run14.png
-    3, // Run4.png
-    14, // Run15.png
-    4, // Run5.png
-    11, // Run12.png
-    15, // Run16.png
-    1, // Run2.png
-    5, // Run6.png
-    12, // Run13.png
-    0, // Run1.png
-    9, // Run10.png
-    6, // Run7.png
-    7, // Run8.png
-    8, // Run9.png
-    10, // Run11.png
-});
-
-    mDrawComponent->AddAnimationOffsets("run",runOffsets);
 }
 
 void Mario::OnProcessInput(const uint8_t* state)
@@ -129,6 +74,10 @@ void Mario::OnHandleKeyPress(const int key, const bool isPressed)
         // TODO 1.: Toque o som "Jump.wav" quando Mario pular.
         mGame->GetAudio()->PlaySound("Jump.wav");
     }
+    else if (key == SDLK_e && isPressed && !mIsAttacking) {
+        mIsAttacking = true;
+        mAttackTimer = ATTACK_TIME;
+    }
 }
 
 void Mario::OnUpdate(float deltaTime)
@@ -146,6 +95,17 @@ void Mario::OnUpdate(float deltaTime)
     if (mGame->GetGamePlayState() == Game::GamePlayState::Playing && mPosition.y > mGame->GetWindowHeight())
     {
         Kill();
+    }
+
+    if (!mIsRunning && mIsOnGround) {
+        mRigidBodyComponent->SetVelocity(Vector2::Zero);
+    }
+
+    if (mIsAttacking) {
+        mAttackTimer -= deltaTime;
+        if (mAttackTimer <= 0.0f) {
+            mIsAttacking = false;
+        }
     }
 
     if (mIsOnPole)
@@ -194,6 +154,10 @@ void Mario::ManageAnimations()
     {
         mDrawComponent->SetAnimation("Dead");
     }
+    else if (mIsAttacking)
+    {
+        mDrawComponent->SetAnimation("attack");
+    }
     else if(mIsOnPole)
     {
         mDrawComponent->SetAnimation("win");
@@ -206,10 +170,7 @@ void Mario::ManageAnimations()
     {
         mDrawComponent->SetAnimation("idle");
     }
-    else if (!mIsOnGround)
-    {
-        mDrawComponent->SetAnimation("jump");
-    }
+
 }
 
 void Mario::Kill()

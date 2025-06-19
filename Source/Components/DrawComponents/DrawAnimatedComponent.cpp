@@ -1,165 +1,161 @@
-// DrawAnimatedComponent.cpp
 #include "DrawAnimatedComponent.h"
 #include "../../Actors/Actor.h"
 #include "../../Game.h"
-#include "../../Json.h"
+#include "../../Json.h" // nlohmann::json
 #include <fstream>
 #include <iostream>
 
-DrawAnimatedComponent::DrawAnimatedComponent(Actor* owner,
-                                             const std::string& defaultTexturePath,
-                                             const std::string& defaultDataPath,
-                                             const std::string animName,
-                                             const std::vector<int>& images,
-                                             int drawOrder)
-    : DrawSpriteComponent(owner, defaultTexturePath, 0, 0, drawOrder),
-      mAnimName(animName)
+// Construtor simplificado. Não faz quase nada.
+DrawAnimatedComponent::DrawAnimatedComponent(Actor* owner, int drawOrder)
+    : DrawSpriteComponent(owner, "", 0, 0, drawOrder),
+      mCurrentFrame(0.0f),
+      mIsPaused(false),
+      mRenderOffset(0.0f, 0.0f)
 {
-    LoadSpriteSheetForAnimation(animName, defaultTexturePath, defaultDataPath);
-    AddAnimation(animName,images);
-    SetAnimFPS(14.0f);
-    SetAnimation(animName);
-}
-
-//Legacy
-DrawAnimatedComponent::DrawAnimatedComponent(Actor* owner,
-                                             const std::string& spriteSheetPath,
-                                             const std::string& spriteSheetData,
-                                             int drawOrder)
-    : DrawSpriteComponent(owner, spriteSheetPath, 0, 0, drawOrder),
-      mIsSingleSheet(true) // Ativa o modo de folha única
-{
-    // Carrega a textura e os dados usando a chave interna padrão
-    LoadSpriteSheetForAnimation(SINGLE_SHEET_KEY, spriteSheetPath, spriteSheetData);
-
-    // Define um FPS padrão, pode ser ajustado depois
-    SetAnimFPS(14.0f);
-
-    // Nenhuma animação é definida por padrão, precisa ser adicionada e definida manualmente
-    mAnimName = "";
-    mAnimTimer = 0.0f;
 }
 
 DrawAnimatedComponent::~DrawAnimatedComponent()
 {
-    for (auto& [_, frames] : mSpriteSheetDatas) {
-        for (auto rect : frames) {
+    // Limpa os retângulos alocados dinamicamente
+    for (auto& pair : mSpriteSheetData) {
+        for (auto rect : pair.second) {
             delete rect;
         }
     }
-
-    // Destrói texturas carregadas
-    for (auto& [animName, texture] : mSpriteSheetTextures) {
-        if (texture) {
-            SDL_DestroyTexture(texture);
-        }
-    }
-
-
-    mSpriteSheetTextures.clear();
+    // As texturas são gerenciadas pelo Game::mTextures, não precisa destruir aqui
+    // se você seguir o padrão do livro. Se não, descomente:
+    // for (auto& pair : mSpriteSheetTextures) {
+    //     SDL_DestroyTexture(pair.second);
+    // }
 }
 
-void DrawAnimatedComponent::LoadSpriteSheetForAnimation(const std::string& animName,
-                                                        const std::string& texturePath,
-                                                        const std::string& dataPath)
+// A NOVA FUNÇÃO PRINCIPAL
+void DrawAnimatedComponent::LoadCharacterAnimations(const std::string& characterJsonPath)
 {
-    //Desaloca se estiver sobreescrevendo
-    auto it = mSpriteSheetDatas.find(animName);
-    if (it != mSpriteSheetDatas.end()) {
-        for (auto rect : it->second) {
-            delete rect;
-        }
-    }
-
-    SDL_Texture* texture = mOwner->GetGame()->LoadTexture(texturePath);
-    if (!texture) {
-        SDL_Log("Erro ao carregar textura: %s", texturePath.c_str());
+    std::ifstream file(characterJsonPath);
+    if (!file.is_open()) {
+        SDL_Log("ERRO: Não foi possível abrir o manifesto de animação: %s", characterJsonPath.c_str());
         return;
     }
-    mSpriteSheetTextures[animName] = texture;
 
-    // Load sprite sheet data
-    std::ifstream spriteSheetFile(dataPath);
-    nlohmann::json spriteSheetData = nlohmann::json::parse(spriteSheetFile);
+    // 1. Parseia o arquivo JSON inteiro
+    nlohmann::json data = nlohmann::json::parse(file);
 
-    SDL_Rect* rect = nullptr;
-    std::vector<SDL_Rect *> SpriteSheetData;
-
-    for(const auto& frame : spriteSheetData["frames"]) {
-
-        int x = frame["frame"]["x"].get<int>();
-        int y = frame["frame"]["y"].get<int>();
-        int w = frame["frame"]["w"].get<int>();
-        int h = frame["frame"]["h"].get<int>();
-        rect = new SDL_Rect({x, y, w, h});
-
-        SpriteSheetData.emplace_back(rect);
+    // 2. Carrega o offset de renderização global, se existir
+    if (data.contains("renderOffset"))
+    {
+        Vector2 offset(
+            data["renderOffset"]["x"].get<float>(),
+            data["renderOffset"]["y"].get<float>()
+        );
+        // Chama a função private ou atribui diretamente ao membro
+        SetRenderOffset(offset);
+        SDL_Log("Render offset loaded: (%.2f, %.2f)", mRenderOffset.x, mRenderOffset.y);
     }
-    mSpriteSheetDatas[animName] = SpriteSheetData;
+    else
+    {
+        SDL_Log("AVISO: 'renderOffset' não encontrado no manifesto %s", characterJsonPath.c_str());
+    }
+
+    // 3. Carrega o bloco de animações, se existir
+    if (data.contains("animations"))
+    {
+        const auto& animations = data["animations"];
+        for (auto& [animName, animData] : animations.items()) {
+            std::string texturePath = animData["texturePath"];
+            std::string dataPath = animData["dataPath"];
+            float fps = animData["fps"];
+            std::vector<int> frameOrder = animData["frameOrder"];
+
+            LoadSpriteSheetForAnimation(animName, texturePath, dataPath);
+            mAnimationFrames[animName] = frameOrder;
+            mAnimationFPS[animName] = fps;
+
+            SDL_Log("Animação '%s' carregada com %zu frames e FPS %.1f", animName.c_str(), frameOrder.size(), fps);
+        }
+    }
+}
+
+// Função auxiliar para carregar um único spritesheet
+void DrawAnimatedComponent::LoadSpriteSheetForAnimation(const std::string& animName, const std::string& texturePath, const std::string& dataPath)
+{
+    // Carrega a textura
+    mSpriteSheetTextures[animName] = mOwner->GetGame()->LoadTexture(texturePath);
+
+    // Carrega os dados do JSON do spritesheet
+    std::ifstream file(dataPath);
+    nlohmann::json sheetData = nlohmann::json::parse(file);
+
+    std::vector<SDL_Rect*> frames;
+    for (const auto& frame : sheetData["frames"]) {
+        frames.push_back(new SDL_Rect{
+            frame["frame"]["x"].get<int>(),
+            frame["frame"]["y"].get<int>(),
+            frame["frame"]["w"].get<int>(),
+            frame["frame"]["h"].get<int>()
+        });
+    }
+    mSpriteSheetData[animName] = frames;
+}
+
+
+void DrawAnimatedComponent::Update(float deltaTime)
+{
+    if (mIsPaused || mCurrentAnimationName.empty()) {
+        return;
+    }
+
+    // Acha os dados da animação atual
+    auto animIt = mAnimationFrames.find(mCurrentAnimationName);
+    if (animIt == mAnimationFrames.end()) {
+        return; // Animação não encontrada, não faz nada
+    }
+
+    // Pega o FPS para a animação atual
+    float fps = mAnimationFPS.at(mCurrentAnimationName);
+
+    // Atualiza o contador de frame
+    mCurrentFrame += fps * deltaTime;
+
+    // Faz o loop da animação
+    int frameCount = static_cast<int>(animIt->second.size());
+    if (frameCount > 0) {
+        while (mCurrentFrame >= frameCount) {
+            mCurrentFrame -= frameCount;
+        }
+    }
 }
 
 void DrawAnimatedComponent::Draw(SDL_Renderer* renderer, const Vector3& modColor)
 {
-    auto animIt = mAnimations.find(mAnimName);
-    if (animIt == mAnimations.end()) {
-        // Animação atual não existe
+    if (mCurrentAnimationName.empty()) {
         return;
     }
 
-    const auto& frameOrder = animIt->second;
-    if (frameOrder.empty()) {
+    // Acha os dados da animação atual
+    auto& frameOrder = mAnimationFrames.at(mCurrentAnimationName);
+    auto& sheetFrames = mSpriteSheetData.at(mCurrentAnimationName);
+    auto& texture = mSpriteSheetTextures.at(mCurrentAnimationName);
+
+    if (frameOrder.empty() || !texture) {
         return;
     }
 
-    int currentFrame = static_cast<int>(mAnimTimer);
-    if (currentFrame >= (int)frameOrder.size()) {
-        currentFrame = (int)frameOrder.size() - 1;
-    }
+    // Pega o índice do frame atual na ordem da animação
+    int frameIdx = static_cast<int>(mCurrentFrame);
+    int spriteIdx = frameOrder[frameIdx];
 
-    int spriteIdx = frameOrder[currentFrame];
-
-    //Legacy
-    std::string sheetKey = mIsSingleSheet ? SINGLE_SHEET_KEY : mAnimName;
-
-    auto texIt = mSpriteSheetTextures.find(sheetKey);
-    auto framesIt = mSpriteSheetDatas.find(sheetKey);
-
-    if (texIt == mSpriteSheetTextures.end() || framesIt == mSpriteSheetDatas.end()) {
-        SDL_Log("Erro: textura ou frames ausentes para a chave de folha '%s'", sheetKey.c_str());
-        return;
-    }
-
-    SDL_Texture* texture = texIt->second;
-    const auto& frames = framesIt->second;
-
-    if (spriteIdx < 0 || spriteIdx >= (int)frames.size()) {
-        return; // índice inválido
-    }
-
-    const SDL_Rect* srcRect = frames[spriteIdx];
-
-    Vector2 currentOffset(0, 0);
-    auto offsetIt = mAnimFrameOffsets.find(mAnimName);
-    if (offsetIt != mAnimFrameOffsets.end()) {
-        const std::vector<Vector2>& offsets = offsetIt->second;
-        if (spriteIdx >= 0 && spriteIdx < (int)offsets.size()) {
-            currentOffset = offsets[spriteIdx];
-        }
-    }
+    const SDL_Rect* srcRect = sheetFrames[spriteIdx];
 
     float scale = mOwner->GetScale();
-
     SDL_Rect dstRect = {
-        static_cast<int>(mOwner->GetPosition().x - mOwner->GetGame()->GetCameraPos().x - currentOffset.x * scale),
-        static_cast<int>(mOwner->GetPosition().y - mOwner->GetGame()->GetCameraPos().y - currentOffset.y * scale),
+        static_cast<int>(mOwner->GetPosition().x - mOwner->GetGame()->GetCameraPos().x - (mRenderOffset.x * scale) - (Game::TILE_SIZE * scale - Game::TILE_SIZE)),
+        static_cast<int>(mOwner->GetPosition().y - mOwner->GetGame()->GetCameraPos().y - (mRenderOffset.y * scale) - (Game::TILE_SIZE * scale - Game::TILE_SIZE)),
         static_cast<int>(srcRect->w * scale),
         static_cast<int>(srcRect->h * scale)
     };
 
-    SDL_RendererFlip flip = SDL_FLIP_NONE;
-    if (mOwner->GetRotation() == Math::Pi) {
-        flip = SDL_FLIP_HORIZONTAL;
-    }
+    SDL_RendererFlip flip = (mOwner->GetRotation() == Math::Pi) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     SDL_SetTextureColorMod(texture,
@@ -167,64 +163,20 @@ void DrawAnimatedComponent::Draw(SDL_Renderer* renderer, const Vector3& modColor
                            static_cast<Uint8>(modColor.y),
                            static_cast<Uint8>(modColor.z));
 
-    SDL_RenderCopyEx(renderer, texture, srcRect, &dstRect, mOwner->GetRotation(), nullptr, flip);
-}
-
-void DrawAnimatedComponent::Update(float deltaTime)
-{
-    if (mIsPaused) {
-        return;
-    }
-
-    mAnimTimer += mAnimFPS * deltaTime;
-
-    auto animIt = mAnimations.find(mAnimName);
-    if (animIt == mAnimations.end()) {
-        return;
-    }
-
-    int frameCount = static_cast<int>(animIt->second.size());
-    if (frameCount > 0) {
-        mAnimTimer = fmodf(mAnimTimer, static_cast<float>(frameCount));
-    }
+    SDL_RenderCopyEx(renderer, texture, srcRect, &dstRect, 0.0, nullptr, flip); // Rotação é tratada pelo flip
 }
 
 void DrawAnimatedComponent::SetAnimation(const std::string& name)
 {
-    if (mAnimName == name) return; // evita resetar animação igual
-    if (mAnimations.find(name) == mAnimations.end()) {
-        SDL_Log("Aviso: animação '%s' não encontrada!", name.c_str());
+    // Verifica se a animação existe
+    if (mAnimationFrames.find(name) == mAnimationFrames.end()) {
+        SDL_Log("AVISO: Tentativa de definir animação inexistente: '%s'", name.c_str());
         return;
     }
 
-    mAnimName = name;
-    mAnimTimer = 0.0f; // reseta o timer da animação
-}
-
-void DrawAnimatedComponent::AddAnimation(const std::string& name, const std::vector<int>& spriteNums)
-{
-    if (mAnimations.find(name) != mAnimations.end()) {
-        SDL_Log("Aviso: animação '%s' já existente. Substituindo.", name.c_str());
+    // Se não for a mesma, reseta o timer
+    if (mCurrentAnimationName != name) {
+        mCurrentAnimationName = name;
+        mCurrentFrame = 0.0f;
     }
-    mAnimations[name] = spriteNums;
-}
-
-void DrawAnimatedComponent::AddAnimationOffsets(const std::string& animName, const std::vector<Vector2>& offsets)
-{
-    mAnimFrameOffsets[animName] = NormalizeOffsets(offsets);
-}
-
-std::vector<Vector2> DrawAnimatedComponent::NormalizeOffsets(const std::vector<Vector2>& originalOffsets)
-{
-    std::vector<Vector2> normalizedOffsets;
-    if (originalOffsets.empty()) {
-        return normalizedOffsets;
-    }
-
-    Vector2 reference = originalOffsets[0];
-
-    for (const Vector2& offset : originalOffsets) {
-        normalizedOffsets.push_back(offset - reference);
-    }
-    return normalizedOffsets;
 }

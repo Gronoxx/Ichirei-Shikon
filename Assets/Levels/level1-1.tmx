@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="215" height="15" tilewidth="32" tileheight="32" infinite="0" nextlayerid="2" nextobjectid="1">
  <editorsettings>
-  <export target="../../../../tp3-smb-solution/Assets/Levels/Level1-1/level1-1.csv" format="csv"/>
+  <export target="d../../../../tp3-smb-solution/Assets/Levels/Level1-1/level1-1.csv" format="csv"/>
  </editorsettings>
  <tileset firstgid="1" source="level1-1.tsx"/>
  <layer id="1" name="Tile Layer 1" width="215" height="15">

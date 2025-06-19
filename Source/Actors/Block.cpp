@@ -24,7 +24,7 @@ Block::Block(Game* game, const std::string &texturePath,int numberOfCoins, const
 
 void Block::OnBump()
 {
-    if (mDrawSpriteComponent->GetTexturePath() == "../Assets/Sprites/Blocks/BlockE.png") {
+    if (mDrawSpriteComponent->GetTexturePath() == "Assets/Sprites/Blocks/BlockE.png") {
      return ;
     }
 
@@ -34,8 +34,8 @@ void Block::OnBump()
     }
 
     //change Block
-    if (mDrawSpriteComponent->GetTexturePath() == "../Assets/Sprites/Blocks/BlockC.png") {
-        ChangeBlockTexture("../Assets/Sprites/Blocks/BlockE.png");
+    if (mDrawSpriteComponent->GetTexturePath() == "Assets/Sprites/Blocks/BlockC.png") {
+        ChangeBlockTexture("Assets/Sprites/Blocks/BlockE.png");
     }
     if (mNumberOfCoins > 0) {
         new Coin(mGame,mPosition+ Vector2(Game::TILE_SIZE/2.0 - COIN_WIDTH/2.0,-24));
