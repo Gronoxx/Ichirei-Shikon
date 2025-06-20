@@ -47,12 +47,24 @@ public:
     Vector2 GetCenter() const;
     ColliderLayer GetLayer() const { return mLayer; }
 
+    //Animations
+    using AnimationAction = std::function<void(AABBColliderComponent*)>;
+    void AddAnimationAction(const std::string& animName, AnimationAction action);
+    void OnAnimationChange(const std::string& newAnimName);
+
+    //Tornar propriedades dinâmicas
+    void SetOffset(const Vector2& offset) { mOffset = offset; }
+    void SetSize(int width, int height) { mWidth = width; mHeight = height; }
+    void SetLayer(ColliderLayer layer) { mLayer = layer; }
+
 private:
     float GetMinVerticalOverlap(AABBColliderComponent* b) const;
     float GetMinHorizontalOverlap(AABBColliderComponent* b) const;
 
     void ResolveHorizontalCollisions(RigidBodyComponent *rigidBody, const float minOverlap);
     void ResolveVerticalCollisions(RigidBodyComponent *rigidBody, const float minOverlap);
+    std::unordered_map<std::string, AnimationAction> mAnimationActions;
+
 
     Vector2 mOffset;
     int mWidth;

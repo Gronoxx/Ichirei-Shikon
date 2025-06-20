@@ -1,0 +1,26 @@
+{
+  "renderOffset": {
+    "x": 0.0,
+    "y": 0.0
+  },
+  "animations": {
+    "walk": {
+      "texturePath": "Assets/Sprites/Goomba/Goomba.png",
+      "dataPath": "Assets/Sprites/Goomba/Goomba.json",
+      "fps": 5.0,
+      "frameOrder": [ 1, 2 ]
+    },
+    "Idle": {
+      "texturePath": "Assets/Sprites/Goomba/Goomba.png",
+      "dataPath": "Assets/Sprites/Goomba/Goomba.json",
+      "fps": 1.0,
+      "frameOrder": [ 1 ]
+    },
+    "Dead": {
+      "texturePath": "Assets/Sprites/Goomba/Goomba.png",
+      "dataPath": "Assets/Sprites/Goomba/Goomba.json",
+      "fps": 1.0,
+      "frameOrder": [ 0 ]
+    }
+  }
+}
