@@ -112,32 +112,28 @@ bool Game::Initialize()
     mTicksCount = SDL_GetTicks();
 
     // Init all game actors
-    mNextScene = GameScene::Intro;
-    ChangeScene();
-
-    // Garanta que a máquina de estados comece desligada.
-    //mSceneManagerState = SceneManagerState::None;
+    mNextScene = GameScene::Intro;       // Define qual cena carregar
+    ChangeScene();                       // Carrega os recursos da Intro
+    mSceneManagerTimer = TRANSITION_TIME;// Define a DURAÇÃO da animação de fade-in
+    mSceneManagerState = SceneManagerState::FadeIn; // Inicia no estado de FADE-IN
 
     return true;
 }
 
 void Game::SetGameScene(Game::GameScene scene, float transitionTime)
 {
-    if (mSceneManagerState == SceneManagerState::None) {
-        if (scene == GameScene::MainMenu || scene == GameScene::Level1 || scene == GameScene::Level2) {
-            mSceneManagerState = SceneManagerState::Entering;
-            mNextScene = scene;
-            mSceneManagerTimer = transitionTime;
-        }
-        else {
-            SDL_Log("Invalid scene state");
-            return;
-        }
-    }
-    else {
-        SDL_Log("Invalid SceneManager Busy");
+    // Se uma transição já estiver em andamento, não faça nada.
+    if (mSceneManagerState != SceneManagerState::None)
+    {
+        SDL_Log("SceneManager is busy. Transition to a new scene was ignored.");
         return;
     }
+
+    // Se o código chegou até aqui, 'scene' é um valor válido do enum GameScene.
+    mSceneManagerState = SceneManagerState::Entering;
+    mNextScene = scene;
+    mSceneManagerTimer = transitionTime;
+
 }
 
 void Game::ResetGameScene(float transitionTime)
@@ -164,19 +160,78 @@ void Game::ChangeScene()
 
     mSceneManagerState = SceneManagerState::FadeIn;
 
-    // Scene Manager FSM: using if/else instead of switch
-    if (mNextScene == GameScene::Intro) {
-        // Cor de fundo preta
-        mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
+    // Em Game::ChangeScene()
 
-        // Crie uma tela de UI para a intro
-        auto introScreen = new UIScreen(this, "Assets/Fonts/SMB.ttf");
+    // Em Game::ChangeScene()
 
-        introScreen->AddImage("Assets/Sprites/Intro.png", Vector2(50.0f, 0.0f), Vector2(512.0f, 420.0f));
+// Em Game::ChangeScene()
 
-        // Timer para transição automática (ex: 2 segundos)
-        mSceneManagerTimer = TRANSITION_TIME;
-    }
+// Em Game::ChangeScene()
+
+// Em Game::ChangeScene()
+
+// Em Game::ChangeScene()
+
+if (mNextScene == GameScene::Intro) {
+    mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
+
+    auto introScreen = new UIScreen(this, "Assets/Fonts/SMB.ttf");
+
+    // --- POSICIONAMENTO DA IMAGEM (Inalterado) ---
+    const float originalWidth = 512.0f;
+    const float originalHeight = 420.0f;
+    const float aspectRatio = originalWidth / originalHeight;
+    Vector2 newImageSize;
+    newImageSize.y = mWindowHeight * (2.0f / 3.0f);
+    newImageSize.x = newImageSize.y * aspectRatio;
+    Vector2 newImagePos;
+    newImagePos.x = (mWindowWidth - newImageSize.x) / 2.0f;
+    newImagePos.y = mWindowHeight - newImageSize.y;
+    introScreen->AddImage("Assets/Sprites/Intro.png", newImagePos, newImageSize, Vector3(255, 255, 255));
+
+    // --- POSICIONAMENTO DOS TEXTOS (com proporção ajustada) ---
+
+    // 1. Definir a área superior
+    const float textAreaHeight = mWindowHeight / 3.0f;
+    const float textAreaCenterY = textAreaHeight / 2.0f;
+
+    // 2. Parâmetros para o texto principal (sabemos que funciona)
+    const int mainTextPointSize = 48;
+    const float mainTextRenderedHeight = mainTextPointSize / 3.0f; // 16px
+    const float mainTextCharWidth = mainTextRenderedHeight * 0.8f;
+    const float mainTextBoxHeight = mainTextRenderedHeight * 1.2f;
+
+    std::string mainTextStr = "Nao Grita Game Studios";
+    float mainTextWidth = mainTextStr.length() * mainTextCharWidth;
+
+    Vector2 mainTextDims(mainTextWidth, mainTextBoxHeight);
+    Vector2 mainTextPos;
+    mainTextPos.x = (mWindowWidth - mainTextWidth) / 2.0f;
+    mainTextPos.y = textAreaCenterY - mainTextBoxHeight * 1.2f; // Espaçamento vertical
+
+    introScreen->AddText(mainTextStr, mainTextPos, mainTextDims, mainTextPointSize, 0);
+
+    // 3. Parâmetros para o subtexto ("presents") - CORRIGIDO
+    // Usando proporção 2:1 para garantir um tamanho renderizável.
+    const int subTextPointSize = mainTextPointSize / 2; // 48 / 2 = 24
+    const float subTextRenderedHeight = subTextPointSize / 3.0f; // 8px, um tamanho muito mais seguro
+    const float subTextCharWidth = subTextRenderedHeight * 0.8f;
+    const float subTextBoxHeight = subTextRenderedHeight * 1.2f;
+
+    std::string subTextStr = "presents";
+    float subTextWidth = subTextStr.length() * subTextCharWidth;
+
+    Vector2 subTextDims(subTextWidth, subTextBoxHeight);
+    Vector2 subTextPos;
+    subTextPos.x = (mWindowWidth - subTextWidth) / 2.0f;
+    subTextPos.y = textAreaCenterY + (mainTextBoxHeight * 0.2f); // Posiciona abaixo do texto principal
+
+    introScreen->AddText(subTextStr, subTextPos, subTextDims, subTextPointSize, 0);
+
+    // --- FIM DO POSICIONAMENTO DOS TEXTOS ---
+
+    mAudio->PlaySound("Intro.mp3", 0);
+}
     else if (mNextScene == GameScene::MainMenu)
     {
         // Set background color
@@ -540,41 +595,42 @@ void Game::UpdateGame()
 }
 
 void Game::UpdateSceneManager(float deltaTime) {
-    if (mGameScene == GameScene::Intro) {
+    // FSM de Transição
+    if (SceneManagerState::Entering == mSceneManagerState) {
+        // O estado 'Entering' serve como um pequeno buffer antes do FadeOut.
         mSceneManagerTimer -= deltaTime;
         if (mSceneManagerTimer <= 0) {
-            mNextScene = GameScene::MainMenu;
-            ChangeScene();
-            mSceneManagerState = SceneManagerState::FadeOut;
-        }
-        return;
-    }
-
-    if (SceneManagerState::Entering == mSceneManagerState) {
-        mSceneManagerTimer-=deltaTime;
-        if (mSceneManagerTimer <= 0) {
             mSceneManagerTimer = TRANSITION_TIME;
             mSceneManagerState = SceneManagerState::FadeOut;
         }
     }
-
-    if (mNextScene == GameScene::MainMenu && mGameScene != GameScene::MainMenu) {
-        ChangeScene();
-        mSceneManagerState = SceneManagerState::None;
-    }
-
-    if (SceneManagerState::FadeOut == mSceneManagerState) {
-        mSceneManagerTimer-=deltaTime;
+    else if (SceneManagerState::FadeOut == mSceneManagerState) {
+        mSceneManagerTimer -= deltaTime;
         if (mSceneManagerTimer <= 0) {
-            mSceneManagerTimer = TRANSITION_TIME;
-            ChangeScene();
+            ChangeScene(); // Troca de cena no ponto mais escuro
+            mSceneManagerTimer = TRANSITION_TIME; // Prepara timer para o FadeIn
             mSceneManagerState = SceneManagerState::FadeIn;
         }
     }
     else if (SceneManagerState::FadeIn == mSceneManagerState) {
-        mSceneManagerTimer-=deltaTime;
+        mSceneManagerTimer -= deltaTime;
         if (mSceneManagerTimer <= 0) {
-            mSceneManagerState = SceneManagerState::None;
+            mSceneManagerState = SceneManagerState::None; // Transição terminou
+            if (mGameScene == GameScene::Intro) {
+                mSceneManagerTimer = INTRO_TIME;
+            } else {
+                mSceneManagerTimer = 0.0f; // Zera para outras cenas
+            }
+        }
+    }
+
+    // Lógica Específica da Cena (só executa quando não há transição)
+    if (mSceneManagerState == SceneManagerState::None) {
+        if (mGameScene == GameScene::Intro) {
+            mSceneManagerTimer -= deltaTime;
+            if (mSceneManagerTimer <= 0) {
+                SetGameScene(GameScene::MainMenu);
+            }
         }
     }
 }
@@ -727,15 +783,17 @@ void Game::GenerateOutput()
     }
 
     if (SceneManagerState::FadeOut == mSceneManagerState){
-        float alphaOut =  (1 - mSceneManagerTimer);
+        float alpha = (TRANSITION_TIME - mSceneManagerTimer) / TRANSITION_TIME;
+        alpha = std::clamp(alpha, 0.0f, 1.0f); // Usar std::clamp é mais moderno
         SDL_SetRenderDrawBlendMode(mRenderer, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255 * alphaOut);
+        SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, static_cast<Uint8>(255 * alpha));
         SDL_RenderFillRect(mRenderer, nullptr);
     }
     else if (SceneManagerState::FadeIn == mSceneManagerState) {
-        float alphaIn = 1 - (1 - mSceneManagerTimer);
+        float alpha = mSceneManagerTimer / TRANSITION_TIME;
+        alpha = std::clamp(alpha, 0.0f, 1.0f);
         SDL_SetRenderDrawBlendMode(mRenderer, SDL_BLENDMODE_BLEND);
-        SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255 * alphaIn);
+        SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, static_cast<Uint8>(255 * alpha));
         SDL_RenderFillRect(mRenderer, nullptr);
     }
 

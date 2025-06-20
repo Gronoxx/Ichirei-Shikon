@@ -21,6 +21,7 @@ public:
     static const int TILE_SIZE = 32;
     static const int SPAWN_DISTANCE = 700;
     static const int TRANSITION_TIME = 1;
+    static const int INTRO_TIME = 2;
 
     enum class GameScene
     {
