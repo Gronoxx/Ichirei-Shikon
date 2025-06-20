@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 
+
 // Construtor simplificado. Não faz quase nada.
 DrawAnimatedComponent::DrawAnimatedComponent(Actor* owner, int drawOrder)
     : DrawSpriteComponent(owner, "", 0, 0, drawOrder),
@@ -180,3 +181,9 @@ void DrawAnimatedComponent::SetAnimation(const std::string& name)
         mCurrentFrame = 0.0f;
     }
 }
+
+
+
+
+
+

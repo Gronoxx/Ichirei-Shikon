@@ -1,19 +1,20 @@
-//
-// Created by Lucas N. Ferreira on 30/09/23.
-//
+// Goomba.cpp
 
 #include "Goomba.h"
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
-#include "../Components/DrawComponents/DrawPolygonComponent.h"
-#include "../Random.h"
+#include "../Components/RigidBodyComponent.h"
+#include "../Components/ColliderComponents/AABBColliderComponent.h"
+#include "../Math.h" // Para Math::Pi
+#include "../Actors/Mario.h"
 
 Goomba::Goomba(Game* game, float forwardSpeed, float deathTime)
-        : Actor(game)
-        , mDyingTimer(deathTime)
-        , mIsDying(false)
-        , mForwardSpeed(forwardSpeed)
+    : Actor(game)
+    , mDyingTimer(deathTime)
+    , mIsDying(false)
+    , mForwardSpeed(forwardSpeed)
 {
+    // A ordem de criação dos componentes está correta
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f);
     mRigidBodyComponent->SetVelocity(Vector2(-mForwardSpeed, 0.0f));
 
@@ -21,36 +22,49 @@ Goomba::Goomba(Game* game, float forwardSpeed, float deathTime)
                                                    Game::TILE_SIZE, Game::TILE_SIZE,
                                                    ColliderLayer::Enemy);
 
-    // mDrawComponent = new DrawAnimatedComponent(this,
-    //                                               "../Assets/Sprites/Goomba/Goomba.png",
-    //                                               "../Assets/Sprites/Goomba/Goomba.json");
-    //
-    // mDrawComponent->AddAnimation("Dead", {0});
-    // mDrawComponent->AddAnimation("Idle", {1});
-    // mDrawComponent->AddAnimation("walk", {1, 2});
-    // mDrawComponent->SetAnimation("walk");
-    // mDrawComponent->SetAnimFPS(5.0f);
+    // --- CONEXÃO COM O NOVO MOTOR DE ANIMAÇÃO ---
+
+    // 1. Crie o componente usando o construtor vazio.
+    mDrawComponent = new DrawAnimatedComponent(this, 110); // Ordem de desenho 110
+
+    // 2. Carregue todas as animações a partir do manifesto do personagem.
+    mDrawComponent->LoadCharacterAnimations("Assets/Sprites/Goomba/Goomba_Anims.json");
+
+    // 3. Defina a animação inicial.
+    mDrawComponent->SetAnimation("walk");
+
+    // --- FIM DA CONEXÃO ---
 }
 
 void Goomba::Kill()
 {
     mIsDying = true;
-    // mDrawComponent->SetAnimation("Dead");
+
+    // Agora é simples: basta dizer o nome da animação a ser tocada.
+    if (mDrawComponent) {
+        mDrawComponent->SetAnimation("Dead");
+    }
+
     mRigidBodyComponent->SetEnabled(false);
     mColliderComponent->SetEnabled(false);
 }
 
 void Goomba::BumpKill(const float bumpForce)
 {
-    // mDrawComponent->SetAnimation("Idle");
+    // Define a animação para 'Idle' (o sprite de pé, mas estático)
+    if (mDrawComponent) {
+        mDrawComponent->SetAnimation("Idle");
+    }
 
-    mRigidBodyComponent->SetVelocity(Vector2(bumpForce/2.0f, -bumpForce));
+    mRigidBodyComponent->SetVelocity(Vector2(bumpForce / 2.0f, -bumpForce));
     mColliderComponent->SetEnabled(false);
 
-    // Flip upside down (180 degrees)
-    SetRotation(180);
+    // Vira o ator de cabeça para baixo
+    // Assumindo que a rotação em radianos é usada. Math::Pi = 180 graus.
+    SetRotation(Math::Pi);
 }
 
+// O resto do Goomba.cpp (OnUpdate, colisões, etc.) permanece o mesmo.
 void Goomba::OnUpdate(float deltaTime)
 {
     if (mIsDying)
@@ -61,7 +75,8 @@ void Goomba::OnUpdate(float deltaTime)
         }
     }
 
-    if (GetPosition().y > GetGame()->GetWindowHeight())
+    // Se o Goomba cair para fora do mundo (após um BumpKill, por exemplo)
+    if (GetPosition().y > GetGame()->GetWindowHeight() + 100)
     {
         mState = ActorState::Destroy;
     }
@@ -79,14 +94,24 @@ void Goomba::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
         }
     }
 
-    if (other->GetLayer() == ColliderLayer::Player) {
-        other->GetOwner()->Kill();
+    auto owner = other->GetOwner();
+    AABBColliderComponent* collider = owner->GetComponent<AABBColliderComponent>();
+    if (owner && collider->GetLayer() == ColliderLayer::Player) {
+        Mario* mario = dynamic_cast<Mario*>(owner);
+        if (mario->isPlayerAttacking()) {
+            Kill();
+        }
+        else{
+            mario->Kill();
+        }
     }
 }
 
 void Goomba::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)
 {
-    if (other->GetLayer() == ColliderLayer::Player) {
-        other->GetOwner()->Kill();
+    auto owner = other->GetOwner();
+    AABBColliderComponent* collider = owner->GetComponent<AABBColliderComponent>();
+    if (owner && collider->GetLayer() == ColliderLayer::Player) {
+        Kill();
     }
 }

@@ -145,3 +145,28 @@ void AABBColliderComponent::ResolveVerticalCollisions(RigidBodyComponent *rigidB
         mOwner->SetOnGround();
     }
 }
+
+
+void AABBColliderComponent::AddAnimationAction(const std::string& animName, AnimationAction action)
+{
+    if (mAnimationActions.count(animName)) {
+        SDL_Log("Aviso: Ação para a animação '%s' já existe. Substituindo.", animName.c_str());
+    }
+    mAnimationActions[animName] = action;
+}
+
+void AABBColliderComponent::OnAnimationChange(const std::string& newAnimName)
+{
+    // Procura por uma ação associada à nova animação
+    auto it = mAnimationActions.find(newAnimName);
+    if (it != mAnimationActions.end())
+    {
+        SDL_Log("Executando ação do colisor para a animação: %s", newAnimName.c_str());
+        it->second(this);
+    }
+    else
+    {
+        SDL_Log("Nenhuma ação de colisor encontrada para a animação: %s", newAnimName.c_str());
+    }
+}
+

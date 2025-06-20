@@ -160,24 +160,12 @@ void Game::ChangeScene()
 
     mSceneManagerState = SceneManagerState::FadeIn;
 
-    // Em Game::ChangeScene()
-
-    // Em Game::ChangeScene()
-
-// Em Game::ChangeScene()
-
-// Em Game::ChangeScene()
-
-// Em Game::ChangeScene()
-
-// Em Game::ChangeScene()
 
 if (mNextScene == GameScene::Intro) {
     mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
 
     auto introScreen = new UIScreen(this, "Assets/Fonts/SMB.ttf");
 
-    // --- POSICIONAMENTO DA IMAGEM (Inalterado) ---
     const float originalWidth = 512.0f;
     const float originalHeight = 420.0f;
     const float aspectRatio = originalWidth / originalHeight;
@@ -189,13 +177,10 @@ if (mNextScene == GameScene::Intro) {
     newImagePos.y = mWindowHeight - newImageSize.y;
     introScreen->AddImage("Assets/Sprites/Intro.png", newImagePos, newImageSize, Vector3(255, 255, 255));
 
-    // --- POSICIONAMENTO DOS TEXTOS (com proporção ajustada) ---
 
-    // 1. Definir a área superior
     const float textAreaHeight = mWindowHeight / 3.0f;
     const float textAreaCenterY = textAreaHeight / 2.0f;
 
-    // 2. Parâmetros para o texto principal (sabemos que funciona)
     const int mainTextPointSize = 48;
     const float mainTextRenderedHeight = mainTextPointSize / 3.0f; // 16px
     const float mainTextCharWidth = mainTextRenderedHeight * 0.8f;
@@ -211,8 +196,6 @@ if (mNextScene == GameScene::Intro) {
 
     introScreen->AddText(mainTextStr, mainTextPos, mainTextDims, mainTextPointSize, 0);
 
-    // 3. Parâmetros para o subtexto ("presents") - CORRIGIDO
-    // Usando proporção 2:1 para garantir um tamanho renderizável.
     const int subTextPointSize = mainTextPointSize / 2; // 48 / 2 = 24
     const float subTextRenderedHeight = subTextPointSize / 3.0f; // 8px, um tamanho muito mais seguro
     const float subTextCharWidth = subTextRenderedHeight * 0.8f;
@@ -228,7 +211,6 @@ if (mNextScene == GameScene::Intro) {
 
     introScreen->AddText(subTextStr, subTextPos, subTextDims, subTextPointSize, 0);
 
-    // --- FIM DO POSICIONAMENTO DOS TEXTOS ---
 
     mAudio->PlaySound("Intro.mp3", 0);
 }

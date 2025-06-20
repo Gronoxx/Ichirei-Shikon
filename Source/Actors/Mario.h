@@ -21,6 +21,7 @@ public:
     void Win(AABBColliderComponent *poleCollider);
 
     void LoadAnimationsFromFile(const std::string& filePath);
+    bool isPlayerAttacking() {return  mIsAttacking;};
 
 private:
     static const int POLE_SLIDE_TIME = 1; // Time in seconds to slide down the pole

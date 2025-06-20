@@ -32,6 +32,15 @@ Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
     mDrawComponent->SetAnimation("idle");
     SetScale(1.25);
 
+    //Defini colisor para animação
+    mColliderComponent->AddAnimationAction("attack", [](AABBColliderComponent* collider) {
+        // Durante o ataque com a espada, expandimos o colisor para a direita.
+        // O offset muda para alinhar o colisor com o corpo + espada.
+        collider->SetSize(64, 32); // Dobra a largura
+        collider->SetOffset(Vector2(0, 0));
+        collider->SetEnabled(true);
+    });
+
 }
 
 void Mario::OnProcessInput(const uint8_t* state)
@@ -157,6 +166,7 @@ void Mario::ManageAnimations()
     else if (mIsAttacking)
     {
         mDrawComponent->SetAnimation("attack");
+        mColliderComponent->OnAnimationChange("attack");
     }
     else if(mIsOnPole)
     {

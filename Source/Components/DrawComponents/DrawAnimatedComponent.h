@@ -29,6 +29,7 @@ public:
     void SetIsPaused(bool paused) { mIsPaused = paused; }
     void SetRenderOffset(const Vector2& offset) { mRenderOffset = offset; }
 
+
 private:
     // Carrega a textura e os dados do spritesheet para UMA animação.
     void LoadSpriteSheetForAnimation(const std::string& animName, const std::string& texturePath, const std::string& dataPath);
