@@ -3,12 +3,16 @@
 //
 
 #pragma once
+
 #include "../Component.h"
 #include "../../Math.h"
 #include "../RigidBodyComponent.h"
 #include <vector>
 #include <map>
 #include <set>
+#include <functional>
+#include <string>
+#include <unordered_map>
 
 enum class ColliderLayer
 {
