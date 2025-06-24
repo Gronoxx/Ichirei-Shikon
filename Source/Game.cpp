@@ -161,59 +161,54 @@ void Game::ChangeScene()
     mSceneManagerState = SceneManagerState::FadeIn;
 
 
-if (mNextScene == GameScene::Intro) {
-    mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
+    if (mNextScene == GameScene::Intro) {
+        mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
 
-    auto introScreen = new UIScreen(this, "Assets/Fonts/SMB.ttf");
+        auto introScreen = new UIScreen(this, "Assets/Fonts/SMB.ttf");
 
-    const float originalWidth = 512.0f;
-    const float originalHeight = 420.0f;
-    const float aspectRatio = originalWidth / originalHeight;
-    Vector2 newImageSize;
-    newImageSize.y = mWindowHeight * (2.0f / 3.0f);
-    newImageSize.x = newImageSize.y * aspectRatio;
-    Vector2 newImagePos;
-    newImagePos.x = (mWindowWidth - newImageSize.x) / 2.0f;
-    newImagePos.y = mWindowHeight - newImageSize.y;
-    introScreen->AddImage("Assets/Sprites/Intro.png", newImagePos, newImageSize, Vector3(255, 255, 255));
+        const float originalWidth = 512.0f;
+        const float originalHeight = 420.0f;
+        const float aspectRatio = originalWidth / originalHeight;
+        Vector2 newImageSize;
+        newImageSize.y = mWindowHeight * (2.0f / 3.0f);
+        newImageSize.x = newImageSize.y * aspectRatio;
+        Vector2 newImagePos;
+        newImagePos.x = (mWindowWidth - newImageSize.x) / 2.0f;
+        newImagePos.y = (mWindowHeight - newImageSize.y) / 2.0f;
+        introScreen->AddImage("Assets/Sprites/Intro.png", newImagePos, newImageSize, Vector3(255, 255, 255));
 
+        const int mainTextPointSize = 48;
+        const float mainTextRenderedHeight = mainTextPointSize / 3.0f; // 16px
+        const float mainTextCharWidth = mainTextRenderedHeight * 0.8f;
+        const float mainTextBoxHeight = mainTextRenderedHeight * 1.2f;
 
-    const float textAreaHeight = mWindowHeight / 3.0f;
-    const float textAreaCenterY = textAreaHeight / 2.0f;
+        std::string mainTextStr = "Nao Grita Game Studios";
+        float mainTextWidth = mainTextStr.length() * mainTextCharWidth;
 
-    const int mainTextPointSize = 48;
-    const float mainTextRenderedHeight = mainTextPointSize / 3.0f; // 16px
-    const float mainTextCharWidth = mainTextRenderedHeight * 0.8f;
-    const float mainTextBoxHeight = mainTextRenderedHeight * 1.2f;
+        Vector2 mainTextDims(mainTextWidth, mainTextBoxHeight);
+        Vector2 mainTextPos;
+        mainTextPos.x = (mWindowWidth - mainTextWidth) / 2.0f;
+        mainTextPos.y = newImagePos.y - mainTextBoxHeight - 24.0f; // 24px acima da imagem
 
-    std::string mainTextStr = "Nao Grita Game Studios";
-    float mainTextWidth = mainTextStr.length() * mainTextCharWidth;
+        introScreen->AddText(mainTextStr, mainTextPos, mainTextDims, mainTextPointSize, 0);
 
-    Vector2 mainTextDims(mainTextWidth, mainTextBoxHeight);
-    Vector2 mainTextPos;
-    mainTextPos.x = (mWindowWidth - mainTextWidth) / 2.0f;
-    mainTextPos.y = textAreaCenterY - mainTextBoxHeight * 1.2f; // Espaçamento vertical
+        const int subTextPointSize = mainTextPointSize;
+        const float subTextRenderedHeight = subTextPointSize / 3.0f;
+        const float subTextCharWidth = subTextRenderedHeight * 0.8f;
+        const float subTextBoxHeight = subTextRenderedHeight * 1.2f;
 
-    introScreen->AddText(mainTextStr, mainTextPos, mainTextDims, mainTextPointSize, 0);
+        std::string subTextStr = "presents";
+        float subTextWidth = subTextStr.length() * subTextCharWidth;
 
-    const int subTextPointSize = mainTextPointSize / 2; // 48 / 2 = 24
-    const float subTextRenderedHeight = subTextPointSize / 3.0f; // 8px, um tamanho muito mais seguro
-    const float subTextCharWidth = subTextRenderedHeight * 0.8f;
-    const float subTextBoxHeight = subTextRenderedHeight * 1.2f;
+        Vector2 subTextDims(subTextWidth, subTextBoxHeight);
+        Vector2 subTextPos;
+        subTextPos.x = (mWindowWidth - subTextWidth) / 2.0f;
+        subTextPos.y = newImagePos.y + newImageSize.y + 24.0f; // 24px abaixo da imagem
 
-    std::string subTextStr = "presents";
-    float subTextWidth = subTextStr.length() * subTextCharWidth;
+        introScreen->AddText(subTextStr, subTextPos, subTextDims, subTextPointSize, 0);
 
-    Vector2 subTextDims(subTextWidth, subTextBoxHeight);
-    Vector2 subTextPos;
-    subTextPos.x = (mWindowWidth - subTextWidth) / 2.0f;
-    subTextPos.y = textAreaCenterY + (mainTextBoxHeight * 0.2f); // Posiciona abaixo do texto principal
-
-    introScreen->AddText(subTextStr, subTextPos, subTextDims, subTextPointSize, 0);
-
-
-    mAudio->PlaySound("Intro.mp3", 0);
-}
+        mAudio->PlaySound("Intro.mp3", 0);
+    }
     else if (mNextScene == GameScene::MainMenu)
     {
         // Set background color
@@ -289,8 +284,6 @@ void Game::LoadMainMenu()
     [this]() { SetGameScene(GameScene::Level1);});
     mainMenu->AddButton("2 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 314.0f), Vector2(200.0f, 40.0f),
                                            nullptr);
-
-
 }
 
 void Game::LoadLevel(const std::string& levelName, const int levelWidth, const int levelHeight)
