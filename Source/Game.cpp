@@ -216,6 +216,8 @@ void Game::ChangeScene()
 
         // Initialize main menu actors
         LoadMainMenu();
+
+        mAudio->PlaySound("MainMenu_Goetia.mp3", true);
     }
     else if (mNextScene == GameScene::Level1)
     {
@@ -225,7 +227,8 @@ void Game::ChangeScene()
         mHUD->SetTime(mGameTimeLimit);
         mHUD->SetLevelName("1-1");
 
-        mMusicHandle = mAudio->PlaySound("MusicMain.ogg",true);
+        mAudio->StopAllSounds();
+        mMusicHandle = mAudio->PlaySound("Level1_NhacNhatBanHay.mp3",true);
 
         // Set background color
         mBackgroundColor.Set(107.0f, 140.0f, 255.0f);
@@ -277,13 +280,15 @@ void Game::LoadMainMenu()
     const Vector2 titleSize = Vector2(178.0f, 88.0f) * 2.0f;
     const Vector2 titlePos = Vector2(mWindowWidth/2.0f - titleSize.x/2.0f, 64.0f);
 
-    SetBackgroundImage("Assets/Sprites/MarioBG.png", Vector2(0,5), Vector2(1280/2.0,892/2.0));
-    mainMenu->AddImage("Assets/Sprites/Logo.png", titlePos, titleSize);
+    SetBackgroundImage("Assets/Sprites/MainMenu.png", Vector2(0,0), Vector2(mWindowWidth, mWindowHeight));
+    //mainMenu->AddImage("Assets/Sprites/Logo.png", titlePos, titleSize);
 
-    mainMenu->AddButton("1 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 264.0f), Vector2(200.0f, 40.0f),
+    mainMenu->AddButton("START GAME", Vector2(mWindowWidth/2.0f - 110.0f, 350.0f), Vector2(200.0f, 40.0f),
     [this]() { SetGameScene(GameScene::Level1);});
-    mainMenu->AddButton("2 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 314.0f), Vector2(200.0f, 40.0f),
-                                           nullptr);
+    //mainMenu->AddButton("2 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 314.0f), Vector2(200.0f, 40.0f),
+    //                                       nullptr);
+    mainMenu->AddButton("QUIT", Vector2(mWindowWidth/2.0f - 50.0f, 400.0f), Vector2(200.0f, 40.0f),
+        [this]() {mIsRunning = false;});
 }
 
 void Game::LoadLevel(const std::string& levelName, const int levelWidth, const int levelHeight)

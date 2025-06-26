@@ -40,28 +40,34 @@ UIButton::~UIButton()
 
 void UIButton::Draw(SDL_Renderer *renderer, const Vector2 &screenPos)
 {
+    // Defina o padding desejado
+    const int paddingX = 16;
+    const int paddingY = 8;
+
+    Vector2 textSize = mText.GetSize();
+    Vector2 rectSize = textSize + Vector2(paddingX * 2, paddingY * 2);
+
     SDL_Rect titleQuad = {static_cast<int>(screenPos.x + mPosition.x),
                           static_cast<int>(screenPos.y + mPosition.y),
-                          static_cast<int>(mSize.x),
-                          static_cast<int>(mSize.y)};
+                          static_cast<int>(rectSize.x),
+                          static_cast<int>(rectSize.y)};
 
     if (mHighlighted) {
-        if (mIcon == nullptr){
-            Vector2 dims (24.0f,24.0f);
-            Vector2 pos (screenPos.x + mPosition.x - dims.x - iconPadding, screenPos.y + mPosition.y);
-            mIcon = mMainMenu->AddImage("Assets/Sprites/Collectables/HUDMushroom.png", pos, dims);
-        }
-        else if (mIcon->GetVisible() == false) {
-            mIcon->SetVisible(true);
-        }
+        Uint32 ticks = SDL_GetTicks();
+        float phase = static_cast<float>((ticks % 1200)) / 1200.0f;
+        float alpha = std::sin(phase * 3.14159265f);
+        Uint8 a = static_cast<Uint8>(alpha * 255.0f);
+        SDL_SetRenderDrawColor(renderer, 51, 7, 5, a);
+    } else {
+        SDL_SetRenderDrawColor(renderer, static_cast<Uint8>(mColor.x * 255),
+                                           static_cast<Uint8>(mColor.y * 255),
+                                           static_cast<Uint8>(mColor.z * 255), 0);
     }
-    else {
-        if (mIcon != nullptr) {
-            mIcon->SetVisible(false);
-        }
-    }
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderFillRect(renderer, &titleQuad);
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 
-    Vector2 textPos = screenPos + mPosition + (mSize * 0.5) - (mText.GetSize() * 0.5);
+    Vector2 textPos = Vector2(titleQuad.x, titleQuad.y) + Vector2(paddingX, paddingY);
     mText.Draw(renderer, textPos);
 }
 
