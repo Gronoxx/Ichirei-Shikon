@@ -161,8 +161,15 @@ void DrawAnimatedComponent::Update(float deltaTime)
     // Faz o loop da animação
     int frameCount = static_cast<int>(animIt->second.size());
     if (frameCount > 0) {
-        while (mCurrentFrame >= frameCount) {
-            mCurrentFrame -= frameCount;
+        if (mShouldLoop) {
+            while (mCurrentFrame >= frameCount) {
+                mCurrentFrame -= frameCount;
+            }
+        } else {
+            if (mCurrentFrame >= frameCount) {
+                mCurrentFrame = static_cast<float>(frameCount); // Fixa além do último índice
+                mIsPaused = true; // Opcional: trava a animação
+            }
         }
     }
 }
@@ -240,6 +247,8 @@ void DrawAnimatedComponent::SetAnimation(const std::string& name)
         mCurrentAnimationName = name;
         mCurrentFrame = 0.0f;
     }
+
+    mIsPaused = false; // ✅ DESPAUSA a animação ao trocar
 }
 
 bool DrawAnimatedComponent::IsAnimationFinished() const

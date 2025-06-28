@@ -29,7 +29,7 @@ public:
     void SetIsPaused(bool paused) { mIsPaused = paused; }
     void SetRenderOffset(const Vector2& offset) { mRenderOffset = offset; }
     bool IsAnimationFinished() const;
-
+    void SetLoop(bool shouldLoop) { mShouldLoop = shouldLoop; }
 
 private:
     // Carrega a textura e os dados do spritesheet para UMA animação.
@@ -51,6 +51,7 @@ private:
     std::string mCurrentAnimationName;
     float mCurrentFrame;
     bool mIsPaused;
+    bool mShouldLoop = true;
 
     //Offsets
     Vector2 mRenderOffset;

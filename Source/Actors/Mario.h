@@ -40,6 +40,8 @@ private:
     bool mIsDying;
     bool mIsAttacking;
     bool mIsRolling;
+    bool mIsFalling;
+    bool mIsJumping;
 
 
     class RigidBodyComponent* mRigidBodyComponent;

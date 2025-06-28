@@ -61,7 +61,7 @@
         "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanafall/spr_fall_2.png",
         "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanafall/spr_fall_3.png"
       ],
-      "fps": 4.0
+      "fps": 8.0
     },
     "katanaidle": {
       "frames": [
@@ -95,7 +95,7 @@
         "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanajump/spr_jump_2.png",
         "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanajump/spr_jump_3.png"
       ],
-      "fps": 4.0
+      "fps": 8.0
     },
     "katanaroll": {
       "frames": [

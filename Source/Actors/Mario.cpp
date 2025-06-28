@@ -15,7 +15,11 @@ Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
         : Actor(game)
         , mIsRunning(false)
         , mIsOnPole(false)
-        , mIsDying(false)
+        ,mIsDying(false)
+        ,mIsRolling(false)
+        ,mIsJumping(false)
+        ,mIsFalling(false)
+        ,mIsAttacking(false)
         , mForwardSpeed(forwardSpeed)
         , mJumpSpeed(jumpSpeed)
         , mPoleSlideTimer(0.0f)
@@ -75,7 +79,7 @@ void Mario::OnHandleKeyPress(const int key, const bool isPressed)
     if ((key == SDLK_SPACE || key == SDLK_w || key == SDLK_UP) && isPressed && mIsOnGround)
     {
         mRigidBodyComponent->SetVelocity(Vector2(mRigidBodyComponent->GetVelocity().x, mJumpSpeed));
-        mIsOnGround = false;
+        //mIsJumping = true;
 
         // --------------
         // TODO - PARTE 4
@@ -131,6 +135,20 @@ void Mario::OnUpdate(float deltaTime)
         }
     }
 
+    // if (mIsJumping) {
+    //     if (mDrawComponent->IsAnimationFinished()) {
+    //         SDL_Log("Finish Jumping");
+    //         mIsJumping = false;
+    //         mIsFalling = true;
+    //     }
+    // }
+    //
+    // if (mIsFalling) {
+    //     if (mDrawComponent->IsAnimationFinished()) {
+    //         mIsFalling = false;
+    //     }
+    // }
+
     //Pole
     // if (mIsOnPole)
     // {
@@ -180,7 +198,16 @@ void Mario::ManageAnimations()
         mDrawComponent->SetAnimation("Dead");
     }
     else if (mIsRolling) {
+        mDrawComponent->SetLoop(false);
         mDrawComponent->SetAnimation("katanaroll");
+    }
+    else if (mIsFalling) {
+        mDrawComponent->SetLoop(false);
+        mDrawComponent->SetAnimation("katanafall");
+    }
+    else if (mIsJumping) {
+        mDrawComponent->SetLoop(false);
+        mDrawComponent->SetAnimation("katanajump");
     }
     else if (mIsAttacking)
     {
@@ -199,7 +226,6 @@ void Mario::ManageAnimations()
     {
         mDrawComponent->SetAnimation("katanaidle");
     }
-
 }
 
 void Mario::Kill()
