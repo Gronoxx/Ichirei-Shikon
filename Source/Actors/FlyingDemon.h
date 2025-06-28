@@ -8,7 +8,7 @@
 class FlyingDemon : public Actor
 {
 public:
-    explicit FlyingDemon(Game* game, float forwardSpeed = 700.0f);
+    explicit FlyingDemon(Game* game, const Vector2& targetPosition, float lifetime, float forwardSpeed = 700.0f);
 
     void OnProcessInput(const Uint8* keyState) override;
     void OnUpdate(float deltaTime) override;
@@ -27,6 +27,9 @@ private:
     const float ATTACK_TIME = 3.5f;
 
     void ManageAnimations();
+    void UpdateWorkingMode(float deltaTime);
+    void MoveToTargetPosition(float deltaTime);
+    void StartFlyingAway();
 
     float mForwardSpeed;
     float mPoleSlideTimer;
@@ -36,6 +39,12 @@ private:
     bool mIsDying;
     bool mIsAttacking;
     bool mAttackStart;
+    bool mInWorkingMode;
+    Vector2 mTargetPosition;
+    float mArrivalThreshold;  // How close we need to be to consider target reached
+    float mTimeToLive;        // How long the demon stays in working mode before flying away
+    float mWorkingTime;       // Tracks how long the demon has been in working mode
+    bool mIsFlyingAway;       // True when the demon is in the process of flying away
 
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;

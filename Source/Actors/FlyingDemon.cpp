@@ -14,13 +14,19 @@
 #include "Mario.h"
 #include "Particle.h"
 
-FlyingDemon::FlyingDemon(Game *game, const float forwardSpeed)
+FlyingDemon::FlyingDemon(Game *game, const Vector2& targetPosition, float lifetime, const float forwardSpeed)
     : Actor(game)
       , mIsRunning(false)
       , mIsOnPole(false)
       , mIsDying(false)
       , mForwardSpeed(forwardSpeed)
-      , mPoleSlideTimer(0.0f) {
+      , mPoleSlideTimer(0.0f)
+      , mInWorkingMode(false)
+      , mTargetPosition(targetPosition)
+      , mArrivalThreshold(10.0f)
+      , mTimeToLive(lifetime)
+      , mWorkingTime(0.0f)
+      , mIsFlyingAway(false) {
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 5.0f, false);
     mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE - 4.0f, Game::TILE_SIZE,
                                                    ColliderLayer::Player);
@@ -35,18 +41,88 @@ FlyingDemon::FlyingDemon(Game *game, const float forwardSpeed)
 }
 
 void FlyingDemon::OnProcessInput(const uint8_t *state) {
-    // No longer processing player input
     return;
 }
 
 void FlyingDemon::OnHandleKeyPress(const int key, const bool isPressed) {
-    // No longer processing player input
     return;
 }
 
 void FlyingDemon::OnUpdate(float deltaTime) {
     if (mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
     
+    if (mIsFlyingAway) {
+        if (mPosition.y < -100.0f) {
+            SetState(ActorState::Destroy);
+        }
+    } else if (!mInWorkingMode) {
+        MoveToTargetPosition(deltaTime);
+    } else {
+        // Update working time
+        mWorkingTime += deltaTime;
+        
+        // Check if it's time to fly away
+        if (mWorkingTime >= mTimeToLive) {
+            StartFlyingAway();
+        } else {
+            UpdateWorkingMode(deltaTime);
+        }
+    }
+    
+    // Limit FlyingDemon's position to the camera view
+    mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
+
+    // Kill FlyingDemon if he falls below the screen
+    if (mGame->GetGamePlayState() == Game::GamePlayState::Playing && mPosition.y > mGame->GetWindowHeight()) {
+        Kill();
+    }
+
+    ManageAnimations();
+}
+
+void FlyingDemon::MoveToTargetPosition(float deltaTime) {
+    // Calculate direction to target
+    Vector2 direction = mTargetPosition - mPosition;
+    float distance = direction.Length();
+    
+    // Check if we've reached the target position
+    if (distance <= mArrivalThreshold) {
+        mInWorkingMode = true;
+        mIsRunning = false;
+
+        mRigidBodyComponent->SetVelocity(Vector2::Zero);
+
+        return;
+    }
+    
+    // Normalize direction and move towards target
+    if (distance > 0) {
+        direction.Normalize();
+    }
+    
+    // Move towards target
+    Vector2 moveForce = direction * mForwardSpeed; // Move slightly slower than max speed
+    mRigidBodyComponent->ApplyForce(moveForce);
+    
+    // Update facing direction based on movement
+    if (std::abs(direction.x) > 0.1f) {  // Only update if we're moving horizontally
+        mRotation = (direction.x < 0) ? 0.0f : Math::Pi;
+    }
+    
+    mIsRunning = true;
+}
+
+void FlyingDemon::StartFlyingAway() {
+    mIsFlyingAway = true;
+    mIsAttacking = false;
+    mIsRunning = false;
+    mRigidBodyComponent->SetVelocity(Vector2::Zero);
+    // Make the demon fly upward
+    mRigidBodyComponent->SetApplyGravity(false);
+    mRigidBodyComponent->ApplyForce(Vector2{0, -10000.0f});
+}
+
+void FlyingDemon::UpdateWorkingMode(float deltaTime) {
     // Get Mario's position
     Mario* mario = mGame->GetMario();
     if (!mario) return;
@@ -61,7 +137,7 @@ void FlyingDemon::OnUpdate(float deltaTime) {
     mRotation = (marioPos.x < mPosition.x) ? 0.0f : Math::Pi;
     
     // Move horizontally towards Mario if not too close
-    float minFollowDistance = 150.0f; // Increased minimum distance to keep from Mario
+    float minFollowDistance = 150.0f; // Minimum distance to keep from Mario
 
     if (std::abs(horizontalDistance) > minFollowDistance) {
         Vector2 moveForce = Vector2(directionX * mForwardSpeed, 0);
@@ -99,18 +175,6 @@ void FlyingDemon::OnUpdate(float deltaTime) {
 
     if (mAttackStart) mAttackStart = false;
 
-    // Limit FlyingDemon's position to the camera view
-    mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
-
-    // Kill FlyingDemon if he falls below the screen
-    if (mGame->GetGamePlayState() == Game::GamePlayState::Playing && mPosition.y > mGame->GetWindowHeight()) {
-        Kill();
-    }
-
-    if (!mIsRunning && mIsOnGround) {
-        mRigidBodyComponent->SetVelocity(Vector2::Zero);
-    }
-
     if (mIsAttacking) {
         mAttackTimer -= deltaTime;
         if (mAttackTimer <= 0.0f) {
@@ -118,6 +182,9 @@ void FlyingDemon::OnUpdate(float deltaTime) {
         }
     }
 
+    if (!mIsRunning && mIsOnGround) {
+        mRigidBodyComponent->SetVelocity(Vector2::Zero);
+    }
     ManageAnimations();
 }
 

@@ -334,8 +334,8 @@ void Game::BuildLevel(int** levelData, int width, int height)
             }
             if(tile == 17) // FlyingDemon for debug; Todo: Remove
             {
-                Actor* demon = new FlyingDemon(this);
-                demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
+                // demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner
             {
