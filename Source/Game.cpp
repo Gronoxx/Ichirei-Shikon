@@ -310,7 +310,7 @@ void Game::BuildLevel(int** levelData, int width, int height)
 
     // Const map to convert tile ID to block type
     const std::map<int, const std::string> tileMap = {
-            {0, "Assets/Sprites/Blocks/BlockA.png"},
+            {0, "Assets/Sprites/Blocks/PurpleFloor/01_A2.png"},
             {1, "Assets/Sprites/Blocks/BlockC.png"},
             {2, "Assets/Sprites/Blocks/BlockF.png"},
             {4, "Assets/Sprites/Blocks/BlockB.png"},

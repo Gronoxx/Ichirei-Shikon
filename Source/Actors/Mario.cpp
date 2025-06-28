@@ -64,6 +64,7 @@ void Mario::OnProcessInput(const uint8_t* state)
     if (!( state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT] ) && !( state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT] )){
         mIsRunning = false;
     }
+
 }
 
 void Mario::OnHandleKeyPress(const int key, const bool isPressed)
@@ -87,29 +88,35 @@ void Mario::OnHandleKeyPress(const int key, const bool isPressed)
         mIsAttacking = true;
         mAttackTimer = ATTACK_TIME;
     }
+    if (( key == SDLK_t)){
+        mIsRolling = true;
+    }
 }
 
 void Mario::OnUpdate(float deltaTime)
 {
-    // Check if Mario is off the ground
+
+    // Camera
+    mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
+
+    // Jumping
     if (mRigidBodyComponent && mRigidBodyComponent->GetVelocity().y != 0)
     {
         mIsOnGround = false;
     }
 
-    // Limit Mario's position to the camera view
-    mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
-
-    // Kill mario if he falls below the screen
+    // Death
     if (mGame->GetGamePlayState() == Game::GamePlayState::Playing && mPosition.y > mGame->GetWindowHeight())
     {
         Kill();
     }
 
+    //Stop
     if (!mIsRunning && mIsOnGround) {
         mRigidBodyComponent->SetVelocity(Vector2::Zero);
     }
 
+    //Attack
     if (mIsAttacking) {
         mAttackTimer -= deltaTime;
         if (mAttackTimer <= 0.0f) {
@@ -117,42 +124,51 @@ void Mario::OnUpdate(float deltaTime)
         }
     }
 
-    if (mIsOnPole)
-    {
-        // If Mario is on the pole, update the pole slide timer
-        mPoleSlideTimer -= deltaTime;
-        if (mPoleSlideTimer <= 0.0f)
-        {
-            mRigidBodyComponent->SetApplyGravity(true);
-            mRigidBodyComponent->SetApplyFriction(false);
-            mRigidBodyComponent->SetVelocity(Vector2::UnitX * 100.0f);
-            mGame->SetGamePlayState(Game::GamePlayState::Leaving);
-
-            // --------------
-            // TODO - PARTE 4
-            // --------------
-
-            // TODO 1.: Toque o som "StageClear.wav"
-            mGame->GetAudio()->PlaySound("StageClear.wav");
-
-
-            mIsOnPole = false;
-            mIsRunning = true;
+    //Roll
+    if (mIsRolling) {
+        if (mDrawComponent->IsAnimationFinished()) {
+            mIsRolling = false;
         }
     }
 
+    //Pole
+    // if (mIsOnPole)
+    // {
+    //     // If Mario is on the pole, update the pole slide timer
+    //     mPoleSlideTimer -= deltaTime;
+    //     if (mPoleSlideTimer <= 0.0f)
+    //     {
+    //         mRigidBodyComponent->SetApplyGravity(true);
+    //         mRigidBodyComponent->SetApplyFriction(false);
+    //         mRigidBodyComponent->SetVelocity(Vector2::UnitX * 100.0f);
+    //         mGame->SetGamePlayState(Game::GamePlayState::Leaving);
+    //
+    //         // --------------
+    //         // TODO - PARTE 4
+    //         // --------------
+    //
+    //         // TODO 1.: Toque o som "StageClear.wav"
+    //         mGame->GetAudio()->PlaySound("StageClear.wav");
+    //
+    //
+    //         mIsOnPole = false;
+    //         mIsRunning = true;
+    //     }
+    // }
+
+    //Rest
     // If Mario is leaving the level, kill him if he enters the castle
-    const float castleDoorPos = Game::LEVEL_WIDTH * Game::TILE_SIZE - 10 * Game::TILE_SIZE;
-
-    if (mGame->GetGamePlayState() == Game::GamePlayState::Leaving &&
-        mPosition.x >= castleDoorPos)
-    {
-        // Stop Mario and set the game scene to Level 2
-        mState = ActorState::Destroy;
-        mGame->SetGameScene(Game::GameScene::Level2, 3.5f);
-
-        return;
-    }
+    // const float castleDoorPos = Game::LEVEL_WIDTH * Game::TILE_SIZE - 10 * Game::TILE_SIZE;
+    //
+    // if (mGame->GetGamePlayState() == Game::GamePlayState::Leaving &&
+    //     mPosition.x >= castleDoorPos)
+    // {
+    //     // Stop Mario and set the game scene to Level 2
+    //     mState = ActorState::Destroy;
+    //     mGame->SetGameScene(Game::GameScene::Level2, 3.5f);
+    //
+    //     return;
+    // }
 
     ManageAnimations();
 }
@@ -162,6 +178,9 @@ void Mario::ManageAnimations()
     if(mIsDying)
     {
         mDrawComponent->SetAnimation("Dead");
+    }
+    else if (mIsRolling) {
+        mDrawComponent->SetAnimation("katanaroll");
     }
     else if (mIsAttacking)
     {
@@ -174,7 +193,7 @@ void Mario::ManageAnimations()
     }
     else if (mIsOnGround && mIsRunning)
     {
-        mDrawComponent->SetAnimation("run");
+        mDrawComponent->SetAnimation("katanarun");
     }
     else if (mIsOnGround && !mIsRunning)
     {

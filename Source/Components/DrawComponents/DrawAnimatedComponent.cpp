@@ -242,6 +242,16 @@ void DrawAnimatedComponent::SetAnimation(const std::string& name)
     }
 }
 
+bool DrawAnimatedComponent::IsAnimationFinished() const
+{
+    auto it = mAnimationFrames.find(mCurrentAnimationName);
+    if (it == mAnimationFrames.end()) return true;
+
+    int frameCount = static_cast<int>(it->second.size());
+    return mCurrentFrame >= frameCount;
+}
+
+
 
 
 

@@ -39,6 +39,8 @@ private:
     bool mIsOnPole;
     bool mIsDying;
     bool mIsAttacking;
+    bool mIsRolling;
+
 
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;

@@ -54,6 +54,15 @@
       ],
       "fps": 16.0
     },
+    "katanafall": {
+      "frames": [
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanafall/spr_fall_0.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanafall/spr_fall_1.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanafall/spr_fall_2.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanafall/spr_fall_3.png"
+      ],
+      "fps": 4.0
+    },
     "katanaidle": {
       "frames": [
         "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_0.png",
@@ -69,6 +78,72 @@
         "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_10.png"
       ],
       "fps": 11.0
+    },
+    "katanaidletorun": {
+      "frames": [
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidletorun/spr_idle_to_run_0.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidletorun/spr_idle_to_run_1.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidletorun/spr_idle_to_run_2.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidletorun/spr_idle_to_run_3.png"
+      ],
+      "fps": 4.0
+    },
+    "katanajump": {
+      "frames": [
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanajump/spr_jump_0.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanajump/spr_jump_1.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanajump/spr_jump_2.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanajump/spr_jump_3.png"
+      ],
+      "fps": 4.0
+    },
+    "katanaroll": {
+      "frames": [
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaroll/spr_roll_0.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaroll/spr_roll_1.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaroll/spr_roll_2.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaroll/spr_roll_3.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaroll/spr_roll_4.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaroll/spr_roll_5.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaroll/spr_roll_6.png"
+      ],
+      "fps": 7.0
+    },
+    "katanarun": {
+      "frames": [
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_0.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_1.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_2.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_3.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_4.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_5.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_6.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_7.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_8.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanarun/spr_run_9.png"
+      ],
+      "fps": 10.0
+    },
+    "katanawalk": {
+      "frames": [
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_0.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_1.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_2.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_3.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_4.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_5.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_6.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_7.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_8.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawalk/spr_walk_9.png"
+      ],
+      "fps": 10.0
+    },
+    "katanawallslide": {
+      "frames": [
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanawallslide/spr_wallslide_0.png"
+      ],
+      "fps": 1.0
     }
   },
   "renderOffset": {

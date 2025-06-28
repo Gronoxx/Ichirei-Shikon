@@ -28,6 +28,7 @@ public:
     const std::string& GetAnimation() const { return mCurrentAnimationName; }
     void SetIsPaused(bool paused) { mIsPaused = paused; }
     void SetRenderOffset(const Vector2& offset) { mRenderOffset = offset; }
+    bool IsAnimationFinished() const;
 
 
 private:
