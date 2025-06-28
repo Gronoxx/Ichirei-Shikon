@@ -14,6 +14,7 @@ DrawSpriteComponent::DrawSpriteComponent(class Actor* owner, const std::string &
     mTexturePath = texturePath;
     mSpriteSheetSurface = mOwner->GetGame()->LoadTexture(texturePath);
     mCustomDstRect = false;
+    mCustomSourceRect = false;
 }
 
 DrawSpriteComponent::~DrawSpriteComponent()
