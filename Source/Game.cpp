@@ -22,6 +22,7 @@
 #include "Actors/Actor.h"
 #include "Actors/Mario.h"
 #include "Actors/Block.h"
+#include "Actors/FlyingDemon.h"
 #include "Actors/Spawner.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
@@ -330,6 +331,11 @@ void Game::BuildLevel(int** levelData, int width, int height)
             {
                 mMario = new Mario(this);
                 mMario->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+            }
+            if(tile == 17) // FlyingDemon for debug; Todo: Remove
+            {
+                Actor* demon = new FlyingDemon(this);
+                demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner
             {

@@ -30,6 +30,7 @@ public:
     void SetRenderOffset(const Vector2& offset) { mRenderOffset = offset; }
     bool IsAnimationFinished() const;
     void SetLoop(bool shouldLoop) { mShouldLoop = shouldLoop; }
+    std::string GetAnimationName() const { return mCurrentAnimationName; }
 
 private:
     // Carrega a textura e os dados do spritesheet para UMA animação.

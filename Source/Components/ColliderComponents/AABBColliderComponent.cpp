@@ -161,7 +161,7 @@ void AABBColliderComponent::OnAnimationChange(const std::string& newAnimName)
     auto it = mAnimationActions.find(newAnimName);
     if (it != mAnimationActions.end())
     {
-        SDL_Log("Executando ação do colisor para a animação: %s", newAnimName.c_str());
+        // SDL_Log("Executando ação do colisor para a animação: %s", newAnimName.c_str());
         it->second(this);
     }
     else

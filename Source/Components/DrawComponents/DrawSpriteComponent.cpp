@@ -41,10 +41,8 @@ void DrawSpriteComponent::Draw(SDL_Renderer *renderer, const Vector3 &modColor) 
         };
     }
 
-
-
     SDL_RendererFlip flip = SDL_FLIP_NONE;
-    if (mOwner->GetRotation() == Math::Pi) {
+    if (mOwner->GetRotation() >= Math::Pi) {
         flip = SDL_FLIP_HORIZONTAL;
     }
 

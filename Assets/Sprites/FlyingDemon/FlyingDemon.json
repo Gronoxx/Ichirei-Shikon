@@ -1,0 +1,70 @@
+{
+  "animations": {
+    "attack": {
+      "texturePath": "Assets/Sprites/FlyingDemon/Attack/attack.png",
+      "dataPath": "Assets/Sprites/FlyingDemon/Attack/attack.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "fps": 12.0
+    },
+    "death": {
+      "texturePath": "Assets/Sprites/FlyingDemon/Death/death.png",
+      "dataPath": "Assets/Sprites/FlyingDemon/Death/death.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "fps": 10.0
+    },
+    "flying": {
+      "texturePath": "Assets/Sprites/FlyingDemon/Flying/flying.png",
+      "dataPath": "Assets/Sprites/FlyingDemon/Flying/flying.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "fps": 12.0
+    },
+    "hurt": {
+      "texturePath": "Assets/Sprites/FlyingDemon/Hurt/hurt.png",
+      "dataPath": "Assets/Sprites/FlyingDemon/Hurt/hurt.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "fps": 22.0
+    },
+    "idle": {
+      "texturePath": "Assets/Sprites/FlyingDemon/Idle/idle.png",
+      "dataPath": "Assets/Sprites/FlyingDemon/Idle/idle.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "fps": 12.0
+    }
+  },
+  "renderOffset": {
+    "x": 0.0,
+    "y": 0.0
+  }
+}

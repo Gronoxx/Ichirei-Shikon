@@ -104,7 +104,7 @@ public:
     void TogglePause();
 
     // Game-specific
-    const class Mario* GetMario() { return mMario; }
+    class Mario* GetMario() { return mMario; }
 
     void SetGamePlayState(GamePlayState state) { mGamePlayState = state; }
     GamePlayState GetGamePlayState() const { return mGamePlayState; }
