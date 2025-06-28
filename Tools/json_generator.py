@@ -8,6 +8,10 @@ import sys
 def sanitize_name(name):
     """Limpa o nome para ser usado como chave no JSON."""
     return re.sub(r'[^a-zA-Z0-9_-]', '', name).lower()
+def natural_sort_key(s):
+    """Permite ordenação natural (ex: spr_1.png, spr_2.png, ..., spr_10.png)"""
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
+
 
 # --- Lógica Principal ---
 
@@ -37,44 +41,69 @@ for folder in subfolders:
     uppercase_filename_base = folder.upper()
     texture_filename = f"{uppercase_filename_base}.png"
     json_filename = f"{uppercase_filename_base}.json"
+
     texture_path_full = os.path.join(folder_path, texture_filename)
     data_json_path_full = os.path.join(folder_path, json_filename)
 
-    if not os.path.exists(texture_path_full) or not os.path.exists(data_json_path_full):
-        print(f"⚠️ Pulando '{folder}' (sem {texture_filename} ou {json_filename})")
-        continue
-
-    try:
-        with open(data_json_path_full, 'r') as f_anim:
-            anim_data = json.load(f_anim)
-            num_frames = len(anim_data['frames'])
-            frame_order = list(range(num_frames))
-            if num_frames == 0:
-                print(f"⚠️ Nenhum frame definido no arquivo '{json_filename}' para a animação '{folder}'")
-                continue
-    except (json.JSONDecodeError, KeyError, TypeError) as e:
-        print(f"❌ Erro ao ler ou processar o arquivo '{data_json_path_full}': {e}")
-        continue
-
-    print(f"\n📂 Processando animação: {folder} ({num_frames} frames encontrados em {json_filename})")
-
-    while True:
+    # === Caso 1: Sprite Sheet + JSON (modo antigo) ===
+    if os.path.exists(texture_path_full) and os.path.exists(data_json_path_full):
         try:
-            fps_input = input(f"   Qual o FPS para a animação '{folder}'? [Padrão: 14.0] ")
-            if not fps_input:
-                fps = 14.0
-                break
-            fps = float(fps_input)
-            break
-        except ValueError:
-            print("   ❗️ Por favor, insira um número válido.")
+            with open(data_json_path_full, 'r') as f_anim:
+                anim_data = json.load(f_anim)
+                num_frames = len(anim_data['frames'])
+                if num_frames == 0:
+                    print(f"⚠️ Nenhum frame definido em '{json_filename}' para '{folder}'")
+                    continue
+                frame_order = list(range(num_frames))
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            print(f"❌ Erro ao processar '{data_json_path_full}': {e}")
+            continue
 
-    final_json["animations"][clean_name] = {
-        "texturePath": texture_path_full,
-        "dataPath": data_json_path_full,
-        "frameOrder": frame_order,
-        "fps": fps
-    }
+        print(f"\n📂 Processando (sprite sheet): {folder} ({num_frames} frames)")
+
+        while True:
+            try:
+                fps_input = input(f"   Qual o FPS para a animação '{folder}'? [Padrão: 14.0] ")
+                fps = 14.0 if not fps_input else float(fps_input)
+                break
+            except ValueError:
+                print("   ❗️ FPS inválido.")
+
+        final_json["animations"][clean_name] = {
+            "texturePath": texture_path_full,
+            "dataPath": data_json_path_full,
+            "frameOrder": frame_order,
+            "fps": fps
+        }
+
+    # === Caso 2: Vários PNGs (modo novo) ===
+    else:
+        image_files = sorted([
+            f for f in os.listdir(folder_path)
+            if f.lower().endswith('.png')
+        ], key=natural_sort_key)
+
+        if not image_files:
+            print(f"⚠️ Pulando '{folder}' (nenhuma imagem .png ou JSON válido encontrado)")
+            continue
+
+        print(f"\n📂 Processando (frames soltos): {folder} ({len(image_files)} frames)")
+
+        frame_paths = [os.path.join(folder_path, img) for img in image_files]
+
+        while True:
+            try:
+                fps_input = input(f"   Qual o FPS para a animação '{folder}'? [Padrão: 14.0] ")
+                fps = 14.0 if not fps_input else float(fps_input)
+                break
+            except ValueError:
+                print("   ❗️ FPS inválido.")
+
+        final_json["animations"][clean_name] = {
+            "frames": frame_paths,
+            "fps": fps
+        }
+
 
 
 # --- NOVO: Definir o Offset de Renderização Global ---

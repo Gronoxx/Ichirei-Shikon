@@ -54,4 +54,7 @@ private:
     //Offsets
     Vector2 mRenderOffset;
 
+    std::map<std::string, std::vector<std::string>> mFrameTexturePaths;
+
+
 };

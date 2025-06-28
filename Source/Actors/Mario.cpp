@@ -29,7 +29,7 @@ Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
     mDrawComponent->LoadCharacterAnimations("Assets/Sprites/Samurai/Samurai.json");
 
     // Define a animação inicial
-    mDrawComponent->SetAnimation("idle");
+    mDrawComponent->SetAnimation("katanaidle");
     SetScale(1.25);
 
     //Defini colisor para animação
@@ -178,7 +178,7 @@ void Mario::ManageAnimations()
     }
     else if (mIsOnGround && !mIsRunning)
     {
-        mDrawComponent->SetAnimation("idle");
+        mDrawComponent->SetAnimation("katanaidle");
     }
 
 }

@@ -1,8 +1,8 @@
 {
   "animations": {
     "attack": {
-      "texturePath": "Assets/Sprites/Samurai/Attack/ATTACK.png",
-      "dataPath": "Assets/Sprites/Samurai/Attack/ATTACK.json",
+      "texturePath": "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/Attack/ATTACK.png",
+      "dataPath": "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/Attack/ATTACK.json",
       "frameOrder": [
         0,
         1,
@@ -12,11 +12,11 @@
         5,
         6
       ],
-      "fps": 18.0
+      "fps": 7.0
     },
     "idle": {
-      "texturePath": "Assets/Sprites/Samurai/Idle/IDLE.png",
-      "dataPath": "Assets/Sprites/Samurai/Idle/IDLE.json",
+      "texturePath": "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/Idle/IDLE.png",
+      "dataPath": "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/Idle/IDLE.json",
       "frameOrder": [
         0,
         1,
@@ -32,8 +32,8 @@
       "fps": 10.0
     },
     "run": {
-      "texturePath": "Assets/Sprites/Samurai/Run/RUN.png",
-      "dataPath": "Assets/Sprites/Samurai/Run/RUN.json",
+      "texturePath": "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/Run/RUN.png",
+      "dataPath": "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/Run/RUN.json",
       "frameOrder": [
         0,
         1,
@@ -52,11 +52,27 @@
         14,
         15
       ],
-      "fps": 22.0
+      "fps": 16.0
+    },
+    "katanaidle": {
+      "frames": [
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_0.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_1.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_2.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_3.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_4.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_5.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_6.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_7.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_8.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_9.png",
+        "/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/Assets/Sprites/Samurai/katanaidle/spr_idle_10.png"
+      ],
+      "fps": 11.0
     }
   },
   "renderOffset": {
-    "x": 30.0,
-    "y": 49.0
+    "x": 0.0,
+    "y": 0.0
   }
 }

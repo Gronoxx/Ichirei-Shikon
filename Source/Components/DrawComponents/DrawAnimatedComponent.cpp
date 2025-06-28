@@ -63,16 +63,56 @@ void DrawAnimatedComponent::LoadCharacterAnimations(const std::string& character
     {
         const auto& animations = data["animations"];
         for (auto& [animName, animData] : animations.items()) {
-            std::string texturePath = animData["texturePath"];
-            std::string dataPath = animData["dataPath"];
             float fps = animData["fps"];
-            std::vector<int> frameOrder = animData["frameOrder"];
 
-            LoadSpriteSheetForAnimation(animName, texturePath, dataPath);
-            mAnimationFrames[animName] = frameOrder;
-            mAnimationFPS[animName] = fps;
+            // Caso 1: spritesheet + data
+            if (animData.contains("texturePath") && animData.contains("dataPath") && animData.contains("frameOrder")) {
+                std::string texturePath = animData["texturePath"];
+                std::string dataPath = animData["dataPath"];
+                std::vector<int> frameOrder = animData["frameOrder"];
 
-            SDL_Log("Animação '%s' carregada com %zu frames e FPS %.1f", animName.c_str(), frameOrder.size(), fps);
+                LoadSpriteSheetForAnimation(animName, texturePath, dataPath);
+                mAnimationFrames[animName] = frameOrder;
+                mAnimationFPS[animName] = fps;
+
+                SDL_Log("Animação '%s' (spritesheet) carregada com %zu frames", animName.c_str(), frameOrder.size());
+            }
+
+            // Caso 2: imagens soltas por frame
+            else if (animData.contains("frames")) {
+                std::vector<std::string> framePaths = animData["frames"];
+                mFrameTexturePaths[animName] = framePaths;
+                std::vector<SDL_Texture*> textures;
+
+                for (const std::string& path : framePaths) {
+                    SDL_Texture* tex = mOwner->GetGame()->LoadTexture(path);
+                    if (tex) {
+                        textures.push_back(tex);
+                    } else {
+                        SDL_Log("ERRO: Falha ao carregar frame '%s' da animação '%s'", path.c_str(), animName.c_str());
+                    }
+                }
+
+                std::vector<SDL_Rect*> frames;
+                for (SDL_Texture* tex : textures) {
+                    // Pegamos o tamanho da textura inteira
+                    int w, h;
+                    SDL_QueryTexture(tex, nullptr, nullptr, &w, &h);
+                    frames.push_back(new SDL_Rect{ 0, 0, w, h });
+                }
+
+                // Podemos usar a primeira textura só para referência (opcional)
+                if (!textures.empty()) {
+                    mSpriteSheetTextures[animName] = textures[0]; // Usa o primeiro frame como textura principal
+                }
+
+                mSpriteSheetData[animName] = frames;
+                mAnimationFrames[animName] = std::vector<int>(frames.size());
+                for (int i = 0; i < frames.size(); ++i) {
+                    mAnimationFrames[animName][i] = i;
+                }
+                mAnimationFPS[animName] = fps;
+            }
         }
     }
 }
@@ -136,15 +176,35 @@ void DrawAnimatedComponent::Draw(SDL_Renderer* renderer, const Vector3& modColor
     // Acha os dados da animação atual
     auto& frameOrder = mAnimationFrames.at(mCurrentAnimationName);
     auto& sheetFrames = mSpriteSheetData.at(mCurrentAnimationName);
-    auto& texture = mSpriteSheetTextures.at(mCurrentAnimationName);
 
-    if (frameOrder.empty() || !texture) {
+    int frameIdx = static_cast<int>(mCurrentFrame);
+
+    // Proteção extra: impede acesso fora do vetor
+    if (frameIdx < 0 || frameIdx >= static_cast<int>(frameOrder.size())) {
         return;
     }
-
-    // Pega o índice do frame atual na ordem da animação
-    int frameIdx = static_cast<int>(mCurrentFrame);
     int spriteIdx = frameOrder[frameIdx];
+
+    // Verifica se é uma animação com múltiplos arquivos (rects todos 0,0,w,h)
+    SDL_Texture* texture = nullptr;
+
+    bool isFrameSequence =
+        sheetFrames[spriteIdx]->x == 0 &&
+        sheetFrames[spriteIdx]->y == 0 &&
+        mFrameTexturePaths.count(mCurrentAnimationName) > 0;
+
+    if (isFrameSequence) {
+        const auto& framePaths = mFrameTexturePaths.at(mCurrentAnimationName);
+        if (spriteIdx < static_cast<int>(framePaths.size())) {
+            const std::string& framePath = framePaths[spriteIdx];
+            texture = mOwner->GetGame()->LoadTexture(framePath);
+        } else {
+            SDL_Log("⚠️ spriteIdx fora do intervalo em framePaths para animação '%s'", mCurrentAnimationName.c_str());
+            return;
+        }
+    } else {
+        texture = mSpriteSheetTextures.at(mCurrentAnimationName);
+    }
 
     const SDL_Rect* srcRect = sheetFrames[spriteIdx];
 
