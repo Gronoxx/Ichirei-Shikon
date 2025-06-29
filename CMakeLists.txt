@@ -67,6 +67,8 @@ add_executable(${PROJECT_NAME}
         Source/Actors/Points.h
         Source/Actors/Mushroom.cpp
         Source/Actors/Mushroom.h
+        Source/Actors/Slash.cpp
+        Source/Actors/Slash.h
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL2::SDL2 SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf SDL2_mixer::SDL2_mixer)

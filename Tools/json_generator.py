@@ -24,6 +24,9 @@ if not os.path.isdir(base_path):
     print("❌ Diretório inválido:", base_path)
     sys.exit(1)
 
+project_root = os.path.abspath(os.path.join(base_path, "..","..", ".."))  # Ajuste conforme necessário
+
+
 # Começamos com um dicionário vazio
 final_json = {
     "animations": {}
@@ -61,17 +64,11 @@ for folder in subfolders:
 
         print(f"\n📂 Processando (sprite sheet): {folder} ({num_frames} frames)")
 
-        while True:
-            try:
-                fps_input = input(f"   Qual o FPS para a animação '{folder}'? [Padrão: 14.0] ")
-                fps = 14.0 if not fps_input else float(fps_input)
-                break
-            except ValueError:
-                print("   ❗️ FPS inválido.")
+        fps = num_frames
 
         final_json["animations"][clean_name] = {
-            "texturePath": texture_path_full,
-            "dataPath": data_json_path_full,
+            "texturePath": os.path.relpath(texture_path_full, project_root),
+            "dataPath": os.path.relpath(data_json_path_full, project_root),
             "frameOrder": frame_order,
             "fps": fps
         }
@@ -89,15 +86,9 @@ for folder in subfolders:
 
         print(f"\n📂 Processando (frames soltos): {folder} ({len(image_files)} frames)")
 
-        frame_paths = [os.path.join(folder_path, img) for img in image_files]
+        frame_paths = [os.path.relpath(os.path.join(folder_path, img), project_root) for img in image_files]
 
-        while True:
-            try:
-                fps_input = input(f"   Qual o FPS para a animação '{folder}'? [Padrão: 14.0] ")
-                fps = 14.0 if not fps_input else float(fps_input)
-                break
-            except ValueError:
-                print("   ❗️ FPS inválido.")
+        fps = len(image_files)
 
         final_json["animations"][clean_name] = {
             "frames": frame_paths,

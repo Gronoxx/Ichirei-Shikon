@@ -11,6 +11,8 @@
 #include <fstream>
 #include <string>
 
+#include "Slash.h"
+
 Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
         : Actor(game)
         , mIsRunning(false)
@@ -20,12 +22,13 @@ Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
         ,mIsJumping(false)
         ,mIsFalling(false)
         ,mIsAttacking(false)
+        ,mHasStartedIdleToRun(false)
         , mForwardSpeed(forwardSpeed)
         , mJumpSpeed(jumpSpeed)
         , mPoleSlideTimer(0.0f)
 {
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 5.0f);
-    mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE - 4.0f,Game::TILE_SIZE,
+    mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE,Game::TILE_SIZE,
                                                    ColliderLayer::Player);
 
     mDrawComponent = new DrawAnimatedComponent(this, 150);
@@ -33,36 +36,49 @@ Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
     mDrawComponent->LoadCharacterAnimations("Assets/Sprites/Samurai/Samurai.json");
 
     // Define a animação inicial
-    mDrawComponent->SetAnimation("katanaidle");
+    mDrawComponent->SetAnimation("idle");
     SetScale(1.25);
-
-    //Defini colisor para animação
-    mColliderComponent->AddAnimationAction("attack", [](AABBColliderComponent* collider) {
-        // Durante o ataque com a espada, expandimos o colisor para a direita.
-        // O offset muda para alinhar o colisor com o corpo + espada.
-        collider->SetSize(64, 32); // Dobra a largura
-        collider->SetOffset(Vector2(0, 0));
-        collider->SetEnabled(true);
-    });
 
 }
 
 void Mario::OnProcessInput(const uint8_t* state)
 {
     if(mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
+    if (mIsRolling) return;
 
     if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])
     {
         mRigidBodyComponent->ApplyForce(Vector2::UnitX * mForwardSpeed);
         mRotation = 0.0f;
+
+        if (!mIsStartingToRun && !mHasStartedIdleToRun) {
+            mIsStartingToRun = true;
+            mHasStartedIdleToRun = true;
+            mIdleToRunTimer = mDrawComponent->GetAnimationDuration("idle_to_run"); // 👈 nova função
+            mDrawComponent->SetLoop(false);
+            mDrawComponent->SetAnimation("idle_to_run");
+        }
+
         mIsRunning = true;
     }
 
-    if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT])
+    else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT])
     {
         mRigidBodyComponent->ApplyForce(Vector2::UnitX * -mForwardSpeed);
         mRotation = Math::Pi;
+
+        if (!mIsStartingToRun && !mHasStartedIdleToRun) {
+            mIsStartingToRun = true;
+            mHasStartedIdleToRun = true;
+            mIdleToRunTimer = mDrawComponent->GetAnimationDuration("idle_to_run");
+            mDrawComponent->SetLoop(false);
+            mDrawComponent->SetAnimation("idle_to_run");
+        }
+
         mIsRunning = true;
+    }
+    else {
+        mHasStartedIdleToRun = false;
     }
 
     if (!( state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT] ) && !( state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT] )){
@@ -79,7 +95,7 @@ void Mario::OnHandleKeyPress(const int key, const bool isPressed)
     if ((key == SDLK_SPACE || key == SDLK_w || key == SDLK_UP) && isPressed && mIsOnGround)
     {
         mRigidBodyComponent->SetVelocity(Vector2(mRigidBodyComponent->GetVelocity().x, mJumpSpeed));
-        //mIsJumping = true;
+        mIsJumping = true;
 
         // --------------
         // TODO - PARTE 4
@@ -90,10 +106,29 @@ void Mario::OnHandleKeyPress(const int key, const bool isPressed)
     }
     else if (key == SDLK_e && isPressed && !mIsAttacking) {
         mIsAttacking = true;
+        float rotation = GetRotation(); // 0 (direita) ou Pi (esquerda)
+        Vector2 direction(Math::Cos(rotation), -Math::Sin(rotation));
+        Vector2 positionSlash;
+        if (rotation == Math::Pi) {
+            positionSlash = GetPosition() - Vector2(SPLASH_WIDTH - Game::TILE_SIZE,Game::TILE_SIZE/2);
+        }else {
+            positionSlash = GetPosition() - Vector2(0,Game::TILE_SIZE/2);
+        }
+
+        mSlash = new Slash(mGame, positionSlash, 0.25f, rotation);
         mAttackTimer = ATTACK_TIME;
     }
-    if (( key == SDLK_t)){
+    if ((key == SDLK_t) && isPressed && !mIsRolling && mIsOnGround) {
         mIsRolling = true;
+
+        float direction = (mRotation == Math::Pi) ? -1.0f : 1.0f;
+
+        float rollDuration = mDrawComponent->GetCurrentAnimationDuration(); // em segundos
+        float rollVelocity = ROLL_TOTAL_DISTANCE / rollDuration;
+
+        mRigidBodyComponent->SetAcceleration(Vector2::Zero);
+        mRigidBodyComponent->SetApplyFriction(false);
+        mRigidBodyComponent->SetVelocity(Vector2(direction * rollVelocity, mRigidBodyComponent->GetVelocity().y));
     }
 }
 
@@ -103,10 +138,20 @@ void Mario::OnUpdate(float deltaTime)
     // Camera
     mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
 
-    // Jumping
+
+    // Jumping && Falling
     if (mRigidBodyComponent && mRigidBodyComponent->GetVelocity().y != 0)
     {
         mIsOnGround = false;
+    }
+
+    if (mIsJumping && !mIsOnGround && mRigidBodyComponent->GetVelocity().y >= 0) {
+        mIsJumping = false;
+        mIsFalling = true;
+    }
+
+    if (!mIsOnGround && !mIsJumping) {
+        mIsFalling = true;
     }
 
     // Death
@@ -116,38 +161,40 @@ void Mario::OnUpdate(float deltaTime)
     }
 
     //Stop
-    if (!mIsRunning && mIsOnGround) {
+    if (!mIsRunning && mIsOnGround && !mIsRolling) {
         mRigidBodyComponent->SetVelocity(Vector2::Zero);
     }
 
     //Attack
     if (mIsAttacking) {
-        mAttackTimer -= deltaTime;
-        if (mAttackTimer <= 0.0f) {
+        if (mDrawComponent->IsAnimationFinished()) {
             mIsAttacking = false;
         }
     }
 
     //Roll
     if (mIsRolling) {
+        Vector2 vel = mRigidBodyComponent->GetVelocity();
+        SDL_Log("🌀 ROLLING - Velocidade atual: (x: %.2f, y: %.2f)", vel.x, vel.y);
+
         if (mDrawComponent->IsAnimationFinished()) {
             mIsRolling = false;
+            mRigidBodyComponent->SetVelocity(Vector2::Zero);
+            mRigidBodyComponent->SetApplyFriction(true);
         }
     }
 
-    // if (mIsJumping) {
-    //     if (mDrawComponent->IsAnimationFinished()) {
-    //         SDL_Log("Finish Jumping");
-    //         mIsJumping = false;
-    //         mIsFalling = true;
-    //     }
-    // }
-    //
-    // if (mIsFalling) {
-    //     if (mDrawComponent->IsAnimationFinished()) {
-    //         mIsFalling = false;
-    //     }
-    // }
+    //Run
+    if (mIsStartingToRun) {
+        mIdleToRunTimer -= deltaTime;
+        if (mIdleToRunTimer <= 0.0f) {
+            mIsStartingToRun = false;
+            mDrawComponent->SetLoop(true);
+            SDL_Log("Finish Transition");
+            mDrawComponent->SetAnimation("run");
+        }
+    }
+
 
     //Pole
     // if (mIsOnPole)
@@ -199,33 +246,40 @@ void Mario::ManageAnimations()
     }
     else if (mIsRolling) {
         mDrawComponent->SetLoop(false);
-        mDrawComponent->SetAnimation("katanaroll");
+        mDrawComponent->SetAnimation("roll");
     }
     else if (mIsFalling) {
         mDrawComponent->SetLoop(false);
-        mDrawComponent->SetAnimation("katanafall");
+        mDrawComponent->SetAnimation("fall");
     }
     else if (mIsJumping) {
         mDrawComponent->SetLoop(false);
-        mDrawComponent->SetAnimation("katanajump");
+        mDrawComponent->SetAnimation("jump");
     }
     else if (mIsAttacking)
     {
+        mDrawComponent->SetLoop(false);
         mDrawComponent->SetAnimation("attack");
         mColliderComponent->OnAnimationChange("attack");
     }
     else if(mIsOnPole)
     {
+        mDrawComponent->SetLoop(false);
         mDrawComponent->SetAnimation("win");
     }
-    else if (mIsOnGround && mIsRunning)
+    else if (!mIsStartingToRun && mIsOnGround && mIsRunning)
     {
-        mDrawComponent->SetAnimation("katanarun");
+        mDrawComponent->SetLoop(true);
+        mDrawComponent->SetAnimation("run");
     }
-    else if (mIsOnGround && !mIsRunning)
+    else if (mIsOnGround && !mIsRunning && mDrawComponent->GetCurrentAnimationName() != "idle")
     {
-        mDrawComponent->SetAnimation("katanaidle");
+        SDL_Log("idle");
+        mDrawComponent->SetLoop(true);
+        mDrawComponent->SetAnimation("idle");
     }
+
+
 }
 
 void Mario::Kill()
@@ -280,6 +334,7 @@ void Mario::OnHorizontalCollision(const float minOverlap, AABBColliderComponent*
     {
         Kill();
     }
+
     else if (other->GetLayer() == ColliderLayer::Pole)
     {
         mIsOnPole = true;
@@ -322,7 +377,12 @@ void Mario::OnVerticalCollision(const float minOverlap, AABBColliderComponent* o
             auto* block = dynamic_cast<Block*>(other->GetOwner());
             block->OnBump();
         }
-        else if (other->GetLayer() == ColliderLayer::Mushroom)
+        else {
+            mIsFalling = false;
+            mIsJumping = false;
+        }
+
+        if (other->GetLayer() == ColliderLayer::Mushroom)
         {
             Mushroom* mushroom = static_cast<Mushroom*>(other->GetOwner());
             mushroom->SetState(ActorState::Destroy);
