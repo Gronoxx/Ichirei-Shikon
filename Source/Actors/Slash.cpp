@@ -5,7 +5,7 @@
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 
-Slash::Slash(Game* game, const Vector2& position,const float TotalLifeTime, float rotation)
+Slash::Slash(Game* game, const Vector2& position, const float TotalLifeTime, float rotation)
         : Actor(game)
         , mLifeTime(TotalLifeTime)
 {

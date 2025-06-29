@@ -234,23 +234,23 @@ void Game::ChangeScene()
         mAudio->PlayMusic("Level1_NhacNhatBanHay.mp3",true,13);
 
         // Set background color
-        mBackgroundColor.Set(107.0f, 140.0f, 255.0f);
+        mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
 
         // Set background color
-        SetBackgroundImage("Assets/Sprites/Background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
+        SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
 
         // Draw Flag
-        auto flag = new Actor(this);
-        flag->SetPosition(Vector2(LEVEL_WIDTH * TILE_SIZE - (16 * TILE_SIZE) - 16, 3 * TILE_SIZE));
+        //auto flag = new Actor(this);
+        //flag->SetPosition(Vector2(LEVEL_WIDTH * TILE_SIZE - (16 * TILE_SIZE) - 16, 3 * TILE_SIZE));
 
         // Add a flag sprite
-        new DrawSpriteComponent(flag, "Assets/Sprites/Background_Flag.png", 32.0f, 32.0f, 1);
+        //new DrawSpriteComponent(flag, "Assets/Sprites/Background_Flag.png", 32.0f, 32.0f, 1);
 
         // Add a flag pole taking the entire height
-        new AABBColliderComponent(flag, 30, 0, 4, TILE_SIZE * LEVEL_HEIGHT, ColliderLayer::Pole, true);
+        //new AABBColliderComponent(flag, 30, 0, 4, TILE_SIZE * LEVEL_HEIGHT, ColliderLayer::Pole, true);
 
         // Initialize actors
-        LoadLevel("Assets/Levels/test-boss.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+        LoadLevel("Assets/Levels/Level1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
     }
     else if (mNextScene == GameScene::Level2)
     {
@@ -313,14 +313,15 @@ void Game::BuildLevel(int** levelData, int width, int height)
 
     // Const map to convert tile ID to block type
     const std::map<int, const std::string> tileMap = {
-            {0, "Assets/Sprites/Blocks/PurpleFloor/01_A2.png"},
-            {1, "Assets/Sprites/Blocks/BlockC.png"},
-            {2, "Assets/Sprites/Blocks/BlockF.png"},
-            {4, "Assets/Sprites/Blocks/BlockB.png"},
-            {6, "Assets/Sprites/Blocks/BlockI.png"},
-            {8, "Assets/Sprites/Blocks/BlockD.png"},
-            {9, "Assets/Sprites/Blocks/BlockH.png"},
-            {12, "Assets/Sprites/Blocks/BlockG.png"}
+            {0, "Assets/Sprites/Blocks/japan/bamboo.png"},
+            {1, "Assets/Sprites/Blocks/japan/dirt.png"},
+            {2, "Assets/Sprites/Blocks/japan/grass.png"},
+            {3, "Assets/Sprites/Blocks/japan/stone.png"},
+            {4, "Assets/Sprites/Blocks/japan/stone2.png"},
+            {5, "Assets/Sprites/Blocks/japan/wood.png"},
+            {6, "Assets/Sprites/Blocks/japan/wood2.png"},
+            {7, "Assets/Sprites/Blocks/japan/woodengate.png"},
+            {8, "Assets/Sprites/Blocks/japan/woodengate2.png"}
     };
 
     for (int y = 0; y < LEVEL_HEIGHT; ++y)
@@ -329,24 +330,24 @@ void Game::BuildLevel(int** levelData, int width, int height)
         {
             int tile = levelData[y][x];
 
-            if(tile == 16) // Mario
+            if(tile == 9) // Samurai
             {
                 mMario = new Mario(this);
                 mMario->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
-            if(tile == 17) // FlyingDemon for debug; Todo: Remove
+            if(tile == 11) // FlyingDemon for debug; Todo: Remove
             {
-                auto demonBoss = new DemonBoss(this);
-                demonBoss->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
-                // new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
-                // demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+            //    auto demonBoss = new DemonBoss(this);
+            //    demonBoss->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                auto demon = new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
+                demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner
             {
                 Spawner* spawner = new Spawner(this, SPAWN_DISTANCE);
                 spawner->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
-            else if (tile == 1) { // Special Block With One Coin
+            /*else if (tile == 1) { // Special Block With One Coin
                 Block* block = new Block(this, "Assets/Sprites/Blocks/BlockC.png", 1);
                 block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
@@ -357,7 +358,7 @@ void Game::BuildLevel(int** levelData, int width, int height)
             else if (tile == 30) {
                 Block* block = new Block(this, "Assets/Sprites/Blocks/BlockB.png", 10);
                 block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
-            }
+            }*/
             else // Blocks
             {
                 auto it = tileMap.find(tile);
