@@ -191,7 +191,7 @@ void Mario::OnUpdate(float deltaTime)
         if (mIdleToRunTimer <= 0.0f) {
             mIsStartingToRun = false;
             mDrawComponent->SetLoop(true);
-            SDL_Log("Finish Transition");
+            // SDL_Log("Finish Transition");
             mDrawComponent->SetAnimation("run");
         }
     }
@@ -275,7 +275,7 @@ void Mario::ManageAnimations()
     }
     else if (mIsOnGround && !mIsRunning && mDrawComponent->GetCurrentAnimationName() != "idle")
     {
-        SDL_Log("idle");
+        // SDL_Log("idle");
         mDrawComponent->SetLoop(true);
         mDrawComponent->SetAnimation("idle");
     }

@@ -167,7 +167,7 @@ void AABBColliderComponent::OnAnimationChange(const std::string& newAnimName)
     }
     else
     {
-        SDL_Log("Nenhuma ação de colisor encontrada para a animação: %s", newAnimName.c_str());
+        // SDL_Log("Nenhuma ação de colisor encontrada para a animação: %s", newAnimName.c_str());
     }
 }
 

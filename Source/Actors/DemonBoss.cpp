@@ -9,7 +9,7 @@
 
 const float JUMP_FORCE = 50000.0f;
 const float JUMP_COOLDOWN = 5.0f;
-const int INITIAL_HEALTH = 5;
+const int INITIAL_HEALTH = 20;
 
 DemonBoss::DemonBoss(Game *game, float attackCooldown, float vulnerableCooldown, float moveSpeed)
     : Actor(game)
@@ -194,8 +194,19 @@ void DemonBoss::Kill() {
     SetState(ActorState::Destroy);
 }
 
+void DemonBoss::Hurt() {
+    SDL_Log("Boss hurt life: %d", mHealth);
+
+    mHealth--;
+    if (mHealth <= 0) {
+        Kill();
+    }
+}
+
 void DemonBoss::LoadAnimationsFromFile(const std::string &filePath) {
     // // Load animations from JSON file
     // mDrawComponent->LoadAnimations(filePath);
     // mDrawComponent->SetAnimation("idle");
 }
+
+

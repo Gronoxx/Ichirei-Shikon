@@ -41,11 +41,11 @@ void Slash::OnUpdate(float deltaTime)
 
 void Slash::OnHorizontalCollision(float minOverlap, AABBColliderComponent* other)
 {
-
+    other->GetOwner()->Hurt();
 }
 
 
 void Slash::OnVerticalCollision(float minOverlap, AABBColliderComponent* other)
 {
-
+    other->GetOwner()->Hurt();
 }

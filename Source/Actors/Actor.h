@@ -80,6 +80,8 @@ public:
     virtual void OnVerticalCollision(const float minOverlap, AABBColliderComponent* other);
     virtual void Kill();
 
+    virtual void Hurt() { Kill(); }
+
 protected:
     class Game* mGame;
 

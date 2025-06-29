@@ -14,6 +14,7 @@ public:
     void LoadAnimationsFromFile(const std::string &filePath);
 
     void Kill() override;
+    void Hurt() override;
 
 private:
     enum class State {
