@@ -105,6 +105,10 @@ void Goomba::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
             mario->Kill();
         }
     }
+
+    if (owner && collider->GetLayer() == ColliderLayer::Slash) {
+        Kill();
+    }
 }
 
 void Goomba::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)

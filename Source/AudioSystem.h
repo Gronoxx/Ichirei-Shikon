@@ -80,6 +80,7 @@ enum class SoundState
         //       For example, pass in "ChompLoop.wav" rather than
         //       "Assets/Sounds/ChompLoop.wav".
         SoundHandle PlaySound(const std::string& soundName, bool looping = false);
+    	void PlayMusic(const std::string& name, bool loop, int volume);
 
         // Stops the sound if it is currently playing
         void StopSound(SoundHandle sound);

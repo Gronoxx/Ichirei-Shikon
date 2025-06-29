@@ -1,0 +1,18 @@
+{
+  "animations": {
+    "slash01": {
+      "frames": [
+        "Assets/Sprites/Slash/slash01/spr_slash_0.png",
+        "Assets/Sprites/Slash/slash01/spr_slash_1.png",
+        "Assets/Sprites/Slash/slash01/spr_slash_2.png",
+        "Assets/Sprites/Slash/slash01/spr_slash_3.png",
+        "Assets/Sprites/Slash/slash01/spr_slash_4.png"
+      ],
+      "fps": 5
+    }
+  },
+  "renderOffset": {
+    "x": 0.0,
+    "y": 0.0
+  }
+}

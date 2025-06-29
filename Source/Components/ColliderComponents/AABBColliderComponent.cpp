@@ -63,6 +63,7 @@ float AABBColliderComponent::GetMinHorizontalOverlap(AABBColliderComponent* b) c
 
 float AABBColliderComponent::DetectHorizontalCollision(RigidBodyComponent *rigidBody)
 {
+
     if (mIsStatic || !mIsEnabled) return false;
 
     // Use spatial hashing to get nearby colliders
