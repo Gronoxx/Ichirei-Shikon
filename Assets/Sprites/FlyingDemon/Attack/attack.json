@@ -1,0 +1,207 @@
+{
+  "frames": {
+    "00_ATTACK.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 59
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "01_ATTACK.png": {
+      "frame": {
+        "x": 0,
+        "y": 59,
+        "w": 67,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 59
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "02_ATTACK.png": {
+      "frame": {
+        "x": 67,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 59
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "03_ATTACK.png": {
+      "frame": {
+        "x": 0,
+        "y": 118,
+        "w": 67,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 59
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "04_ATTACK.png": {
+      "frame": {
+        "x": 67,
+        "y": 59,
+        "w": 67,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 59
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "05_ATTACK.png": {
+      "frame": {
+        "x": 134,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 59
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "06_ATTACK.png": {
+      "frame": {
+        "x": 0,
+        "y": 177,
+        "w": 67,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 59
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "07_ATTACK.png": {
+      "frame": {
+        "x": 67,
+        "y": 118,
+        "w": 67,
+        "h": 59
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 67,
+        "h": 59
+      },
+      "sourceSize": {
+        "w": 67,
+        "h": 59
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "meta": {
+    "app": "http://free-tex-packer.com",
+    "version": "0.6.7",
+    "image": "texture.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 201,
+      "h": 236
+    },
+    "scale": 1
+  }
+}

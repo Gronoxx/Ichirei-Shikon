@@ -33,6 +33,7 @@ public:
     void SetLoop(bool shouldLoop) { mShouldLoop = shouldLoop; }
     const std::string GetCurrentAnimationName() const { return mCurrentAnimationName; }
     float GetAnimationDuration(const std::string& animName) const;
+    std::string GetAnimationName() const { return mCurrentAnimationName; }
 
 
 private:

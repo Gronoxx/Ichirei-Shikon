@@ -42,6 +42,10 @@ add_executable(${PROJECT_NAME}
         Source/Actors/Goomba.h
         Source/Actors/Spawner.cpp
         Source/Actors/Spawner.h
+        Source/Actors/FlyingDemon.cpp
+        Source/Actors/FlyingDemon.h
+        Source/Actors/Particle.cpp
+        Source/Actors/Particle.h
         Source/AudioSystem.cpp
         Source/AudioSystem.h
         Source/UIElements/UIScreen.h
