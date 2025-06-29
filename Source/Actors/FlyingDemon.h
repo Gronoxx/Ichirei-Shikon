@@ -14,9 +14,6 @@ public:
     void OnUpdate(float deltaTime) override;
     void OnHandleKeyPress(const int key, const bool isPressed) override;
 
-    void OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other) override;
-    void OnVerticalCollision(const float minOverlap, AABBColliderComponent* other) override;
-
     void Kill() override;
 
     void LoadAnimationsFromFile(const std::string& filePath);

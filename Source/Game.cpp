@@ -22,6 +22,7 @@
 #include "Actors/Actor.h"
 #include "Actors/Mario.h"
 #include "Actors/Block.h"
+#include "Actors/DemonBoss.h"
 #include "Actors/FlyingDemon.h"
 #include "Actors/Spawner.h"
 #include "UIElements/UIScreen.h"
@@ -248,7 +249,7 @@ void Game::ChangeScene()
         new AABBColliderComponent(flag, 30, 0, 4, TILE_SIZE * LEVEL_HEIGHT, ColliderLayer::Pole, true);
 
         // Initialize actors
-        LoadLevel("Assets/Levels/level1-1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+        LoadLevel("Assets/Levels/test-boss.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
     }
     else if (mNextScene == GameScene::Level2)
     {
@@ -334,7 +335,9 @@ void Game::BuildLevel(int** levelData, int width, int height)
             }
             if(tile == 17) // FlyingDemon for debug; Todo: Remove
             {
-                new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
+                auto demonBoss = new DemonBoss(this);
+                demonBoss->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                // new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
                 // demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner

@@ -46,6 +46,8 @@ add_executable(${PROJECT_NAME}
         Source/Actors/FlyingDemon.h
         Source/Actors/Particle.cpp
         Source/Actors/Particle.h
+        Source/Actors/DemonBoss.cpp
+        Source/Actors/DemonBoss.h
         Source/AudioSystem.cpp
         Source/AudioSystem.h
         Source/UIElements/UIScreen.h

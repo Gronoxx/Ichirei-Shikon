@@ -17,6 +17,7 @@ enum class ColliderLayer
 {
     Player,
     Enemy,
+    Boss,
     Blocks,
     Pole,
     Mushroom,
@@ -28,6 +29,7 @@ public:
     // Collider ignore map
     const std::map<ColliderLayer, const std::set<ColliderLayer>> ColliderIgnoreMap = {
         {ColliderLayer::Player, {}},
+        {ColliderLayer::Boss, {}},
         {ColliderLayer::Enemy,  {}},
         {ColliderLayer::Blocks, {ColliderLayer::Blocks}},
         {ColliderLayer::Pole, {}},

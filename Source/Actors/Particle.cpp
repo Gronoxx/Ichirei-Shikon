@@ -30,8 +30,6 @@ Particle::Particle(class Game *game, float length,
 }
 
 void Particle::OnUpdate(float deltaTime) {
-    SDL_Log("Atualizando particula posição x: %f, y%f", this->mPosition.x, this->mPosition.y);
-
     mDeathTimer -= deltaTime;
 
     if (mDeathTimer <= 0) {
