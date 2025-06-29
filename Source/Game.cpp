@@ -55,6 +55,7 @@ Game::Game(int windowWidth, int windowHeight)
         ,mBackgroundSize(Vector2::Zero)
         ,mBackgroundPosition(Vector2::Zero)
         ,mNumberOfCoinsCollected(0)
+        ,mIsCameraLocked(false)
         ,mScore(0)
 {
 
@@ -645,7 +646,7 @@ void Game::UpdateCamera()
 
     float horizontalCameraPos = mMario->GetPosition().x - (mWindowWidth / 2.0f);
 
-    if (horizontalCameraPos > mCameraPos.x)
+    if (horizontalCameraPos > mCameraPos.x && !mIsCameraLocked)
     {
         // Limit camera to the right side of the level
         float maxCameraPos = (LEVEL_WIDTH * TILE_SIZE) - mWindowWidth;

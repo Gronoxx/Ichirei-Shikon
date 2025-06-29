@@ -37,6 +37,8 @@ DemonBoss::DemonBoss(Game* game, float attackCooldown, float moveSpeed)
     mDrawComponent = new DrawSpriteComponent(this, "Assets/Sprites/DemonBoss/DemonBoss.png", size, size - 10);
     SetScale(1.0f);
 
+    mGame->LockCamera();
+
     // Start with moving animation
     // mDrawComponent->SetAnimation("idle");
 
@@ -214,6 +216,8 @@ void DemonBoss::Kill()
 
     // Spawn power-up or trigger level completion
     // ...
+
+    mGame->UnlockCamera();
 
     // Destroy the boss
     SetState(ActorState::Destroy);

@@ -102,6 +102,7 @@ void Mario::OnUpdate(float deltaTime)
 
     // Camera
     mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
+    mPosition.x = Math::Min(mPosition.x, mGame->GetCameraPos().x + mGame->GetWindowWidth() - Game::TILE_SIZE);
 
     // Jumping
     if (mRigidBodyComponent && mRigidBodyComponent->GetVelocity().y != 0)

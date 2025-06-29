@@ -116,6 +116,10 @@ public:
     int GetNumberOfCoinsCollected() {return mNumberOfCoinsCollected; };
     void SetScore(int points) { mScore = points; };
     int GetScore() {return mScore;};
+
+    void LockCamera() { mIsCameraLocked = true; };
+    void UnlockCamera() { mIsCameraLocked = false; };
+
 private:
     void ProcessInput();
     void UpdateGame();
@@ -166,6 +170,7 @@ private:
     Vector3 mBackgroundColor;
     Vector3 mModColor;
     Vector2 mCameraPos;
+    bool mIsCameraLocked;
 
     // Game-specific
     class Mario *mMario;
