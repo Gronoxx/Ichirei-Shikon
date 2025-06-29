@@ -29,7 +29,7 @@ FlyingDemon::FlyingDemon(Game *game, const Vector2& targetPosition, float lifeti
       , mIsFlyingAway(false) {
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 5.0f, false);
     mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE - 4.0f, Game::TILE_SIZE,
-                                                   ColliderLayer::Player);
+                                                   ColliderLayer::Enemy);
 
     mDrawComponent = new DrawAnimatedComponent(this, 150);
 
@@ -227,27 +227,4 @@ void FlyingDemon::Kill() {
     mGame->GetAudio()->PlaySound("Dead.wav");
 
     mGame->ResetGameScene(3.5f); // Reset the game scene after 3 seconds
-}
-
-void FlyingDemon::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
-    if (other->GetLayer() == ColliderLayer::Enemy) {
-        Kill();
-    }
-}
-
-void FlyingDemon::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
- if (other->GetLayer() == ColliderLayer::Blocks) {
-        if (!mIsOnGround) {
-            // --------------
-            // TODO - PARTE 4
-            // --------------
-
-            // TODO 1.: Toque o som "Bump.wav"
-            mGame->GetAudio()->PlaySound("Bump.wav");
-
-            // Cast actor to Block to call OnBump
-            auto *block = dynamic_cast<Block *>(other->GetOwner());
-            block->OnBump();
-        }
-    }
 }
