@@ -8,22 +8,22 @@
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 
 const float JUMP_FORCE = 50000.0f;
-const float JUMP_COOLDOWN = 2.0f;
+const float JUMP_COOLDOWN = 5.0f;
 const int INITIAL_HEALTH = 5;
 
-DemonBoss::DemonBoss(Game* game, float attackCooldown, float moveSpeed)
+DemonBoss::DemonBoss(Game *game, float attackCooldown, float vulnerableCooldown, float moveSpeed)
     : Actor(game)
-    , mCurrentState(State::Moving)
-    , mAttackCooldown(attackCooldown)
-    , mAttackTimer(attackCooldown)
-    , mMoveSpeed(moveSpeed)
-    , mJumpForce(JUMP_FORCE)
-    , mJumpCooldown(JUMP_COOLDOWN)
-    , mJumpTimer(0.0f)
-    , mHealth(INITIAL_HEALTH)
-    , mIsGrounded(false)
-    , mIsFacingLeft(true)
-{
+      , mCurrentState(State::Moving)
+      , mAttackCooldown(attackCooldown)
+      , mVulnerableCooldown(vulnerableCooldown)
+      , mAttackTimer(attackCooldown/3.0f)
+      , mMoveSpeed(moveSpeed)
+      , mJumpForce(JUMP_FORCE)
+      , mJumpCooldown(JUMP_COOLDOWN)
+      , mJumpTimer(JUMP_COOLDOWN)
+      , mHealth(INITIAL_HEALTH)
+      , mIsGrounded(true)
+      , mIsFacingLeft(true) {
     // Set size to 4x4 tiles
     float size = Game::TILE_SIZE * 3.0f;
 
@@ -45,8 +45,7 @@ DemonBoss::DemonBoss(Game* game, float attackCooldown, float moveSpeed)
     Random::Init();
 }
 
-void DemonBoss::OnUpdate(float deltaTime)
-{
+void DemonBoss::OnUpdate(float deltaTime) {
     if (mGame->GetGamePlayState() != Game::GamePlayState::Playing)
         return;
 
@@ -55,27 +54,26 @@ void DemonBoss::OnUpdate(float deltaTime)
         mJumpTimer -= deltaTime;
     }
 
+
     // Update state machine
     switch (mCurrentState) {
         case State::Moving:
             UpdateMoving(deltaTime);
-            // Check if it's time to attack
-            mAttackTimer -= deltaTime;
-            if (mAttackTimer <= 0.0f) {
+        // Check if it's time to attack
+
+            mAttackTimer += deltaTime;
+            if (mAttackTimer >= mAttackCooldown) {
+                SDL_Log("Change state to vulnerable");
                 StartAttack();
             }
-            break;
-
-        case State::Attacking:
-            UpdateAttacking(deltaTime);
             break;
 
         case State::Vulnerable:
             // Just wait until attack cooldown is over
             mAttackTimer += deltaTime;
-            if (mAttackTimer >= mAttackCooldown) {
+            if (mAttackTimer >= mVulnerableCooldown) {
+                SDL_Log("Change state to moving");
                 mCurrentState = State::Moving;
-                mAttackTimer = 0.0f;
             }
             break;
     }
@@ -90,9 +88,8 @@ void DemonBoss::OnUpdate(float deltaTime)
     mPosition.x = Math::Clamp(mPosition.x, minX, maxX);
 }
 
-void DemonBoss::UpdateMoving(float deltaTime)
-{
-    Mario* mario = mGame->GetMario();
+void DemonBoss::UpdateMoving(float deltaTime) {
+    Mario *mario = mGame->GetMario();
     if (!mario)
         return;
 
@@ -104,118 +101,92 @@ void DemonBoss::UpdateMoving(float deltaTime)
     Vector2 moveForce = Vector2(direction * mMoveSpeed, 0);
     mRigidBodyComponent->ApplyForce(moveForce);
 
-    // Random chance to jump
-    if (CanJump() && Random::GetFloat() < 0.01f) {
-        JumpAwayFromSamurai();
+
+    if (CanJump() && Random:: GetFloat() < 0.01f) {
+        Jump();
     }
 }
 
-void DemonBoss::UpdateAttacking(float deltaTime)
-{
-    // Spawn minions after a short delay
-    static float spawnTimer = 0.5f;
-    static bool hasSpawned = false;
-
-    spawnTimer -= deltaTime;
-    if (spawnTimer <= 0.0f && !hasSpawned) {
-        SpawnMinions();
-        hasSpawned = true;
-
-        // Go to vulnerable state after attack
-        mCurrentState = State::Vulnerable;
-        mAttackTimer = 0.0f; // Reset attack timer
-    }
-}
-
-void DemonBoss::StartAttack()
-{
+void DemonBoss::StartAttack() {
     if (mCurrentState != State::Moving)
         return;
 
-    mCurrentState = State::Attacking;
     mRigidBodyComponent->SetVelocity(Vector2::Zero);
 
-    // Reset attack state
-    static_cast<void>(0); // This seems to be a placeholder
+    SpawnMinions();
+
+    mCurrentState = State::Vulnerable;
+    mAttackTimer = 0.0f; // Reset attack timer
 }
 
-void DemonBoss::SpawnMinions()
-{
+void DemonBoss::SpawnMinions() {
+    SDL_Log("Spawning minions");
+
     // Get screen bounds
     float screenLeft = mGame->GetCameraPos().x;
     float screenRight = screenLeft + mGame->GetWindowWidth();
+    float screenMiddle = screenLeft + mGame->GetWindowWidth() / 2;
     float screenTop = mGame->GetCameraPos().y;
-    float screenBottom = screenTop + mGame->GetWindowHeight();
-    
+
     // Calculate spawn positions just outside the screen
     float spawnY = screenTop;
-    float leftSpawnX = screenLeft - Game::TILE_SIZE * 2.0f;  // Left of screen
+    float leftSpawnX = screenLeft - Game::TILE_SIZE * 2.0f; // Left of screen
     float rightSpawnX = screenRight + Game::TILE_SIZE * 2.0f; // Right of screen
-    
+
     // Target positions near the boss
     float targetOffset = Game::TILE_SIZE * 3.0f;
-    Vector2 leftTarget = mPosition + Vector2(-targetOffset, -Game::TILE_SIZE * 6);
-    Vector2 rightTarget = mPosition + Vector2(targetOffset, -Game::TILE_SIZE * 6);
-    
+
+    Vector2 leftTarget =  Vector2(screenMiddle - targetOffset, Game::TILE_SIZE * 3);
+    Vector2 rightTarget = Vector2(screenMiddle + targetOffset, Game::TILE_SIZE * 3);
+
     // Left minion (spawns from left, moves to right of boss)
-    auto* leftMinion = new FlyingDemon(mGame, leftTarget, 6.0f, 400.0f);
+    auto *leftMinion = new FlyingDemon(mGame, leftTarget, 6.0f, 400.0f);
     leftMinion->SetPosition(Vector2(leftSpawnX, spawnY));
-    
+
     // Right minion (spawns from right, moves to left of boss)
-    auto* rightMinion = new FlyingDemon(mGame, rightTarget, 6.0f, 400.0f);
+    auto *rightMinion = new FlyingDemon(mGame, rightTarget, 6.0f, 400.0f);
     rightMinion->SetPosition(Vector2(rightSpawnX, spawnY));
 }
 
-void DemonBoss::ManageAnimations()
-{
+void DemonBoss::ManageAnimations() {
 }
 
-bool DemonBoss::IsSamuraiOnLeft() const
-{
-    Mario* mario = mGame->GetMario();
+bool DemonBoss::IsSamuraiOnLeft() const {
+    Mario *mario = mGame->GetMario();
     if (!mario) return false;
 
     return mario->GetPosition().x < mPosition.x;
 }
 
-void DemonBoss::FaceAwayFromSamurai()
-{
+void DemonBoss::FaceAwayFromSamurai() {
     bool samuraiOnLeft = IsSamuraiOnLeft();
     mIsFacingLeft = !samuraiOnLeft;
     mRotation = samuraiOnLeft ? Math::Pi : 0.0f;
 }
 
-void DemonBoss::JumpAwayFromSamurai()
-{
+void DemonBoss::Jump() {
     if (!CanJump())
         return;
 
     Vector2 jumpForce(0.0f, -mJumpForce);
 
-    // Add slight horizontal force away from Mario
     if (IsSamuraiOnLeft()) {
-        jumpForce.x = -mJumpForce * 0.5f;
+        jumpForce.x = mJumpForce;
     } else {
-        jumpForce.x = mJumpForce * 0.5f;
+        jumpForce.x = -mJumpForce;
     }
 
     mRigidBodyComponent->ApplyForce(jumpForce);
     mJumpTimer = JUMP_COOLDOWN;
-    mIsGrounded = false;
 }
 
-bool DemonBoss::CanJump() const
-{
+bool DemonBoss::CanJump() const {
     return mIsGrounded && mJumpTimer <= 0.0f;
 }
 
-void DemonBoss::Kill()
-{
+void DemonBoss::Kill() {
     // Play death animation/sound
-    mGame->GetAudio()->PlaySound("BossDefeated.wav");
-
-    // Spawn power-up or trigger level completion
-    // ...
+    // mGame->GetAudio()->PlaySound("BossDefeated.wav");
 
     mGame->UnlockCamera();
 
@@ -223,8 +194,7 @@ void DemonBoss::Kill()
     SetState(ActorState::Destroy);
 }
 
-void DemonBoss::LoadAnimationsFromFile(const std::string& filePath)
-{
+void DemonBoss::LoadAnimationsFromFile(const std::string &filePath) {
     // // Load animations from JSON file
     // mDrawComponent->LoadAnimations(filePath);
     // mDrawComponent->SetAnimation("idle");
