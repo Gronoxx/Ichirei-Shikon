@@ -29,8 +29,12 @@ public:
     void SetIsPaused(bool paused) { mIsPaused = paused; }
     void SetRenderOffset(const Vector2& offset) { mRenderOffset = offset; }
     bool IsAnimationFinished() const;
+    float GetCurrentAnimationDuration() const;
     void SetLoop(bool shouldLoop) { mShouldLoop = shouldLoop; }
+    const std::string GetCurrentAnimationName() const { return mCurrentAnimationName; }
+    float GetAnimationDuration(const std::string& animName) const;
     std::string GetAnimationName() const { return mCurrentAnimationName; }
+
 
 private:
     // Carrega a textura e os dados do spritesheet para UMA animação.
@@ -58,6 +62,8 @@ private:
     Vector2 mRenderOffset;
 
     std::map<std::string, std::vector<std::string>> mFrameTexturePaths;
+    std::unordered_map<std::string, Vector2> mAnimationOffsets;
+
 
 
 };

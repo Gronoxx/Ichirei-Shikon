@@ -65,6 +65,14 @@ void DrawAnimatedComponent::LoadCharacterAnimations(const std::string& character
         for (auto& [animName, animData] : animations.items()) {
             float fps = animData["fps"];
 
+            Vector2 animOffset(0.0f, 0.0f);
+            if (animData.contains("offset")) {
+                animOffset.x = animData["offset"]["x"].get<float>();
+                animOffset.y = animData["offset"]["y"].get<float>();
+                SDL_Log("   ↪ Offset customizado (%.1f, %.1f) para animação '%s'", animOffset.x, animOffset.y, animName.c_str());
+            }
+            mAnimationOffsets[animName] = animOffset;
+
             // Caso 1: spritesheet + data
             if (animData.contains("texturePath") && animData.contains("dataPath") && animData.contains("frameOrder")) {
                 std::string texturePath = animData["texturePath"];
@@ -92,6 +100,7 @@ void DrawAnimatedComponent::LoadCharacterAnimations(const std::string& character
                         SDL_Log("ERRO: Falha ao carregar frame '%s' da animação '%s'", path.c_str(), animName.c_str());
                     }
                 }
+
 
                 std::vector<SDL_Rect*> frames;
                 for (SDL_Texture* tex : textures) {
@@ -216,9 +225,18 @@ void DrawAnimatedComponent::Draw(SDL_Renderer* renderer, const Vector3& modColor
     const SDL_Rect* srcRect = sheetFrames[spriteIdx];
 
     float scale = mOwner->GetScale();
+
+    Vector2 offset = mRenderOffset;
+
+    // Soma com offset específico da animação (se existir)
+    auto itOffset = mAnimationOffsets.find(mCurrentAnimationName);
+    if (itOffset != mAnimationOffsets.end()) {
+        offset += itOffset->second;
+    }
+
     SDL_Rect dstRect = {
-        static_cast<int>(mOwner->GetPosition().x - mOwner->GetGame()->GetCameraPos().x - (mRenderOffset.x * scale) - (Game::TILE_SIZE * scale - Game::TILE_SIZE)),
-        static_cast<int>(mOwner->GetPosition().y - mOwner->GetGame()->GetCameraPos().y - (mRenderOffset.y * scale) - (Game::TILE_SIZE * scale - Game::TILE_SIZE)),
+        static_cast<int>(mOwner->GetPosition().x - mOwner->GetGame()->GetCameraPos().x - (offset.x * scale) - (Game::TILE_SIZE * scale - Game::TILE_SIZE)),
+        static_cast<int>(mOwner->GetPosition().y - mOwner->GetGame()->GetCameraPos().y - (offset.y * scale) - (Game::TILE_SIZE * scale - Game::TILE_SIZE)),
         static_cast<int>(srcRect->w * scale),
         static_cast<int>(srcRect->h * scale)
     };
@@ -230,6 +248,21 @@ void DrawAnimatedComponent::Draw(SDL_Renderer* renderer, const Vector3& modColor
                            static_cast<Uint8>(modColor.x),
                            static_cast<Uint8>(modColor.y),
                            static_cast<Uint8>(modColor.z));
+
+    AABBColliderComponent* collider = mOwner->GetComponent<AABBColliderComponent>();
+    if (collider && collider->IsEnabled()) {
+        Vector2 min = collider->GetMin();
+        Vector2 max = collider->GetMax();
+
+        SDL_Rect rect;
+        rect.x = static_cast<int>(min.x - mOwner->GetGame()->GetCameraPos().x);
+        rect.y = static_cast<int>(min.y - mOwner->GetGame()->GetCameraPos().y);
+        rect.w = static_cast<int>(max.x - min.x);
+        rect.h = static_cast<int>(max.y - min.y);
+
+        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Vermelho
+        SDL_RenderDrawRect(renderer, &rect);
+    }
 
     SDL_RenderCopyEx(renderer, texture, srcRect, &dstRect, 0.0, nullptr, flip); // Rotação é tratada pelo flip
 }
@@ -253,11 +286,41 @@ void DrawAnimatedComponent::SetAnimation(const std::string& name)
 
 bool DrawAnimatedComponent::IsAnimationFinished() const
 {
+    // Só faz sentido verificar término se a animação atual está setada e não está em loop
+    if (mShouldLoop || mCurrentAnimationName.empty())
+        return false;
+
     auto it = mAnimationFrames.find(mCurrentAnimationName);
-    if (it == mAnimationFrames.end()) return true;
+    if (it == mAnimationFrames.end())
+        return true; // Considera "terminado" se não encontrou a animação
 
     int frameCount = static_cast<int>(it->second.size());
-    return mCurrentFrame >= frameCount;
+
+    // A animação é considerada terminada se passou do último frame
+    return mCurrentFrame >= static_cast<float>(frameCount);
+}
+
+float DrawAnimatedComponent::GetCurrentAnimationDuration() const {
+    auto it = mAnimationFrames.find(mCurrentAnimationName);
+    if (it == mAnimationFrames.end()) return 0.0f;
+
+    int frameCount = static_cast<int>(it->second.size());
+    float fps = mAnimationFPS.at(mCurrentAnimationName);
+    return frameCount / fps;
+}
+
+float DrawAnimatedComponent::GetAnimationDuration(const std::string& animName) const
+{
+    auto itFrames = mAnimationFrames.find(animName);
+    auto itFPS = mAnimationFPS.find(animName);
+
+    if (itFrames == mAnimationFrames.end() || itFPS == mAnimationFPS.end())
+        return 0.0f;
+
+    int frameCount = static_cast<int>(itFrames->second.size());
+    float fps = itFPS->second;
+
+    return frameCount / fps;
 }
 
 

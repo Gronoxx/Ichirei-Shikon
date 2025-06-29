@@ -287,3 +287,16 @@ void AudioSystem::ProcessInput(const Uint8* keyState)
 
 	mLastDebugKey = keyState[SDL_SCANCODE_PERIOD];
 }
+
+void AudioSystem::PlayMusic(const std::string& musicName, bool looping, int volume)
+{
+	std::string filePath = "Assets/Sounds/" + musicName;
+	Mix_Music* music = Mix_LoadMUS(filePath.c_str());
+	if (!music) {
+		SDL_Log("Erro ao carregar música: %s", Mix_GetError());
+		return;
+	}
+
+	Mix_VolumeMusic(volume);
+	Mix_PlayMusic(music, looping ? -1 : 1);
+}

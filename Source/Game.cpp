@@ -231,7 +231,7 @@ void Game::ChangeScene()
         mHUD->SetLevelName("1-1");
 
         mAudio->StopAllSounds();
-        mMusicHandle = mAudio->PlaySound("Level1_NhacNhatBanHay.mp3",true);
+        mAudio->PlayMusic("Level1_NhacNhatBanHay.mp3",true,13);
 
         // Set background color
         mBackgroundColor.Set(107.0f, 140.0f, 255.0f);
