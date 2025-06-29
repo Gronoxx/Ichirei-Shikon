@@ -139,22 +139,29 @@ void DemonBoss::StartAttack()
 
 void DemonBoss::SpawnMinions()
 {
-    // Spawn two flying demons on either side
-    float spawnOffset = Game::TILE_SIZE * 5.0f;
-
-    // Left minion
-    auto* leftMinion = new FlyingDemon(mGame,
-        mGame->GetCameraPos() + Vector2(-spawnOffset, 6 * Game::TILE_SIZE),
-        6.0f,
-        400.0f);
-    leftMinion->SetPosition(mGame->GetCameraPos() + Vector2(-spawnOffset, 0));
-
-    // Right minion
-    auto* rightMinion = new FlyingDemon(mGame,
-        mGame->GetCameraPos() + Vector2(spawnOffset, 6 * Game::TILE_SIZE),
-        6.0f,
-        400.0f);
-    rightMinion->SetPosition(mGame->GetCameraPos() + Vector2(-spawnOffset, 0));
+    // Get screen bounds
+    float screenLeft = mGame->GetCameraPos().x;
+    float screenRight = screenLeft + mGame->GetWindowWidth();
+    float screenTop = mGame->GetCameraPos().y;
+    float screenBottom = screenTop + mGame->GetWindowHeight();
+    
+    // Calculate spawn positions just outside the screen
+    float spawnY = screenTop;
+    float leftSpawnX = screenLeft - Game::TILE_SIZE * 2.0f;  // Left of screen
+    float rightSpawnX = screenRight + Game::TILE_SIZE * 2.0f; // Right of screen
+    
+    // Target positions near the boss
+    float targetOffset = Game::TILE_SIZE * 3.0f;
+    Vector2 leftTarget = mPosition + Vector2(-targetOffset, -Game::TILE_SIZE * 6);
+    Vector2 rightTarget = mPosition + Vector2(targetOffset, -Game::TILE_SIZE * 6);
+    
+    // Left minion (spawns from left, moves to right of boss)
+    auto* leftMinion = new FlyingDemon(mGame, leftTarget, 6.0f, 400.0f);
+    leftMinion->SetPosition(Vector2(leftSpawnX, spawnY));
+    
+    // Right minion (spawns from right, moves to left of boss)
+    auto* rightMinion = new FlyingDemon(mGame, rightTarget, 6.0f, 400.0f);
+    rightMinion->SetPosition(Vector2(rightSpawnX, spawnY));
 }
 
 void DemonBoss::ManageAnimations()
