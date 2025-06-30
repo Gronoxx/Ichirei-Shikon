@@ -84,3 +84,5 @@ fabric.properties
 .idea/editor.xml
 .idea/vcs.xml
 /.idea
+
+build/
