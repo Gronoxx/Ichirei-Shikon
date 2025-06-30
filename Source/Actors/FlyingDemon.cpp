@@ -211,8 +211,6 @@ void FlyingDemon::ManageAnimations() {
 
 void FlyingDemon::Kill() {
     mIsDying = true;
-    mGame->SetGamePlayState(Game::GamePlayState::GameOver);
-    mDrawComponent->SetAnimation("Dead");
 
     // Disable collider and rigid body
     mRigidBodyComponent->SetEnabled(false);
@@ -225,6 +223,4 @@ void FlyingDemon::Kill() {
     // TODO 1.: Pare todos os sons com StopAllSounds() e toque o som "Dead.wav".
     mGame->GetAudio()->StopAllSounds();
     mGame->GetAudio()->PlaySound("Dead.wav");
-
-    mGame->ResetGameScene(3.5f); // Reset the game scene after 3 seconds
 }

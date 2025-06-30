@@ -336,8 +336,8 @@ void Game::BuildLevel(int** levelData, int width, int height)
             }
             else if (tile == 12) // Demon Boss
             {
-                //auto demonBoss = new DemonBoss(this);
-                //demonBoss->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                auto demonBoss = new DemonBoss(this);
+                demonBoss->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner
             {

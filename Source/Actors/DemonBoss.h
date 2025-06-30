@@ -13,16 +13,22 @@ public:
 
     void LoadAnimationsFromFile(const std::string &filePath);
 
+    void OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other) override;
+    void OnVerticalCollision(const float minOverlap, AABBColliderComponent* other) override;
+
     void Kill() override;
     void Hurt() override;
 
 private:
     enum class State {
         Moving,
-        Vulnerable
+        Vulnerable,
+        Waiting
     };
 
     void UpdateMoving(float deltaTime);
+
+    void UpdateWaiting(float deltaTime);
 
     void StartAttack();
 

@@ -40,7 +40,7 @@ void Particle::OnUpdate(float deltaTime) {
     Player *player = GetGame()->GetMario();
     auto *playerCollider = player->GetComponent<AABBColliderComponent>();
     if (mCircleColliderComponent->Intersect(*playerCollider)) {
-        player->SetState(ActorState::Destroy);
+        player->Hurt();
         SetState(ActorState::Destroy);
     }
 

@@ -26,6 +26,7 @@ Player::Player(Game* game, const float forwardSpeed, const float jumpSpeed)
         , mForwardSpeed(forwardSpeed)
         , mJumpSpeed(jumpSpeed)
         , mPoleSlideTimer(0.0f)
+        , mHealth(5)
 {
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 5.0f);
     mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE,Game::TILE_SIZE,
@@ -258,6 +259,7 @@ void Player::Kill()
     mGame->GetAudio()->PlaySound("Dead.wav");
 
     mGame->ResetGameScene(3.5f); // Reset the game scene after 3 seconds
+    mGame->UnlockCamera();
 }
 
 void Player::Win(AABBColliderComponent *poleCollider)
@@ -318,4 +320,16 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* 
 
         }
     }
+}
+
+void Player::Hurt() {
+    SDL_Log("Player hurt life: %d", mHealth);
+
+    mHealth--;
+    if (mHealth <= 0) {
+        Kill();
+    }
+
+    auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
+    mRigidBodyComponent->ApplyForce(Vector2{xComponent, -1} * 10000.0f);
 }

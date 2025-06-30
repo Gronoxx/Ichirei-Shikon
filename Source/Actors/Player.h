@@ -19,6 +19,8 @@ public:
     void OnVerticalCollision(const float minOverlap, AABBColliderComponent* other) override;
 
     void Kill() override;
+    void Hurt() override;
+
     void Win(AABBColliderComponent *poleCollider);
 
     void LoadAnimationsFromFile(const std::string& filePath);
@@ -41,6 +43,7 @@ private:
     float mPoleSlideTimer;
     float mAttackTimer;
     float mIdleToRunTimer;
+    int mHealth;
     bool mIsRunning;
     bool mIsOnPole;
     bool mIsDying;
