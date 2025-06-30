@@ -1,0 +1,3 @@
+/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/build/CMakeFiles/Ichirei-Shikon.dir
+/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/build/CMakeFiles/edit_cache.dir
+/Users/gustavo/CLionProjects/IchireiShikon2/Ichirei-Shikon/build/CMakeFiles/rebuild_cache.dir

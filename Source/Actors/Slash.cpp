@@ -5,9 +5,10 @@
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 
-Slash::Slash(Game* game, const Vector2& position, const float TotalLifeTime, float rotation)
+Slash::Slash(Game* game, const Vector2& position, const float totalLifeTime, float rotation, const Vector2& velocity)
         : Actor(game)
-        , mLifeTime(TotalLifeTime)
+        , mLifeTime(totalLifeTime)
+        , mVelocity(velocity)
 {
     SetPosition(position);
     SetScale(1.0f);
@@ -23,16 +24,16 @@ Slash::Slash(Game* game, const Vector2& position, const float TotalLifeTime, flo
     mColliderComponent = new AABBColliderComponent(
         this,
         0, 0,                // Offset
-        106, 32,              // Tamanho
-        ColliderLayer::Slash // Ou outro layer se quiser que não colida com o jogador
+        106, 32,             // Tamanho
+        ColliderLayer::Slash
     );
-
-
-    SetPosition(position);
 }
 
 void Slash::OnUpdate(float deltaTime)
 {
+    // Movimenta o slash junto à direção do jogador
+    SetPosition(GetPosition() + mVelocity * deltaTime);
+
     mLifeTime -= deltaTime;
     if (mLifeTime <= 0.0f || mDrawComponent->IsAnimationFinished()) {
         SetState(ActorState::Destroy);
@@ -43,7 +44,6 @@ void Slash::OnHorizontalCollision(float minOverlap, AABBColliderComponent* other
 {
     other->GetOwner()->Hurt();
 }
-
 
 void Slash::OnVerticalCollision(float minOverlap, AABBColliderComponent* other)
 {

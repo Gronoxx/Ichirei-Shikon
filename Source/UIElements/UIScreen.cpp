@@ -39,7 +39,8 @@ UIScreen::~UIScreen()
 
 void UIScreen::Update(float deltaTime)
 {
-	
+    if(mTimerBar)
+    mTimerBar->Update(deltaTime);
 }
 
 void UIScreen::Draw(SDL_Renderer *renderer)
@@ -53,6 +54,14 @@ void UIScreen::Draw(SDL_Renderer *renderer)
 
     for (int i=0;i<mImages.size();i++)
         mImages[i]->Draw(renderer,mPos);
+
+    for (int i=0;i<mRects.size();i++) {
+        if (mRects[i])
+            mRects[i]->Draw(renderer,mPos);
+    }
+
+    if(mTimerBar)
+        mTimerBar->Draw(renderer,mPos);
 }
 
 void UIScreen::ProcessInput(const uint8_t* keys)
@@ -111,4 +120,20 @@ UIImage* UIScreen::AddImage(const std::string &imagePath, const Vector2 &pos, co
     UIImage * img = new UIImage(mGame->GetRenderer(),imagePath, pos, dims, color);
     mImages.push_back(img);
     return img;
+}
+UIRect* UIScreen::AddRect(const Vector2& pos, const Vector2& size, const Vector3& color)
+{
+    auto* rect = new UIRect(pos, size, color);
+    mRects.emplace_back(rect); // igual ao que você já faz com UIText
+    return rect;
+}
+UITimerBar* UIScreen::AddTimerBar(const Vector2& pos, const Vector2& size, float duration)
+{
+    if (mTimerBar)
+    {
+        delete mTimerBar; // Limpa o anterior, se houver
+    }
+
+    mTimerBar = new UITimerBar(pos, size, duration);
+    return mTimerBar;
 }

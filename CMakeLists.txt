@@ -13,7 +13,7 @@ find_package(SDL2_mixer REQUIRED)
 
 add_executable(${PROJECT_NAME}
         Source/Main.cpp
-        Source/Math.cpp
+        Source/GameMath.cpp
         Source/Random.cpp
         Source/Actors/Actor.cpp
         Source/Components/Component.cpp
@@ -47,6 +47,10 @@ add_executable(${PROJECT_NAME}
         Source/Actors/Mushroom.cpp
         Source/Actors/Trigger.cpp
         Source/Actors/Trigger.h
+        Source/UIElements/UIRect.cpp
+        Source/UIElements/UIRect.h
+        Source/UIElements/UITimerBar.cpp
+        Source/UIElements/UITimerBar.h
 )
 
 # Inclui os diretórios de cabeçalho para que o compilador os encontre

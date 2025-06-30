@@ -9,7 +9,7 @@
 #include "UIFont.h"
 #include "UIText.h"
 #include "UIElement.h"
-#include "../Math.h"
+#include "../GameMath.h"
 #include "../Game.h"
 #include "UIImage.h"
 
