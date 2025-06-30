@@ -240,16 +240,6 @@ void Game::ChangeScene()
         // Set background color
         SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
 
-        // Draw Flag
-        //auto flag = new Actor(this);
-        //flag->SetPosition(Vector2(LEVEL_WIDTH * TILE_SIZE - (16 * TILE_SIZE) - 16, 3 * TILE_SIZE));
-
-        // Add a flag sprite
-        //new DrawSpriteComponent(flag, "Assets/Sprites/Background_Flag.png", 32.0f, 32.0f, 1);
-
-        // Add a flag pole taking the entire height
-        //new AABBColliderComponent(flag, 30, 0, 4, TILE_SIZE * LEVEL_HEIGHT, ColliderLayer::Pole, true);
-
         // Initialize actors
         LoadLevel("Assets/Levels/Level1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
     }
@@ -261,16 +251,16 @@ void Game::ChangeScene()
         mHUD->SetTime(mGameTimeLimit);
         mHUD->SetLevelName("1-2");
 
-        mMusicHandle = mAudio->PlaySound("MusicUnderground.ogg",true);
+        mAudio->StopAllSounds();
+        mAudio->PlayMusic("FinalFight_Inferia.mp3",true,13);
 
         // Set background color
-        mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
+        mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
 
-        // Set mod color
-        mModColor.Set(0.0f, 255.0f, 200.0f);
+        // Set background color
+        SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
 
-        // Initialize actors
-        LoadLevel("Assets/Levels/level1-2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+        LoadLevel("Assets/Levels/Level2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
     }
 
     // Set new scene
@@ -280,6 +270,8 @@ void Game::ChangeScene()
 
 void Game::LoadMainMenu()
 {
+    mAudio->StopAllSounds();
+
     auto mainMenu = new UIScreen(this, "Assets/Fonts/SMB.ttf");
     const Vector2 titleSize = Vector2(178.0f, 88.0f) * 2.0f;
     const Vector2 titlePos = Vector2(mWindowWidth/2.0f - titleSize.x/2.0f, 64.0f);
@@ -339,8 +331,13 @@ void Game::BuildLevel(int** levelData, int width, int height)
             if(tile == 11) // Flying Demon
             {
 
-            //    auto demon = new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
-            //    demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                //auto demon = new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
+                //demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+            }
+            else if (tile == 12) // Demon Boss
+            {
+                //auto demonBoss = new DemonBoss(this);
+                //demonBoss->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner
             {
