@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <unordered_map>
-#include "Math.h"
+#include "GameMath.h"
 #include "Actors/Actor.h"
 
 class SpatialHashing

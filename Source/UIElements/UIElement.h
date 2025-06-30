@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Math.h"
+#include "../GameMath.h"
 #include <SDL.h>
 
 class UIElement {

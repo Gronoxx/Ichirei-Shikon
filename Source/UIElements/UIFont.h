@@ -2,7 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include <SDL_ttf.h>
-#include "../Math.h"
+#include "../GameMath.h"
 
 class UIFont
 {

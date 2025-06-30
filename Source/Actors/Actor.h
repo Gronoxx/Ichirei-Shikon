@@ -9,7 +9,7 @@
 #pragma once
 #include <vector>
 #include <SDL_stdinc.h>
-#include "../Math.h"
+#include "../GameMath.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 
 enum class ActorState

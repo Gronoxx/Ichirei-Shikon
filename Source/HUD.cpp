@@ -5,70 +5,46 @@
 #include "HUD.h"
 #include "Game.h"
 #include "UIElements/UIText.h"
+#include "UIElements/UIRect.h"
+#include "UIElements/UITimerBar.h"
 
-HUD::HUD(class Game* game, const std::string& fontName)
-    :UIScreen(game, fontName)
-{
-    const float timeTextPosX = mGame->GetWindowWidth() - WORD_OFFSET - (4 * CHAR_WIDTH);
-    const float timeTextPosY = HUD_POS_Y;
-    const float timeWidth = 4 * CHAR_WIDTH;
-    const float timeHeight = WORD_HEIGHT;
-    Vector2 timeDimensions(timeWidth, timeHeight);
 
-    AddText("Time", Vector2(timeTextPosX, timeTextPosY),timeDimensions,POINT_SIZE);
 
-    const float secondsTextPosX = mGame->GetWindowWidth() - WORD_OFFSET - (3 * CHAR_WIDTH);;
-    const float secondsTextPosY = HUD_POS_Y * 2.0 + WORD_HEIGHT;
-    const float secondsWidth = 3 * CHAR_WIDTH;
-    const float secondsHeight = WORD_HEIGHT;
-    Vector2 secondsDimensions(secondsWidth, secondsHeight);
+HUD::HUD(class Game* game, const std::string& fontName, SDL_Renderer* renderer)
+    : UIScreen(game, fontName) {
+    // Imagens base
+    mBaseHUDImage = AddImage("Assets/Sprites/HUD/spr_hud.png", Vector2(0.0f, 0.0f),
+                             Vector2(mGame->GetWindowWidth(), HUD_HEIGHT));
 
-    mTimeText = AddText("400", Vector2(secondsTextPosX, secondsTextPosY),secondsDimensions,POINT_SIZE);
+    mBatteryImage = AddImage("Assets/Sprites/HUD/spr_hud_battery.png", Vector2(0.0f, 0.0f),
+                             Vector2(BATTERY_WIDTH * scaleX, BATTERY_HEIGHT));
 
-    const float worldWidth = 5 * CHAR_WIDTH;
-    const float worldHeight = WORD_HEIGHT;
-    float worldTextPosX = timeTextPosX - worldWidth - WORD_OFFSET;
-    const float worldTextPosY = HUD_POS_Y;
-    Vector2 worldDimensions(worldWidth, worldHeight);
+    mTimerImage = AddImage("Assets/Sprites/HUD/spr_hud_timer.png", Vector2(mGame->GetWindowWidth() / 2 - TIMER_WIDTH / 2, 0.0f),
+                           Vector2(TIMER_WIDTH * scaleX, TIMER_HEIGHT));
 
-    AddText("World", Vector2(worldTextPosX, worldTextPosY),worldDimensions,POINT_SIZE);
+    mSubWeaponImage = AddImage("Assets/Sprites/HUD/spr_hud_subweapon.png",
+                               Vector2(mGame->GetWindowWidth() - SUBWEAPON_WIDTH * scaleX, 0.0f),
+                               Vector2(SUBWEAPON_WIDTH * scaleX, SUPWEAPON_HEIGHT));
 
-    const float one_one_Width = 3 * CHAR_WIDTH;
-    const float one_one_Height = WORD_HEIGHT;
-    float one_one_TextPosX = worldTextPosX;
-    const float one_one_TextPosY = HUD_POS_Y * 2.0 + WORD_HEIGHT;
-    Vector2 one_one_Dimensions(one_one_Width, one_one_Height);
+    // Barras internas da bateria (preenchidas com azul e brilho)
+    int padding = 1;
+    int barWidth = (barArea.w - (maxBars + 1) * padding) / maxBars;
+    int barHeight = barArea.h - 2 * padding;
 
-    mLevelName = AddText("1-1", Vector2(one_one_TextPosX, one_one_TextPosY),one_one_Dimensions,POINT_SIZE);
+    for (int i = 0; i < currentBars; ++i)
+    {
+        float x = barArea.x + padding + i * (barWidth + padding);
+        float y = barArea.y + padding;
 
-    const float mario_Width = 5 * CHAR_WIDTH;
-    const float mario_Height = WORD_HEIGHT;
-    float mario_TextPosX = WORD_OFFSET;
-    const float mario_TextPosY = HUD_POS_Y;
-    Vector2 mario_Dimensions(mario_Width, mario_Height);
+        // Azul principal
+        auto* bar = AddRect(Vector2(x, y), Vector2(barWidth, barHeight), Vector3(91, 187, 255));
+        mBatteryBars.push_back(bar);
 
-    AddText("Mario", Vector2(mario_TextPosX, mario_TextPosY),mario_Dimensions,POINT_SIZE);
+        AddRect(Vector2(x, y), Vector2(barWidth, barHeight / 3), Vector3(200, 240, 255));
+    }
 
-    const float points_Width = 6 * CHAR_WIDTH;
-    const float points_Height = WORD_HEIGHT;
-    float points_TextPosX = WORD_OFFSET;
-    const float points_TextPosY = HUD_POS_Y * 2 + WORD_HEIGHT;
-    Vector2 points_Dimensions(points_Width, points_Height);
-
-    mScoreCounter = AddText("000000", Vector2(points_TextPosX, points_TextPosY),points_Dimensions,POINT_SIZE);
-
-    const float coinsWidth = 3 * CHAR_WIDTH;
-    const float coinsHeight = WORD_HEIGHT;
-    float coinsTextPosX = (mario_TextPosX + mario_Width) + (worldTextPosX - (mario_TextPosX + mario_Width) )/2.0;
-    const float coinsTextPosY = HUD_POS_Y * 2 + WORD_HEIGHT;
-    Vector2 coinsDimensions(coinsWidth, coinsHeight);
-
-    mCoinCounter = AddText("x00", Vector2(coinsTextPosX, coinsTextPosY),coinsDimensions,POINT_SIZE);
-    const float coinsImageWidth = 1 * CHAR_WIDTH;
-    const float coinsImageHeight = WORD_HEIGHT;
-    Vector2 coinsImageDimensions(coinsImageWidth, coinsImageHeight);
-    mCoinImage = AddImage("/Assets/Sprites/CoinHUD.png",Vector2(coinsTextPosX - coinsImageDimensions.x, coinsTextPosY), coinsImageDimensions);
-
+    AddTimerBar(Vector2(mGame->GetWindowWidth() / 2 - TIMER_WIDTH / 2 + 18, 3),
+            Vector2(93, 8), 60.0f);
 }
 
 HUD::~HUD()
@@ -79,7 +55,6 @@ HUD::~HUD()
 void HUD::SetTime(int time)
 {
     std::string timeStr = std::to_string(time);
-    mTimeText->SetText(timeStr);
 
     int numDigits = timeStr.length();
     float newWidth = numDigits * CHAR_WIDTH;
@@ -91,20 +66,19 @@ void HUD::SetTime(int time)
     Vector2 newPosition(newPosX, newPosY);
 
     // 4. Atualizar o objeto de texto com os novos valores.
-    mTimeText->SetSize(newSize);
-    mTimeText->SetPosition(newPosition);
+
 }
 
 void HUD::SetLevelName(const std::string &levelName)
 {
-    mLevelName->SetText(levelName);
+
 }
 
 void HUD::SetCoins()
 {
     std::string coinsStr = std::to_string(mGame->GetNumberOfCoinsCollected());
-    if (mGame->GetNumberOfCoinsCollected() < 10)
-    mCoinCounter->SetText("x0" + coinsStr);
+
+
 }
 
 void HUD::SetScore()
@@ -115,5 +89,30 @@ void HUD::SetScore()
 
     std::string coinsStr = ss.str();
 
-    mScoreCounter->SetText(coinsStr);
+
+}
+
+void HUD::TakeDamage()
+{
+    if (!mBatteryBars.empty())
+    {
+        auto* lastBar = mBatteryBars.back();
+        mBatteryBars.pop_back();
+
+        // Remove também da lista interna de retângulos
+        auto it = std::find(mRects.begin(), mRects.end(), lastBar);
+        if (it != mRects.end())
+            mRects.erase(it); // Remove o ponteiro da lista
+
+        delete lastBar; // Agora sim é seguro deletar
+    }
+
+    // Atualiza contador lógico
+    currentBars--;
+
+    if (currentBars <= 0)
+    {
+        // Se necessário, pode logar algo
+        SDL_Log("Player está sem energia!");
+    }
 }
