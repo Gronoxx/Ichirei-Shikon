@@ -6,7 +6,7 @@
 
 #include <string>
 #include <SDL.h>
-#include "../Math.h"
+#include "../GameMath.h"
 #include "UIElement.h"
 
 class UIText : public UIElement {

@@ -225,7 +225,7 @@ void Game::ChangeScene()
     }
     else if (mNextScene == GameScene::Level1)
     {
-        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf");
+        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf", mRenderer);
 
         mGameTimeLimit = 400;
         mHUD->SetTime(mGameTimeLimit);
@@ -245,7 +245,7 @@ void Game::ChangeScene()
     }
     else if (mNextScene == GameScene::Level2)
     {
-        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf");
+        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf", mRenderer);
 
         mGameTimeLimit = 400;
         mHUD->SetTime(mGameTimeLimit);

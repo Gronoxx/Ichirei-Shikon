@@ -9,6 +9,7 @@
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 #include "../Json.h"
 #include <fstream>
+#include <HUD.h>
 #include <string>
 
 #include "Slash.h"
@@ -116,7 +117,9 @@ void Player::OnHandleKeyPress(const int key, const bool isPressed)
             positionSlash = GetPosition() - Vector2(0,Game::TILE_SIZE/2);
         }
 
-        mSlash = new Slash(mGame, positionSlash, 0.25f, rotation);
+        Vector2 playerVelocity = mRigidBodyComponent->GetVelocity();
+        Vector2 slashVelocity(playerVelocity.x, 0.0f);
+        mSlash = new Slash(mGame, positionSlash, 0.25f, rotation, slashVelocity);
         mAttackTimer = ATTACK_TIME;
         mGame->GetAudio()->PlaySound("swing.wav");
     }
@@ -178,8 +181,6 @@ void Player::OnUpdate(float deltaTime)
     //Roll
     if (mIsRolling) {
         Vector2 vel = mRigidBodyComponent->GetVelocity();
-        SDL_Log("🌀 ROLLING - Velocidade atual: (x: %.2f, y: %.2f)", vel.x, vel.y);
-
         if (mDrawComponent->IsAnimationFinished()) {
             mIsRolling = false;
             mRigidBodyComponent->SetVelocity(Vector2::Zero);
@@ -271,7 +272,18 @@ void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
 {
     if (other->GetLayer() == ColliderLayer::Enemy)
     {
-        Kill();
+        // Tenta aplicar dano
+        HUD* hud = mGame->GetHUD(); // você deve garantir que Game tenha esse getter
+        hud->TakeDamage();
+
+        if (hud->GetCurrentBattery() <= 0)
+        {
+            Kill();
+        }
+        else
+        {
+            //mGame->GetAudio()->PlaySound("Hit.wav");
+        }
     }
 
     else if (other->GetLayer() == ColliderLayer::EndLevel)

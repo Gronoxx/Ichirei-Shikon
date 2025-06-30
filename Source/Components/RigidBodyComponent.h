@@ -4,7 +4,7 @@
 
 #pragma once
 #include "Component.h"
-#include "../Math.h"
+#include "../GameMath.h"
 
 class RigidBodyComponent : public Component
 {

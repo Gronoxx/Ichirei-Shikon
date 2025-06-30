@@ -5,7 +5,7 @@
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
-#include "../Math.h" // Para Math::Pi
+#include "../GameMath.h" // Para Math::Pi
 #include "../Actors/Player.h"
 
 Goomba::Goomba(Game* game, float forwardSpeed, float deathTime)
@@ -101,9 +101,9 @@ void Goomba::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
         if (mario->isPlayerAttacking()) {
             Kill();
         }
-        else{
-            mario->Kill();
-        }
+        // else{
+        //     mario->Kill();
+        // }
     }
 
     if (owner && collider->GetLayer() == ColliderLayer::Slash) {

@@ -13,10 +13,12 @@
 #include <vector>
 #include <list>
 
-#include "../Math.h"
+#include "../GameMath.h"
 #include "UIText.h"
 #include "UIButton.h"
 #include "UIImage.h"
+#include "UIRect.h"
+#include "UITimerBar.h"
 
 class UIScreen
 {
@@ -50,6 +52,9 @@ public:
 	UIButton* AddButton(const std::string& name, const Vector2& pos, const Vector2& dims, std::function<void()> onClick);
     UIText* AddText(const std::string& name, const Vector2& pos, const Vector2& dims, const int pointSize = 40, const int unsigned wrapLength = 1024);
     UIImage* AddImage(const std::string& imagePath, const Vector2& pos, const Vector2& dims, const Vector3& color = Color::White);
+	UIRect* AddRect(const Vector2& pos, const Vector2& size, const Vector3& color);
+	UITimerBar* AddTimerBar(const Vector2& pos, const Vector2& size, float duration);
+
 
 protected:
     // Sets the mouse mode to relative or not
@@ -68,4 +73,6 @@ protected:
 	std::vector<UIButton *> mButtons;
     std::vector<UIText *> mTexts;
     std::vector<UIImage *> mImages;
+	std::vector<UIRect *> mRects;
+	UITimerBar* mTimerBar;
 };
