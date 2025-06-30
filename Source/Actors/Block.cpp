@@ -4,7 +4,7 @@
 
 #include "Block.h"
 
-#include "Mario.h"
+#include "Player.h"
 #include "Mushroom.h"
 #include "../Game.h"
 #include "../Actors/Goomba.h"

@@ -104,7 +104,7 @@ public:
     void TogglePause();
 
     // Game-specific
-    class Mario* GetMario() { return mMario; }
+    class Player* GetMario() { return mMario; }
 
     void SetGamePlayState(GamePlayState state) { mGamePlayState = state; }
     GamePlayState GetGamePlayState() const { return mGamePlayState; }
@@ -173,7 +173,7 @@ private:
     bool mIsCameraLocked;
 
     // Game-specific
-    class Mario *mMario;
+    class Player *mMario;
     class HUD *mHUD;
     SoundHandle mMusicHandle;
 

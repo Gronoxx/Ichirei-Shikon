@@ -20,10 +20,11 @@
 #include "HUD.h"
 #include "SpatialHashing.h"
 #include "Actors/Actor.h"
-#include "Actors/Mario.h"
+#include "Actors/Player.h"
 #include "Actors/Block.h"
 #include "Actors/DemonBoss.h"
 #include "Actors/FlyingDemon.h"
+#include "Actors/Trigger.h"
 #include "Actors/Spawner.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
@@ -332,20 +333,24 @@ void Game::BuildLevel(int** levelData, int width, int height)
 
             if(tile == 9) // Samurai
             {
-                mMario = new Mario(this);
+                mMario = new Player(this);
                 mMario->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
-            if(tile == 11) // FlyingDemon for debug; Todo: Remove
+            if(tile == 11) // Flying Demon
             {
-            //    auto demonBoss = new DemonBoss(this);
-            //    demonBoss->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
-                auto demon = new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
-                demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+
+            //    auto demon = new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
+            //    demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner
             {
                 Spawner* spawner = new Spawner(this, SPAWN_DISTANCE);
                 spawner->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
+            }
+            else if (tile == 13) // End level trigger
+            {
+                Trigger* trigger = new Trigger(this);
+                trigger->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
             /*else if (tile == 1) { // Special Block With One Coin
                 Block* block = new Block(this, "Assets/Sprites/Blocks/BlockC.png", 1);
@@ -551,6 +556,15 @@ void Game::UpdateGame()
     {
         // Reinsert all actors and pending actors
         UpdateActors(deltaTime);
+    }
+
+    if (mGamePlayState == GamePlayState::LevelComplete) {
+            // If the level is complete, change to the next scene
+        if (mGameScene == GameScene::Level1) {
+            SetGameScene(GameScene::Level2);
+        } else if (mGameScene == GameScene::Level2) {
+            SetGameScene(GameScene::MainMenu);
+        }
     }
 
     // Reinsert audio system

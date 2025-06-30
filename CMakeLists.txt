@@ -23,7 +23,7 @@ add_executable(${PROJECT_NAME}
         Source/Components/ColliderComponents/CircleColliderComponent.cpp
         Source/Components/DrawComponents/DrawSpriteComponent.cpp
         Source/Components/DrawComponents/DrawPolygonComponent.cpp
-        Source/Actors/Mario.cpp
+        Source/Actors/Player.cpp
         Source/Components/ColliderComponents/AABBColliderComponent.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
         Source/Actors/Block.cpp
@@ -45,6 +45,8 @@ add_executable(${PROJECT_NAME}
         Source/Actors/DemonBoss.cpp
         Source/Actors/Slash.cpp
         Source/Actors/Mushroom.cpp
+        Source/Actors/Trigger.cpp
+        Source/Actors/Trigger.h
 )
 
 # Inclui os diretórios de cabeçalho para que o compilador os encontre

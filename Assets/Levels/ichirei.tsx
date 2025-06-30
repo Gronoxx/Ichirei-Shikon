@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tileset version="1.10" tiledversion="1.11.2" name="ichirei" tilewidth="265" tileheight="212" tilecount="13" columns="0">
+<tileset version="1.10" tiledversion="1.11.2" name="ichirei" tilewidth="265" tileheight="212" tilecount="14" columns="0">
  <grid orientation="orthogonal" width="1" height="1"/>
  <tile id="0">
   <image source="../Sprites/Blocks/japan/bamboo.png" width="32" height="32"/>
@@ -39,5 +39,8 @@
  </tile>
  <tile id="12">
   <image source="../Sprites/DemonBoss/DemonBoss.png" width="265" height="212"/>
+ </tile>
+ <tile id="13">
+  <image source="../Sprites/Blocks/Empty_Block.png" width="32" height="32"/>
  </tile>
 </tileset>

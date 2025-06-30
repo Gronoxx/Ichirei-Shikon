@@ -4,7 +4,7 @@
 
 #include "Particle.h"
 
-#include "Mario.h"
+#include "Player.h"
 #include "../Game.h"
 
 Particle::Particle(class Game *game, float length,
@@ -37,7 +37,7 @@ void Particle::OnUpdate(float deltaTime) {
         return;
     }
 
-    Mario *player = GetGame()->GetMario();
+    Player *player = GetGame()->GetMario();
     auto *playerCollider = player->GetComponent<AABBColliderComponent>();
     if (mCircleColliderComponent->Intersect(*playerCollider)) {
         player->SetState(ActorState::Destroy);

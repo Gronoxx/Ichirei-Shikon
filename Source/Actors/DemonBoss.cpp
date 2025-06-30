@@ -1,6 +1,6 @@
 #include "DemonBoss.h"
 #include "../Game.h"
-#include "Mario.h"
+#include "Player.h"
 #include "../Random.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -89,7 +89,7 @@ void DemonBoss::OnUpdate(float deltaTime) {
 }
 
 void DemonBoss::UpdateMoving(float deltaTime) {
-    Mario *mario = mGame->GetMario();
+    Player *mario = mGame->GetMario();
     if (!mario)
         return;
 
@@ -152,7 +152,7 @@ void DemonBoss::ManageAnimations() {
 }
 
 bool DemonBoss::IsSamuraiOnLeft() const {
-    Mario *mario = mGame->GetMario();
+    Player *mario = mGame->GetMario();
     if (!mario) return false;
 
     return mario->GetPosition().x < mPosition.x;

@@ -21,7 +21,8 @@ enum class ColliderLayer
     Blocks,
     Pole,
     Mushroom,
-    Slash
+    Slash,
+    EndLevel
 };
 
 class AABBColliderComponent : public Component

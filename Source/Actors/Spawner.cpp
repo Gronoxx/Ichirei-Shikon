@@ -4,7 +4,7 @@
 
 #include "Spawner.h"
 #include "../Game.h"
-#include "Mario.h"
+#include "Player.h"
 #include "Goomba.h"
 
 Spawner::Spawner(Game* game, float spawnDistance)

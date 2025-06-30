@@ -1,6 +1,6 @@
 #include "Slash.h"
 
-#include "Mario.h"
+#include "Player.h"
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"

@@ -11,7 +11,7 @@
 #include <fstream>
 #include <string>
 
-#include "Mario.h"
+#include "Player.h"
 #include "Particle.h"
 
 FlyingDemon::FlyingDemon(Game *game, const Vector2& targetPosition, float lifetime, const float forwardSpeed)
@@ -124,7 +124,7 @@ void FlyingDemon::StartFlyingAway() {
 
 void FlyingDemon::UpdateWorkingMode(float deltaTime) {
     // Get Mario's position
-    Mario* mario = mGame->GetMario();
+    Player* mario = mGame->GetMario();
     if (!mario) return;
     
     Vector2 marioPos = mario->GetPosition();

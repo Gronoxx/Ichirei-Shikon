@@ -2,7 +2,7 @@
 // Created by Lucas N. Ferreira on 03/08/23.
 //
 
-#include "Mario.h"
+#include "Player.h"
 #include "Block.h"
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -13,7 +13,7 @@
 
 #include "Slash.h"
 
-Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
+Player::Player(Game* game, const float forwardSpeed, const float jumpSpeed)
         : Actor(game)
         , mIsRunning(false)
         , mIsOnPole(false)
@@ -41,7 +41,7 @@ Mario::Mario(Game* game, const float forwardSpeed, const float jumpSpeed)
 
 }
 
-void Mario::OnProcessInput(const uint8_t* state)
+void Player::OnProcessInput(const uint8_t* state)
 {
     if(mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
     if (mIsRolling) return;
@@ -87,7 +87,7 @@ void Mario::OnProcessInput(const uint8_t* state)
 
 }
 
-void Mario::OnHandleKeyPress(const int key, const bool isPressed)
+void Player::OnHandleKeyPress(const int key, const bool isPressed)
 {
     if(mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
 
@@ -117,6 +117,7 @@ void Mario::OnHandleKeyPress(const int key, const bool isPressed)
 
         mSlash = new Slash(mGame, positionSlash, 0.25f, rotation);
         mAttackTimer = ATTACK_TIME;
+        mGame->GetAudio()->PlaySound("swing.wav");
     }
     if ((key == SDLK_t) && isPressed && !mIsRolling && mIsOnGround) {
         mIsRolling = true;
@@ -132,7 +133,7 @@ void Mario::OnHandleKeyPress(const int key, const bool isPressed)
     }
 }
 
-void Mario::OnUpdate(float deltaTime)
+void Player::OnUpdate(float deltaTime)
 {
 
     // Camera
@@ -196,50 +197,10 @@ void Mario::OnUpdate(float deltaTime)
         }
     }
 
-
-    //Pole
-    // if (mIsOnPole)
-    // {
-    //     // If Mario is on the pole, update the pole slide timer
-    //     mPoleSlideTimer -= deltaTime;
-    //     if (mPoleSlideTimer <= 0.0f)
-    //     {
-    //         mRigidBodyComponent->SetApplyGravity(true);
-    //         mRigidBodyComponent->SetApplyFriction(false);
-    //         mRigidBodyComponent->SetVelocity(Vector2::UnitX * 100.0f);
-    //         mGame->SetGamePlayState(Game::GamePlayState::Leaving);
-    //
-    //         // --------------
-    //         // TODO - PARTE 4
-    //         // --------------
-    //
-    //         // TODO 1.: Toque o som "StageClear.wav"
-    //         mGame->GetAudio()->PlaySound("StageClear.wav");
-    //
-    //
-    //         mIsOnPole = false;
-    //         mIsRunning = true;
-    //     }
-    // }
-
-    //Rest
-    // If Mario is leaving the level, kill him if he enters the castle
-    // const float castleDoorPos = Game::LEVEL_WIDTH * Game::TILE_SIZE - 10 * Game::TILE_SIZE;
-    //
-    // if (mGame->GetGamePlayState() == Game::GamePlayState::Leaving &&
-    //     mPosition.x >= castleDoorPos)
-    // {
-    //     // Stop Mario and set the game scene to Level 2
-    //     mState = ActorState::Destroy;
-    //     mGame->SetGameScene(Game::GameScene::Level2, 3.5f);
-    //
-    //     return;
-    // }
-
     ManageAnimations();
 }
 
-void Mario::ManageAnimations()
+void Player::ManageAnimations()
 {
     if(mIsDying)
     {
@@ -283,7 +244,7 @@ void Mario::ManageAnimations()
 
 }
 
-void Mario::Kill()
+void Player::Kill()
 {
     mIsDying = true;
     mGame->SetGamePlayState(Game::GamePlayState::GameOver);
@@ -293,52 +254,26 @@ void Mario::Kill()
     mRigidBodyComponent->SetEnabled(false);
     mColliderComponent->SetEnabled(false);
 
-    // --------------
-    // TODO - PARTE 4
-    // --------------
-
-    // TODO 1.: Pare todos os sons com StopAllSounds() e toque o som "Dead.wav".
     mGame->GetAudio()->StopAllSounds();
     mGame->GetAudio()->PlaySound("Dead.wav");
 
     mGame->ResetGameScene(3.5f); // Reset the game scene after 3 seconds
 }
 
-void Mario::Win(AABBColliderComponent *poleCollider)
+void Player::Win(AABBColliderComponent *poleCollider)
 {
-    mDrawComponent->SetAnimation("win");
     mGame->SetGamePlayState(Game::GamePlayState::LevelComplete);
-
-    // Set mario velocity to go down
-    mRigidBodyComponent->SetVelocity(Vector2::UnitY * 100.0f); // 100 pixels per second
-    mRigidBodyComponent->SetApplyGravity(false);
-
-    // Disable collider
-    poleCollider->SetEnabled(false);
-
-    // Adjust mario x position to grab the pole
-    mPosition.Set(poleCollider->GetOwner()->GetPosition().x + Game::TILE_SIZE / 4.0f, mPosition.y);
-
-    // --------------
-    // TODO - PARTE 4
-    // --------------
-
-    // TODO 1.: Pare todos os sons com StopAllSounds()
-    mGame->GetAudio()->StopAllSounds();
-
-    mPoleSlideTimer = POLE_SLIDE_TIME; // Start the pole slide timer
 }
 
-void Mario::OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other)
+void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other)
 {
     if (other->GetLayer() == ColliderLayer::Enemy)
     {
         Kill();
     }
 
-    else if (other->GetLayer() == ColliderLayer::Pole)
+    else if (other->GetLayer() == ColliderLayer::EndLevel)
     {
-        mIsOnPole = true;
         Win(other);
     }
     else if (other->GetLayer() == ColliderLayer::Mushroom)
@@ -348,18 +283,13 @@ void Mario::OnHorizontalCollision(const float minOverlap, AABBColliderComponent*
     }
 }
 
-void Mario::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)
+void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)
 {
     if (other->GetLayer() == ColliderLayer::Enemy)
     {
         other->GetOwner()->Kill();
         mRigidBodyComponent->SetVelocity(Vector2(mRigidBodyComponent->GetVelocity().x, mJumpSpeed / 2.5f));
 
-        // --------------
-        // TODO - PARTE 4
-        // --------------
-
-        // TODO 1.: Toque o som "Stomp.wav"
         mGame->GetAudio()->PlaySound("Stomp.wav");
 
     }
@@ -385,8 +315,7 @@ void Mario::OnVerticalCollision(const float minOverlap, AABBColliderComponent* o
 
         if (other->GetLayer() == ColliderLayer::Mushroom)
         {
-            Mushroom* mushroom = static_cast<Mushroom*>(other->GetOwner());
-            mushroom->SetState(ActorState::Destroy);
+
         }
     }
 }

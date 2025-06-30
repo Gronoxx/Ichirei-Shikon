@@ -6,7 +6,7 @@
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 #include "../Math.h" // Para Math::Pi
-#include "../Actors/Mario.h"
+#include "../Actors/Player.h"
 
 Goomba::Goomba(Game* game, float forwardSpeed, float deathTime)
     : Actor(game)
@@ -97,7 +97,7 @@ void Goomba::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
     auto owner = other->GetOwner();
     AABBColliderComponent* collider = owner->GetComponent<AABBColliderComponent>();
     if (owner && collider->GetLayer() == ColliderLayer::Player) {
-        Mario* mario = dynamic_cast<Mario*>(owner);
+        Player* mario = dynamic_cast<Player*>(owner);
         if (mario->isPlayerAttacking()) {
             Kill();
         }
