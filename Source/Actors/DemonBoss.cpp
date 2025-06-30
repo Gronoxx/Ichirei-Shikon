@@ -212,6 +212,9 @@ void DemonBoss::Kill() {
 void DemonBoss::Hurt() {
     SDL_Log("Boss hurt life: %d", mHealth);
 
+    auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
+    mRigidBodyComponent->ApplyForce(Vector2{xComponent, -10} * 10000.0f);
+
     mHealth--;
     if (mHealth <= 0) {
         Kill();
