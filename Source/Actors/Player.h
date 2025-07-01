@@ -55,8 +55,6 @@ private:
     bool mHasStartedIdleToRun;
     Slash* mSlash;
 
-
-
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;
     class AABBColliderComponent* mColliderComponent;

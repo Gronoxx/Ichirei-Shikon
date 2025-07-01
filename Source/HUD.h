@@ -38,6 +38,7 @@ public:
     void SetScore();
 
     void Update(float deltaTime) override;
+    void Draw(class SDL_Renderer *renderer) override;
 
 private:
     float scaleX = static_cast<float>(mGame->GetWindowWidth()) / 640.0f;

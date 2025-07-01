@@ -57,9 +57,6 @@ void UIScreen::Draw(SDL_Renderer *renderer)
         if (mRects[i])
             mRects[i]->Draw(renderer,mPos);
     }
-
-    if(mTimerBar)
-        mTimerBar->Draw(renderer,mPos);
 }
 
 void UIScreen::ProcessInput(const uint8_t* keys)

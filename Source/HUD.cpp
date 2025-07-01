@@ -123,3 +123,23 @@ void HUD::Update(float deltaTime) {
     if(mTimerBar)
         mTimerBar->Update(deltaTime);
 }
+
+void HUD::Draw(SDL_Renderer *renderer) {
+    for (int i=0;i<mTexts.size();i++)
+        mTexts[i]->Draw(renderer,mPos);
+
+
+    for (int i=0;i<mButtons.size();i++)
+        mButtons[i]->Draw(renderer,mPos);
+
+    for (int i=0;i<mImages.size();i++)
+        mImages[i]->Draw(renderer,mPos);
+
+    for (int i=0;i<mRects.size();i++) {
+        if (mRects[i])
+            mRects[i]->Draw(renderer,mPos);
+    }
+
+    if(mTimerBar)
+        mTimerBar->Draw(renderer,mPos);
+}
