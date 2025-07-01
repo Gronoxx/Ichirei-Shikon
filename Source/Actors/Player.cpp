@@ -119,7 +119,7 @@ void Player::OnHandleKeyPress(const int key, const bool isPressed)
 
         Vector2 playerVelocity = mRigidBodyComponent->GetVelocity();
         Vector2 slashVelocity(playerVelocity.x, 0.0f);
-        mSlash = new Slash(mGame, positionSlash, 0.25f, rotation, slashVelocity);
+        mSlash = new Slash(mGame, positionSlash, 0.25f, rotation);
         mAttackTimer = ATTACK_TIME;
         mGame->GetAudio()->PlaySound("swing.wav");
     }

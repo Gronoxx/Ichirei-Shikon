@@ -11,12 +11,17 @@ public:
              const Vector2 &initialForce, const float mass, float deathTimer = 1.0f);
 
     void OnUpdate(float deltaTime) override;
+    void OnHorizontalCollision(float minOverlap, AABBColliderComponent* other) override;
+    void OnVerticalCollision(float minOverlap, AABBColliderComponent* other) override;
+    void HandleCollision(AABBColliderComponent* other);
+    void Parry(Vector2 parryOrigin);
 
 private:
+    bool mParried;
     float mLength;
     float mDeathTimer;
 
     DrawSpriteComponent *mDrawComponent;
     RigidBodyComponent *mRigidBodyComponent;
-    CircleColliderComponent *mCircleColliderComponent;
+    AABBColliderComponent *mAABBColliderComponent;
 };
