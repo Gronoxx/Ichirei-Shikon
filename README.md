@@ -26,9 +26,19 @@ Durante o playtesting, pedimos que observem com atenção as seguintes funcional
 * **Interações:** Testar as interações com objetos do cenário e personagens não jogáveis (NPCs).
 * **Feedback audiovisual:** Prestar atenção em como a trilha sonora e os efeitos sonoros contribuem para a experiência, especialmente os sons de impacto durante o combate.
 
-## Créditos
+## TODO
+* Criar mais inimigos
+* Corrigir morte de inimigos
+* Trocar os sprites provisórios de cenário
+* Adicionar animação de morte do jogador e inimigos
+* Adicionar mais níveis
 
-**Desenvolvedores:**
+## **Importante**
+É necessário adicionar **\$PROJECT_DIR\$** ao Working Directory do Clion IDE para que o jogo funcione corretamente.
+
+Para isso, vá em **Run -> Edit Configurations** e adicione o diretório do projeto na opção Working Directory.
+
+## Grupo
 * Gustavo Dias Apolinário
 * Leonardo Borges de Oliveira
 * Lucas Albano Olive Cruz
