@@ -34,7 +34,7 @@ Durante o playtesting, pedimos que observem com atenção as seguintes funcional
 * Adicionar mais níveis
 
 ## **Importante**
-É necessário adicionar **\$PROJECT_DIR\$** ao Working Directory do Clion IDE para que o jogo funcione corretamente.
+É necessário adicionar `` $PROJECT_DIR$ `` ao Working Directory do Clion IDE para que o jogo funcione corretamente.
 
 Para isso, vá em **Run -> Edit Configurations** e adicione o diretório do projeto na opção Working Directory.
 
