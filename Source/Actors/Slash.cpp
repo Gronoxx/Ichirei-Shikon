@@ -45,17 +45,23 @@ void Slash::OnUpdate(float deltaTime)
 
 void Slash::OnHorizontalCollision(float minOverlap, AABBColliderComponent* other)
 {
-    other->GetOwner()->Hurt();
+    HandleCollision(other);
 }
 
 void Slash::OnVerticalCollision(float minOverlap, AABBColliderComponent* other)
 {
-    other->GetOwner()->Hurt();
-     Particle *p = other->GetOwner()->GetComponent<Particle>();
+    HandleCollision(other);
+}
+
+void Slash::HandleCollision(AABBColliderComponent* other)
+{
+    Actor* a = other->GetOwner();
+    auto* p = dynamic_cast<Particle*>(a);
     if (p != nullptr)
     {
         p->Parry(mPosition);
-        mGame->GetAudio()->PlaySound("Parry.wav");
-        SDL_Log("Parrying.");
     }
+
+    a->Hurt();
 }
+

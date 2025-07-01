@@ -14,6 +14,7 @@ Particle::Particle(class Game *game, float length,
                    const float mass,
                    float deathTimer)
     : Actor(game)
+	  , mParried(false)
       , mLength(length)
       , mDeathTimer(deathTimer) {
     std::vector<Vector2> vertices = {
@@ -59,11 +60,18 @@ void Particle::OnVerticalCollision(float minOverlap, AABBColliderComponent* othe
 
 void Particle::HandleCollision(AABBColliderComponent* other)
 {
-    Player *p = other->GetOwner()->GetComponent<Player>();
-    if (p != nullptr)
+    Actor *a = other->GetOwner();
+    Player *p = dynamic_cast<Player*>(a);
+    if (p != nullptr && !mParried)
     {
         p->Hurt();
         SetState(ActorState::Destroy);
+        return;
+    }
+
+    Particle *p2 = dynamic_cast<Particle*>(a);
+    {
+        Parry(a->GetPosition());
     }
 }
 
@@ -72,7 +80,8 @@ void Particle::Parry(Vector2 parryOrigin)
     if (mParried) return;
 
     SDL_Log("Parrying.");
-    float parryStrength = 100000;
+    mGame->GetAudio()->PlaySound("Parry.wav");
+    float parryStrength = 50000;
     Vector2 parryDirection = mPosition - parryOrigin;
     mParried = true;
 
