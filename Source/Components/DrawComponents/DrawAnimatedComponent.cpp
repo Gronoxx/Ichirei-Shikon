@@ -51,7 +51,7 @@ void DrawAnimatedComponent::LoadCharacterAnimations(const std::string& character
         );
         // Chama a função private ou atribui diretamente ao membro
         SetRenderOffset(offset);
-        SDL_Log("Render offset loaded: (%.2f, %.2f)", mRenderOffset.x, mRenderOffset.y);
+        //SDL_Log("Render offset loaded: (%.2f, %.2f)", mRenderOffset.x, mRenderOffset.y);
     }
     else
     {
@@ -69,7 +69,7 @@ void DrawAnimatedComponent::LoadCharacterAnimations(const std::string& character
             if (animData.contains("offset")) {
                 animOffset.x = animData["offset"]["x"].get<float>();
                 animOffset.y = animData["offset"]["y"].get<float>();
-                SDL_Log("   ↪ Offset customizado (%.1f, %.1f) para animação '%s'", animOffset.x, animOffset.y, animName.c_str());
+                //SDL_Log("   ↪ Offset customizado (%.1f, %.1f) para animação '%s'", animOffset.x, animOffset.y, animName.c_str());
             }
             mAnimationOffsets[animName] = animOffset;
 
@@ -83,7 +83,7 @@ void DrawAnimatedComponent::LoadCharacterAnimations(const std::string& character
                 mAnimationFrames[animName] = frameOrder;
                 mAnimationFPS[animName] = fps;
 
-                SDL_Log("Animação '%s' (spritesheet) carregada com %zu frames", animName.c_str(), frameOrder.size());
+                //SDL_Log("Animação '%s' (spritesheet) carregada com %zu frames", animName.c_str(), frameOrder.size());
             }
 
             // Caso 2: imagens soltas por frame
@@ -261,7 +261,7 @@ void DrawAnimatedComponent::Draw(SDL_Renderer* renderer, const Vector3& modColor
         rect.h = static_cast<int>(max.y - min.y);
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Vermelho
-        SDL_RenderDrawRect(renderer, &rect);
+        //SDL_RenderDrawRect(renderer, &rect);
     }
 
     SDL_RenderCopyEx(renderer, texture, srcRect, &dstRect, 0.0, nullptr, flip); // Rotação é tratada pelo flip

@@ -13,7 +13,7 @@ UIImage::UIImage(SDL_Renderer * renderer, const std::string &imagePath, const Ve
     SDL_Surface* surface = IMG_Load(imagePath.c_str());
 
     if (!surface) {
-        SDL_Log("Failed to load image: %s", IMG_GetError());
+        //SDL_Log("Failed to load image: %s", IMG_GetError());
     }else {
         SDL_Texture* texture = SDL_CreateTextureFromSurface(mRenderer, surface);
         SDL_FreeSurface(surface);

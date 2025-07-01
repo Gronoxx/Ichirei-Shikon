@@ -49,7 +49,9 @@ HUD::HUD(class Game* game, const std::string& fontName, SDL_Renderer* renderer)
 
 HUD::~HUD()
 {
-
+    if (mTimerBar)
+        delete mTimerBar;
+    mTimerBar = nullptr;
 }
 
 void HUD::SetTime(int time)

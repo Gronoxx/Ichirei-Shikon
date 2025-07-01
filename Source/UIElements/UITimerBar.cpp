@@ -6,7 +6,11 @@
 UITimerBar::UITimerBar(const Vector2& pos, const Vector2& size, float duration)
     : UIElement(pos, size, Vector3(0,0,0)), // cor é ignorada aqui
       mDuration(duration), mTimeRemaining(duration) {
-    SDL_Log("UITimerBar created: duration = %f", mDuration);
+    //SDL_Log("UITimerBar created: duration = %f", mDuration);
+}
+
+UITimerBar::~UITimerBar() {
+    // SDL_Log("UITimerBar destroyed");
 }
 
 void UITimerBar::Update(float deltaTime)

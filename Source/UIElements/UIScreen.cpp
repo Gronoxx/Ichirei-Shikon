@@ -130,6 +130,7 @@ UITimerBar* UIScreen::AddTimerBar(const Vector2& pos, const Vector2& size, float
     if (mTimerBar)
     {
         delete mTimerBar; // Limpa o anterior, se houver
+        mTimerBar = nullptr;
     }
 
     mTimerBar = new UITimerBar(pos, size, duration);

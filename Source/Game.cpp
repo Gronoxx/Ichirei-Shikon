@@ -821,7 +821,7 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath)
     {
         SDL_Surface* surface = IMG_Load(texturePath.c_str());
         if (!surface) {
-            SDL_Log("Failed to load image: %s", IMG_GetError());
+            //SDL_Log("Failed to load image: %s", IMG_GetError());
             return nullptr;
         }
 
