@@ -1,6 +1,7 @@
 #include "Slash.h"
 
 #include "Player.h"
+#include "Particle.h"
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
@@ -50,7 +51,7 @@ void Slash::OnHorizontalCollision(float minOverlap, AABBColliderComponent* other
 void Slash::OnVerticalCollision(float minOverlap, AABBColliderComponent* other)
 {
     other->GetOwner()->Hurt();
-    Particle *p = other->GetOwner()->GetComponent<Particle>();
+     Particle *p = other->GetOwner()->GetComponent<Particle>();
     if (p != nullptr)
     {
         p->Parry(mPosition);

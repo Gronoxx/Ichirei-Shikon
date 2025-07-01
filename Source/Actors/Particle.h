@@ -19,6 +19,7 @@ public:
 private:
     float mLength;
     float mDeathTimer;
+    bool mParried;
 
     DrawSpriteComponent *mDrawComponent;
     RigidBodyComponent *mRigidBodyComponent;
