@@ -4,11 +4,11 @@
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
+#include "../Actors/Particle.h""
 
-Slash::Slash(Game* game, const Vector2& position, const float totalLifeTime, float rotation, const Vector2& velocity)
+Slash::Slash(Game* game, const Vector2& position,const float TotalLifeTime, float rotation)
         : Actor(game)
-        , mLifeTime(totalLifeTime)
-        , mVelocity(velocity)
+        , mLifeTime(TotalLifeTime)
 {
     SetPosition(position);
     SetScale(1.0f);
@@ -24,16 +24,15 @@ Slash::Slash(Game* game, const Vector2& position, const float totalLifeTime, flo
     mColliderComponent = new AABBColliderComponent(
         this,
         0, 0,                // Offset
-        106, 32,             // Tamanho
-        ColliderLayer::Slash
+        106, 32,              // Tamanho
+        ColliderLayer::Slash // Ou outro layer se quiser que não colida com o jogador
     );
+
+    SetPosition(position);
 }
 
 void Slash::OnUpdate(float deltaTime)
 {
-    // Movimenta o slash junto à direção do jogador
-    SetPosition(GetPosition() + mVelocity * deltaTime);
-
     mLifeTime -= deltaTime;
     if (mLifeTime <= 0.0f || mDrawComponent->IsAnimationFinished()) {
         SetState(ActorState::Destroy);
@@ -42,10 +41,23 @@ void Slash::OnUpdate(float deltaTime)
 
 void Slash::OnHorizontalCollision(float minOverlap, AABBColliderComponent* other)
 {
-    other->GetOwner()->Hurt();
+    HandleCollision(other);
 }
+
 
 void Slash::OnVerticalCollision(float minOverlap, AABBColliderComponent* other)
 {
+    HandleCollision(other);
+}
+
+void Slash::HandleCollision(AABBColliderComponent* other)
+{
     other->GetOwner()->Hurt();
+    Particle *p = other->GetOwner()->GetComponent<Particle>();
+    if (p != nullptr)
+    {
+        p->Parry(mPosition);
+        mGame->GetAudio()->PlaySound("Parry.wav");
+        SDL_Log("Parrying.");
+    }
 }

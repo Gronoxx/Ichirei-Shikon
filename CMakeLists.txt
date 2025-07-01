@@ -44,7 +44,6 @@ add_executable(${PROJECT_NAME}
         Source/Actors/Points.cpp
         Source/Actors/DemonBoss.cpp
         Source/Actors/Slash.cpp
-        Source/Actors/Mushroom.cpp
         Source/Actors/Trigger.cpp
         Source/Actors/Trigger.h
         Source/UIElements/UIRect.cpp

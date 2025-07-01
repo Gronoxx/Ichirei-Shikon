@@ -84,7 +84,7 @@ void Goomba::OnUpdate(float deltaTime)
 
 void Goomba::OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other)
 {
-    if ((other->GetLayer() == ColliderLayer::Blocks || other->GetLayer() == ColliderLayer::Enemy || other->GetLayer() == ColliderLayer::Mushroom))
+    if ((other->GetLayer() == ColliderLayer::Blocks || other->GetLayer() == ColliderLayer::Enemy))
     {
         if (minOverlap > 0) {
             mRigidBodyComponent->SetVelocity(Vector2(-mForwardSpeed, 0.0f));

@@ -119,7 +119,7 @@ void Player::OnHandleKeyPress(const int key, const bool isPressed)
 
         Vector2 playerVelocity = mRigidBodyComponent->GetVelocity();
         Vector2 slashVelocity(playerVelocity.x, 0.0f);
-        mSlash = new Slash(mGame, positionSlash, 0.25f, rotation, slashVelocity);
+        mSlash = new Slash(mGame, positionSlash, 0.25f, rotation);
         mAttackTimer = ATTACK_TIME;
         mGame->GetAudio()->PlaySound("swing.wav");
     }
@@ -290,11 +290,6 @@ void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
     {
         Win(other);
     }
-    else if (other->GetLayer() == ColliderLayer::Mushroom)
-    {
-        Mushroom* mushroom = static_cast<Mushroom*>(other->GetOwner());
-        mushroom->SetState(ActorState::Destroy);
-    }
 }
 
 void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)
@@ -325,11 +320,6 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* 
         else {
             mIsFalling = false;
             mIsJumping = false;
-        }
-
-        if (other->GetLayer() == ColliderLayer::Mushroom)
-        {
-
         }
     }
 }

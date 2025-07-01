@@ -1,7 +1,7 @@
 #pragma once
 #include "Actor.h"
 
-#include "../Components/ColliderComponents/CircleColliderComponent.h"
+#include "../Components/ColliderComponents/AABBColliderComponent.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 
@@ -11,12 +11,14 @@ public:
              const Vector2 &initialForce, const float mass, float deathTimer = 1.0f);
 
     void OnUpdate(float deltaTime) override;
+    void Parry(Vector2 parryOrigin);
 
 private:
     float mLength;
     float mDeathTimer;
+    bool mParried;
 
     DrawSpriteComponent *mDrawComponent;
     RigidBodyComponent *mRigidBodyComponent;
-    CircleColliderComponent *mCircleColliderComponent;
+    AABBColliderComponent *mAABBColliderComponent;
 };

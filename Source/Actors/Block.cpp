@@ -5,7 +5,6 @@
 #include "Block.h"
 
 #include "Player.h"
-#include "Mushroom.h"
 #include "../Game.h"
 #include "../Actors/Goomba.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
@@ -40,10 +39,6 @@ void Block::OnBump()
     if (mNumberOfCoins > 0) {
         new Coin(mGame,mPosition+ Vector2(Game::TILE_SIZE/2.0 - COIN_WIDTH/2.0,-24));
         mNumberOfCoins --;
-    }
-    if (mHasMushroom == true) {
-        new Mushroom(mGame,mPosition,mGame->GetMario()->GetComponent<RigidBodyComponent>()->GetVelocity().x);
-        mHasMushroom = false;
     }
 
     // Disable collider

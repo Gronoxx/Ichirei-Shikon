@@ -14,6 +14,7 @@ Particle::Particle(class Game *game, float length,
                    const float mass,
                    float deathTimer)
     : Actor(game)
+      , mParried(false)
       , mLength(length)
       , mDeathTimer(deathTimer) {
     std::vector<Vector2> vertices = {
@@ -26,7 +27,7 @@ Particle::Particle(class Game *game, float length,
 
     mRigidBodyComponent = new RigidBodyComponent(this, mass);
     mRigidBodyComponent->ApplyForce(initialForce);
-    mCircleColliderComponent = new CircleColliderComponent(this, mLength);
+    mAABBColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE/2, Game::TILE_SIZE/2, ColliderLayer::EnemyProjectile);
 }
 
 void Particle::OnUpdate(float deltaTime) {
@@ -37,11 +38,14 @@ void Particle::OnUpdate(float deltaTime) {
         return;
     }
 
-    Player *player = GetGame()->GetMario();
-    auto *playerCollider = player->GetComponent<AABBColliderComponent>();
-    if (mCircleColliderComponent->Intersect(*playerCollider)) {
-        player->Hurt();
-        SetState(ActorState::Destroy);
+    if (!mParried)
+    {
+        Player *player = GetGame()->GetMario();
+        auto *playerCollider = player->GetComponent<AABBColliderComponent>();
+        if (mAABBColliderComponent->Intersect(*playerCollider)) {
+            player->SetState(ActorState::Destroy);
+            SetState(ActorState::Destroy);
+        }
     }
 
     // TODO: This is not setting the rotation correctly
@@ -52,4 +56,17 @@ void Particle::OnUpdate(float deltaTime) {
             mRotation = atan2f(velocity.y, velocity.x);
         }
     }
+}
+
+void Particle::Parry(Vector2 parryOrigin)
+{
+    if (mParried) return;
+
+    SDL_Log("Parrying.");
+    float parryStrength = 1000000;
+    Vector2 parryDirection = mPosition - parryOrigin;
+    mParried = true;
+
+    parryDirection.Normalize();
+    mRigidBodyComponent->SetVelocity(parryDirection * parryStrength);
 }

@@ -19,10 +19,9 @@ enum class ColliderLayer
     Enemy,
     Boss,
     Blocks,
-    Pole,
-    Mushroom,
     Slash,
-    EndLevel
+    EndLevel,
+    EnemyProjectile
 };
 
 class AABBColliderComponent : public Component
@@ -34,14 +33,15 @@ public:
         {ColliderLayer::Boss, {}},
         {ColliderLayer::Enemy,  {}},
         {ColliderLayer::Blocks, {ColliderLayer::Blocks}},
-        {ColliderLayer::Pole, {}},
-        {ColliderLayer::Mushroom, {}},
         {ColliderLayer::Slash, {
             ColliderLayer::Player,
             ColliderLayer::Blocks,
-            ColliderLayer::Pole,
-            ColliderLayer::Mushroom
-            }}
+            }},
+        { ColliderLayer::EnemyProjectile, {
+            ColliderLayer::Enemy,
+            ColliderLayer::Blocks,
+            }},
+        {ColliderLayer::EndLevel,{}}
     };
 
     AABBColliderComponent(class Actor* owner, int dx, int dy, int w, int h,
