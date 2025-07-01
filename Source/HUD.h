@@ -40,6 +40,8 @@ public:
     void Update(float deltaTime) override;
     void Draw(class SDL_Renderer *renderer) override;
 
+    UITimerBar* AddTimerBar(const Vector2& pos, const Vector2& size, float duration);
+
 private:
     float scaleX = static_cast<float>(mGame->GetWindowWidth()) / 640.0f;
     const int HUD_HEIGHT = 23;

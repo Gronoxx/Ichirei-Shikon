@@ -11,7 +11,8 @@
 
 
 HUD::HUD(class Game* game, const std::string& fontName, SDL_Renderer* renderer)
-    : UIScreen(game, fontName) {
+    : UIScreen(game, fontName),
+        mTimerBar(nullptr){
     // Imagens base
     mBaseHUDImage = AddImage("Assets/Sprites/HUD/spr_hud.png", Vector2(0.0f, 0.0f),
                              Vector2(mGame->GetWindowWidth(), HUD_HEIGHT));
@@ -142,4 +143,16 @@ void HUD::Draw(SDL_Renderer *renderer) {
 
     if(mTimerBar)
         mTimerBar->Draw(renderer,mPos);
+}
+
+UITimerBar* HUD::AddTimerBar(const Vector2& pos, const Vector2& size, float duration)
+{
+    if (mTimerBar)
+    {
+        delete mTimerBar; // Limpa o anterior, se houver
+        mTimerBar = nullptr;
+    }
+
+    mTimerBar = new UITimerBar(pos, size, duration);
+    return mTimerBar;
 }

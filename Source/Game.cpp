@@ -129,7 +129,7 @@ void Game::SetGameScene(Game::GameScene scene, float transitionTime)
     // Se uma transição já estiver em andamento, não faça nada.
     if (mSceneManagerState != SceneManagerState::None)
     {
-        SDL_Log("SceneManager is busy. Transition to a new scene was ignored.");
+        //SDL_Log("SceneManager is busy. Transition to a new scene was ignored.");
         return;
     }
 

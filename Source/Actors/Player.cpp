@@ -123,7 +123,7 @@ void Player::OnHandleKeyPress(const int key, const bool isPressed)
         mAttackTimer = ATTACK_TIME;
         mGame->GetAudio()->PlaySound("swing.wav");
     }
-    if ((key == SDLK_t) && isPressed && !mIsRolling && mIsOnGround) {
+    if ((key == SDLK_LSHIFT || key == SDLK_RSHIFT) && isPressed && !mIsRolling && mIsOnGround) {
         mIsRolling = true;
 
         float direction = (mRotation == Math::Pi) ? -1.0f : 1.0f;

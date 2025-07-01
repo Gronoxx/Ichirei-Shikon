@@ -29,7 +29,7 @@ public:
 private:
     static const int POLE_SLIDE_TIME = 1; // Time in seconds to slide down the pole
     const float ATTACK_TIME = 0.25f;
-    const float ROLL_TOTAL_DISTANCE = 150.0f;
+    const float ROLL_TOTAL_DISTANCE = 200.0f;
     const float ROLL_DURATION = 0.3f; // segundos, depende da duração da animação "roll"
     float mRollTimer = 0.0f;
     const int SPLASH_WIDTH = 106;

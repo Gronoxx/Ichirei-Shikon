@@ -122,14 +122,3 @@ UIRect* UIScreen::AddRect(const Vector2& pos, const Vector2& size, const Vector3
     mRects.emplace_back(rect); // igual ao que você já faz com UIText
     return rect;
 }
-UITimerBar* UIScreen::AddTimerBar(const Vector2& pos, const Vector2& size, float duration)
-{
-    if (mTimerBar)
-    {
-        delete mTimerBar; // Limpa o anterior, se houver
-        mTimerBar = nullptr;
-    }
-
-    mTimerBar = new UITimerBar(pos, size, duration);
-    return mTimerBar;
-}
