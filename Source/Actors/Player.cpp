@@ -290,11 +290,6 @@ void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
     {
         Win(other);
     }
-    else if (other->GetLayer() == ColliderLayer::Mushroom)
-    {
-        Mushroom* mushroom = static_cast<Mushroom*>(other->GetOwner());
-        mushroom->SetState(ActorState::Destroy);
-    }
 }
 
 void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)
@@ -325,11 +320,6 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* 
         else {
             mIsFalling = false;
             mIsJumping = false;
-        }
-
-        if (other->GetLayer() == ColliderLayer::Mushroom)
-        {
-
         }
     }
 }

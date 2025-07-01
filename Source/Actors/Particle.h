@@ -17,7 +17,6 @@ public:
     void Parry(Vector2 parryOrigin);
 
 private:
-    bool mParried;
     float mLength;
     float mDeathTimer;
 

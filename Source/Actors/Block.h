@@ -6,7 +6,6 @@
 
 #include "Actor.h"
 #include "Coin.h"
-#include "Mushroom.h"
 
 class Block : public Actor
 {

@@ -116,3 +116,8 @@ void HUD::TakeDamage()
         SDL_Log("Player está sem energia!");
     }
 }
+
+void HUD::Update(float deltaTime) {
+    if(mTimerBar)
+        mTimerBar->Update(deltaTime);
+}

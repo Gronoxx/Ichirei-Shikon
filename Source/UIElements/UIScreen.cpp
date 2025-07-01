@@ -39,8 +39,6 @@ UIScreen::~UIScreen()
 
 void UIScreen::Update(float deltaTime)
 {
-    if(mTimerBar)
-    mTimerBar->Update(deltaTime);
 }
 
 void UIScreen::Draw(SDL_Renderer *renderer)

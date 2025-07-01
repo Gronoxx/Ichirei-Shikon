@@ -330,9 +330,8 @@ void Game::BuildLevel(int** levelData, int width, int height)
             }
             if(tile == 11) // Flying Demon
             {
-
-                //auto demon = new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
-                //demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                auto demon = new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
+                demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             else if (tile == 12) // Demon Boss
             {
@@ -349,18 +348,6 @@ void Game::BuildLevel(int** levelData, int width, int height)
                 Trigger* trigger = new Trigger(this);
                 trigger->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
-            /*else if (tile == 1) { // Special Block With One Coin
-                Block* block = new Block(this, "Assets/Sprites/Blocks/BlockC.png", 1);
-                block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
-            }
-            else if (tile == 14) { //Special Block With One Mushroom
-                Block* block = new Block(this, "Assets/Sprites/Blocks/BlockC.png", 0,true,true);
-                block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
-            }
-            else if (tile == 30) {
-                Block* block = new Block(this, "Assets/Sprites/Blocks/BlockB.png", 10);
-                block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
-            }*/
             else // Blocks
             {
                 auto it = tileMap.find(tile);

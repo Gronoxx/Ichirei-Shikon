@@ -14,7 +14,6 @@ Particle::Particle(class Game *game, float length,
                    const float mass,
                    float deathTimer)
     : Actor(game)
-      , mParried(false)
       , mLength(length)
       , mDeathTimer(deathTimer) {
     std::vector<Vector2> vertices = {
@@ -64,7 +63,7 @@ void Particle::HandleCollision(AABBColliderComponent* other)
     if (p != nullptr)
     {
         p->Hurt();
-        
+        SetState(ActorState::Destroy);
     }
 }
 

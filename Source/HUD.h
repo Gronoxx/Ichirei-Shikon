@@ -37,6 +37,8 @@ public:
     void SetCoins();
     void SetScore();
 
+    void Update(float deltaTime) override;
+
 private:
     float scaleX = static_cast<float>(mGame->GetWindowWidth()) / 640.0f;
     const int HUD_HEIGHT = 23;
