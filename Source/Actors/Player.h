@@ -3,6 +3,8 @@
 //
 
 #pragma once
+#include <SDL_events.h>
+
 #include "Actor.h"
 #include "Slash.h"
 
@@ -11,9 +13,10 @@ class Player : public Actor
 public:
     explicit Player(Game* game, float forwardSpeed = 1500.0f, float jumpSpeed = -750.0f);
 
-    void OnProcessInput(const Uint8* keyState) override;
+    //void OnProcessInput(const Uint8* keyState) override;
     void OnUpdate(float deltaTime) override;
-    void OnHandleKeyPress(const int key, const bool isPressed) override;
+    //void OnHandleKeyPress(const int key, const bool isPressed) override;
+    void HandleInput(const uint8_t* state, const SDL_Event* event);
 
     void OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other) override;
     void OnVerticalCollision(const float minOverlap, AABBColliderComponent* other) override;
@@ -29,7 +32,7 @@ public:
 private:
     static const int POLE_SLIDE_TIME = 1; // Time in seconds to slide down the pole
     const float ATTACK_TIME = 0.25f;
-    const float ROLL_TOTAL_DISTANCE = 200.0f;
+    const float ROLL_TOTAL_DISTANCE = 300.0f;
     const float ROLL_DURATION = 0.3f; // segundos, depende da duração da animação "roll"
     float mRollTimer = 0.0f;
     const int SPLASH_WIDTH = 106;

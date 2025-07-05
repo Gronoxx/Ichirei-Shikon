@@ -41,27 +41,65 @@ Player::Player(Game *game, const float forwardSpeed, const float jumpSpeed)
     SetScale(1.25);
 }
 
-void Player::OnProcessInput(const uint8_t *state) {
+void Player::HandleInput(const uint8_t* state, const SDL_Event* event) {
     if (mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
     if (mIsRolling) return;
 
-    if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) {
+    // Eventos de tecla (pressionar/release)
+    if (event) {
+        if ((event->type == SDL_KEYDOWN) &&
+            (event->key.keysym.sym == SDLK_LSHIFT || event->key.keysym.sym == SDLK_RSHIFT) &&
+            !mIsRolling && mIsOnGround)
+        {
+            mIsRolling = true;
+            float direction = (mRotation == Math::Pi) ? -1.0f : 1.0f;
+            float rollDuration = mDrawComponent->GetCurrentAnimationDuration();
+            const float MIN_ROLL_DURATION = 0.3f;
+            if (rollDuration < MIN_ROLL_DURATION) rollDuration = MIN_ROLL_DURATION;
+            float rollVelocity = ROLL_TOTAL_DISTANCE / rollDuration;
+            const float MAX_ROLL_VELOCITY = 400.0f;
+            if (rollVelocity > MAX_ROLL_VELOCITY) rollVelocity = MAX_ROLL_VELOCITY;
+            mRigidBodyComponent->SetAcceleration(Vector2::Zero);
+            mRigidBodyComponent->SetApplyFriction(false);
+            mRigidBodyComponent->SetVelocity(Vector2(0.0f, mRigidBodyComponent->GetVelocity().y));
+            mRigidBodyComponent->SetVelocity(Vector2(direction * rollVelocity, mRigidBodyComponent->GetVelocity().y));
+            mIsRunning = false;
+            return;
+        }
+        // Outros eventos (pulo, ataque, etc) podem ser tratados aqui, se necessário
+        if ((event->type == SDL_KEYDOWN) &&
+            (event->key.keysym.sym == SDLK_SPACE || event->key.keysym.sym == SDLK_w || event->key.keysym.sym == SDLK_UP) &&
+            mIsOnGround)
+        {
+            mRigidBodyComponent->SetVelocity(Vector2(mRigidBodyComponent->GetVelocity().x, mJumpSpeed));
+            mIsJumping = true;
+            mGame->GetAudio()->PlaySound("Jump.wav");
+        }
+        if ((event->type == SDL_KEYDOWN) &&
+            (event->key.keysym.sym == SDLK_e) && !mIsAttacking)
+        {
+            mIsAttacking = true;
+            float rotation = GetRotation();
+            Vector2 direction(Math::Cos(rotation), -Math::Sin(rotation));
+            Vector2 positionSlash;
+            if (rotation == Math::Pi) {
+                positionSlash = GetPosition() - Vector2(SPLASH_WIDTH - Game::TILE_SIZE,Game::TILE_SIZE/2);
+            } else {
+                positionSlash = GetPosition() - Vector2(0,Game::TILE_SIZE/2);
+            }
+            Vector2 playerVelocity = mRigidBodyComponent->GetVelocity();
+            Vector2 slashVelocity(playerVelocity.x, 0.0f);
+            mSlash = new Slash(mGame, positionSlash, 0.25f, rotation, slashVelocity);
+            mAttackTimer = ATTACK_TIME;
+            mGame->GetAudio()->PlaySound("swing.wav");
+        }
+    }
+
+    // Estado contínuo do teclado (movimentação)
+    if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])
+    {
         mRigidBodyComponent->ApplyForce(Vector2::UnitX * mForwardSpeed);
         mRotation = 0.0f;
-
-        if (!mIsStartingToRun && !mHasStartedIdleToRun) {
-            mIsStartingToRun = true;
-            mHasStartedIdleToRun = true;
-            mIdleToRunTimer = mDrawComponent->GetAnimationDuration("idle_to_run"); // 👈 nova função
-            mDrawComponent->SetLoop(false);
-            mDrawComponent->SetAnimation("idle_to_run");
-        }
-
-        mIsRunning = true;
-    } else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) {
-        mRigidBodyComponent->ApplyForce(Vector2::UnitX * -mForwardSpeed);
-        mRotation = Math::Pi;
-
         if (!mIsStartingToRun && !mHasStartedIdleToRun) {
             mIsStartingToRun = true;
             mHasStartedIdleToRun = true;
@@ -69,59 +107,25 @@ void Player::OnProcessInput(const uint8_t *state) {
             mDrawComponent->SetLoop(false);
             mDrawComponent->SetAnimation("idle_to_run");
         }
-
+        mIsRunning = true;
+    }
+    else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT])
+    {
+        mRigidBodyComponent->ApplyForce(Vector2::UnitX * -mForwardSpeed);
+        mRotation = Math::Pi;
+        if (!mIsStartingToRun && !mHasStartedIdleToRun) {
+            mIsStartingToRun = true;
+            mHasStartedIdleToRun = true;
+            mIdleToRunTimer = mDrawComponent->GetAnimationDuration("idle_to_run");
+            mDrawComponent->SetLoop(false);
+            mDrawComponent->SetAnimation("idle_to_run");
+        }
         mIsRunning = true;
     } else {
         mHasStartedIdleToRun = false;
     }
-
-    if (!(state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) && !(state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])) {
+    if (!(state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) && !(state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])){
         mIsRunning = false;
-    }
-}
-
-void Player::OnHandleKeyPress(const int key, const bool isPressed) {
-    if (mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
-
-    // Jump
-    if ((key == SDLK_SPACE || key == SDLK_w || key == SDLK_UP) && isPressed && mIsOnGround) {
-        mRigidBodyComponent->SetVelocity(Vector2(mRigidBodyComponent->GetVelocity().x, mJumpSpeed));
-        mIsJumping = true;
-
-        // --------------
-        // TODO - PARTE 4
-        // --------------
-
-        // TODO 1.: Toque o som "Jump.wav" quando Mario pular.
-        mGame->GetAudio()->PlaySound("Jump.wav");
-    } else if (key == SDLK_e && isPressed && !mIsAttacking) {
-        mIsAttacking = true;
-        float rotation = GetRotation(); // 0 (direita) ou Pi (esquerda)
-        Vector2 direction(Math::Cos(rotation), -Math::Sin(rotation));
-        Vector2 positionSlash;
-        if (rotation == Math::Pi) {
-            positionSlash = GetPosition() - Vector2(SPLASH_WIDTH - Game::TILE_SIZE, Game::TILE_SIZE / 2);
-        } else {
-            positionSlash = GetPosition() - Vector2(0, Game::TILE_SIZE / 2);
-        }
-
-        Vector2 playerVelocity = mRigidBodyComponent->GetVelocity();
-        Vector2 slashVelocity(playerVelocity.x, 0.0f);
-        mSlash = new Slash(mGame, positionSlash, 0.25f, rotation, slashVelocity);
-        mAttackTimer = ATTACK_TIME;
-        mGame->GetAudio()->PlaySound("swing.wav");
-    }
-    if ((key == SDLK_LSHIFT || key == SDLK_RSHIFT) && isPressed && !mIsRolling && mIsOnGround) {
-        mIsRolling = true;
-
-        float direction = (mRotation == Math::Pi) ? -1.0f : 1.0f;
-
-        float rollDuration = mDrawComponent->GetCurrentAnimationDuration(); // em segundos
-        float rollVelocity = ROLL_TOTAL_DISTANCE / rollDuration;
-
-        mRigidBodyComponent->SetAcceleration(Vector2::Zero);
-        mRigidBodyComponent->SetApplyFriction(false);
-        mRigidBodyComponent->SetVelocity(Vector2(direction * rollVelocity, mRigidBodyComponent->GetVelocity().y));
     }
 }
 
@@ -164,8 +168,15 @@ void Player::OnUpdate(float deltaTime) {
 
     //Roll
     if (mIsRolling) {
-        Vector2 vel = mRigidBodyComponent->GetVelocity();
-        if (mDrawComponent->IsAnimationFinished()) {
+        // Se sair do chão durante o roll, encerra o roll imediatamente
+        if (!mIsOnGround) {
+            mIsRolling = false;
+            mRigidBodyComponent->SetApplyFriction(true);
+            // Opcional: zera ou limita a velocidade horizontal ao cair
+            Vector2 vel = mRigidBodyComponent->GetVelocity();
+            mRigidBodyComponent->SetVelocity(Vector2(vel.x * 0.5f, vel.y)); // Reduz pela metade, ou use Zero se preferir
+        }
+        else if (mDrawComponent->IsAnimationFinished()) {
             mIsRolling = false;
             mRigidBodyComponent->SetVelocity(Vector2::Zero);
             mRigidBodyComponent->SetApplyFriction(true);
