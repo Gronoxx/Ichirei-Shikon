@@ -10,14 +10,15 @@ class FlyingDemon : public Actor
 public:
     explicit FlyingDemon(Game* game, const Vector2& targetPosition, float lifetime, float forwardSpeed = 700.0f);
 
-    void OnProcessInput(const Uint8* keyState) override;
-    void OnUpdate(float deltaTime) override;
-    void OnHandleKeyPress(const int key, const bool isPressed) override;
-
     void Kill() override;
 
     void LoadAnimationsFromFile(const std::string& filePath);
     bool isPlayerAttacking() {return  mIsAttacking;};
+
+    void OnUpdate(float deltaTime) override;
+
+    void OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other) override;
+    void OnVerticalCollision(const float minOverlap, AABBColliderComponent* other) override;
 
 private:
     static const int POLE_SLIDE_TIME = 1; // Time in seconds to slide down the pole

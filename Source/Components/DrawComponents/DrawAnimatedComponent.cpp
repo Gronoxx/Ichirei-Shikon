@@ -283,7 +283,7 @@ void DrawAnimatedComponent::SetAnimation(const std::string& name)
         mCurrentFrame = 0.0f;
     }
 
-    mIsPaused = false; // ✅ DESPAUSA a animação ao trocar
+    mIsPaused = false; // DESPAUSA a animação ao trocar
 }
 
 bool DrawAnimatedComponent::IsAnimationFinished() const
@@ -325,9 +325,15 @@ float DrawAnimatedComponent::GetAnimationDuration(const std::string& animName) c
     return frameCount / fps;
 }
 
+Vector2 DrawAnimatedComponent::GetAnimationSize(const std::string& animName) const
+{
+    auto it = mSpriteSheetData.find(animName);
+    if (it == mSpriteSheetData.end() || it->second.empty())
+    {
+        return Vector2::Zero;
+    }
 
-
-
-
-
-
+    // Return the size of the first frame's rectangle
+    const SDL_Rect* rect = it->second[0];
+    return Vector2(static_cast<float>(rect->w), static_cast<float>(rect->h));
+}

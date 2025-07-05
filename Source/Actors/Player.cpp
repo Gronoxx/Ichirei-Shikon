@@ -14,23 +14,22 @@
 
 #include "Slash.h"
 
-Player::Player(Game* game, const float forwardSpeed, const float jumpSpeed)
-        : Actor(game)
-        , mIsRunning(false)
-        , mIsOnPole(false)
-        ,mIsDying(false)
-        ,mIsRolling(false)
-        ,mIsJumping(false)
-        ,mIsFalling(false)
-        ,mIsAttacking(false)
-        ,mHasStartedIdleToRun(false)
-        , mForwardSpeed(forwardSpeed)
-        , mJumpSpeed(jumpSpeed)
-        , mPoleSlideTimer(0.0f)
-        , mHealth(5)
-{
+Player::Player(Game *game, const float forwardSpeed, const float jumpSpeed)
+    : Actor(game)
+      , mIsRunning(false)
+      , mIsOnPole(false)
+      , mIsDying(false)
+      , mIsRolling(false)
+      , mIsJumping(false)
+      , mIsFalling(false)
+      , mIsAttacking(false)
+      , mHasStartedIdleToRun(false)
+      , mForwardSpeed(forwardSpeed)
+      , mJumpSpeed(jumpSpeed)
+      , mPoleSlideTimer(0.0f)
+      , mHealth(5) {
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 5.0f);
-    mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE,Game::TILE_SIZE,
+    mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE, Game::TILE_SIZE,
                                                    ColliderLayer::Player);
 
     mDrawComponent = new DrawAnimatedComponent(this, 150);
@@ -40,16 +39,13 @@ Player::Player(Game* game, const float forwardSpeed, const float jumpSpeed)
     // Define a animação inicial
     mDrawComponent->SetAnimation("idle");
     SetScale(1.25);
-
 }
 
-void Player::OnProcessInput(const uint8_t* state)
-{
-    if(mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
+void Player::OnProcessInput(const uint8_t *state) {
+    if (mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
     if (mIsRolling) return;
 
-    if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])
-    {
+    if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) {
         mRigidBodyComponent->ApplyForce(Vector2::UnitX * mForwardSpeed);
         mRotation = 0.0f;
 
@@ -62,10 +58,7 @@ void Player::OnProcessInput(const uint8_t* state)
         }
 
         mIsRunning = true;
-    }
-
-    else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT])
-    {
+    } else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) {
         mRigidBodyComponent->ApplyForce(Vector2::UnitX * -mForwardSpeed);
         mRotation = Math::Pi;
 
@@ -78,24 +71,20 @@ void Player::OnProcessInput(const uint8_t* state)
         }
 
         mIsRunning = true;
-    }
-    else {
+    } else {
         mHasStartedIdleToRun = false;
     }
 
-    if (!( state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT] ) && !( state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT] )){
+    if (!(state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) && !(state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])) {
         mIsRunning = false;
     }
-
 }
 
-void Player::OnHandleKeyPress(const int key, const bool isPressed)
-{
-    if(mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
+void Player::OnHandleKeyPress(const int key, const bool isPressed) {
+    if (mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
 
     // Jump
-    if ((key == SDLK_SPACE || key == SDLK_w || key == SDLK_UP) && isPressed && mIsOnGround)
-    {
+    if ((key == SDLK_SPACE || key == SDLK_w || key == SDLK_UP) && isPressed && mIsOnGround) {
         mRigidBodyComponent->SetVelocity(Vector2(mRigidBodyComponent->GetVelocity().x, mJumpSpeed));
         mIsJumping = true;
 
@@ -105,16 +94,15 @@ void Player::OnHandleKeyPress(const int key, const bool isPressed)
 
         // TODO 1.: Toque o som "Jump.wav" quando Mario pular.
         mGame->GetAudio()->PlaySound("Jump.wav");
-    }
-    else if (key == SDLK_e && isPressed && !mIsAttacking) {
+    } else if (key == SDLK_e && isPressed && !mIsAttacking) {
         mIsAttacking = true;
         float rotation = GetRotation(); // 0 (direita) ou Pi (esquerda)
         Vector2 direction(Math::Cos(rotation), -Math::Sin(rotation));
         Vector2 positionSlash;
         if (rotation == Math::Pi) {
-            positionSlash = GetPosition() - Vector2(SPLASH_WIDTH - Game::TILE_SIZE,Game::TILE_SIZE/2);
-        }else {
-            positionSlash = GetPosition() - Vector2(0,Game::TILE_SIZE/2);
+            positionSlash = GetPosition() - Vector2(SPLASH_WIDTH - Game::TILE_SIZE, Game::TILE_SIZE / 2);
+        } else {
+            positionSlash = GetPosition() - Vector2(0, Game::TILE_SIZE / 2);
         }
 
         Vector2 playerVelocity = mRigidBodyComponent->GetVelocity();
@@ -137,17 +125,14 @@ void Player::OnHandleKeyPress(const int key, const bool isPressed)
     }
 }
 
-void Player::OnUpdate(float deltaTime)
-{
-
+void Player::OnUpdate(float deltaTime) {
     // Camera
     mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
     mPosition.x = Math::Min(mPosition.x, mGame->GetCameraPos().x + mGame->GetWindowWidth() - Game::TILE_SIZE);
 
 
     // Jumping && Falling
-    if (mRigidBodyComponent && mRigidBodyComponent->GetVelocity().y != 0)
-    {
+    if (mRigidBodyComponent && mRigidBodyComponent->GetVelocity().y != 0) {
         mIsOnGround = false;
     }
 
@@ -161,8 +146,7 @@ void Player::OnUpdate(float deltaTime)
     }
 
     // Death
-    if (mGame->GetGamePlayState() == Game::GamePlayState::Playing && mPosition.y > mGame->GetWindowHeight())
-    {
+    if (mGame->GetGamePlayState() == Game::GamePlayState::Playing && mPosition.y > mGame->GetWindowHeight()) {
         Kill();
     }
 
@@ -202,52 +186,36 @@ void Player::OnUpdate(float deltaTime)
     ManageAnimations();
 }
 
-void Player::ManageAnimations()
-{
-    if(mIsDying)
-    {
+void Player::ManageAnimations() {
+    if (mIsDying) {
         mDrawComponent->SetAnimation("Dead");
-    }
-    else if (mIsRolling) {
+    } else if (mIsRolling) {
         mDrawComponent->SetLoop(false);
         mDrawComponent->SetAnimation("roll");
-    }
-    else if (mIsFalling) {
+    } else if (mIsFalling) {
         mDrawComponent->SetLoop(false);
         mDrawComponent->SetAnimation("fall");
-    }
-    else if (mIsJumping) {
+    } else if (mIsJumping) {
         mDrawComponent->SetLoop(false);
         mDrawComponent->SetAnimation("jump");
-    }
-    else if (mIsAttacking)
-    {
+    } else if (mIsAttacking) {
         mDrawComponent->SetLoop(false);
         mDrawComponent->SetAnimation("attack");
         mColliderComponent->OnAnimationChange("attack");
-    }
-    else if(mIsOnPole)
-    {
+    } else if (mIsOnPole) {
         mDrawComponent->SetLoop(false);
         mDrawComponent->SetAnimation("win");
-    }
-    else if (!mIsStartingToRun && mIsOnGround && mIsRunning)
-    {
+    } else if (!mIsStartingToRun && mIsOnGround && mIsRunning) {
         mDrawComponent->SetLoop(true);
         mDrawComponent->SetAnimation("run");
-    }
-    else if (mIsOnGround && !mIsRunning && mDrawComponent->GetCurrentAnimationName() != "idle")
-    {
+    } else if (mIsOnGround && !mIsRunning && mDrawComponent->GetCurrentAnimationName() != "idle") {
         // SDL_Log("idle");
         mDrawComponent->SetLoop(true);
         mDrawComponent->SetAnimation("idle");
     }
-
-
 }
 
-void Player::Kill()
-{
+void Player::Kill() {
     mIsDying = true;
     mGame->SetGamePlayState(Game::GamePlayState::GameOver);
     mDrawComponent->SetAnimation("Dead");
@@ -263,49 +231,27 @@ void Player::Kill()
     mGame->UnlockCamera();
 }
 
-void Player::Win(AABBColliderComponent *poleCollider)
-{
+void Player::Win(AABBColliderComponent *poleCollider) {
     mGame->SetGamePlayState(Game::GamePlayState::LevelComplete);
 }
 
-void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other)
-{
-    if (other->GetLayer() == ColliderLayer::Enemy)
-    {
-        // Tenta aplicar dano
-        HUD* hud = mGame->GetHUD(); // você deve garantir que Game tenha esse getter
-        hud->TakeDamage();
-
-        if (hud->GetCurrentBattery() <= 0)
-        {
-            Kill();
-        }
-        else
-        {
-            //mGame->GetAudio()->PlaySound("Hit.wav");
-        }
-    }
-
-    else if (other->GetLayer() == ColliderLayer::EndLevel)
-    {
+void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
+    if (other->GetLayer() == ColliderLayer::Enemy) {
+        Hurt();
+        auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
+        mRigidBodyComponent->ApplyForce(Vector2{xComponent, -1} * 10000000.0f);
+    } else if (other->GetLayer() == ColliderLayer::EndLevel) {
         Win(other);
     }
 }
 
-void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)
-{
-    if (other->GetLayer() == ColliderLayer::Enemy)
-    {
-        other->GetOwner()->Kill();
-        mRigidBodyComponent->SetVelocity(Vector2(mRigidBodyComponent->GetVelocity().x, mJumpSpeed / 2.5f));
-
-        mGame->GetAudio()->PlaySound("Stomp.wav");
-
-    }
-    else if (other->GetLayer() == ColliderLayer::Blocks)
-    {
-        if (!mIsOnGround)
-        {
+void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
+    if (other->GetLayer() == ColliderLayer::Enemy || other->GetLayer() == ColliderLayer::Boss) {
+        Hurt();
+        auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
+        mRigidBodyComponent->ApplyForce(Vector2{xComponent, -1} * 10000000.0f);
+    } else if (other->GetLayer() == ColliderLayer::Blocks) {
+        if (!mIsOnGround) {
             // --------------
             // TODO - PARTE 4
             // --------------
@@ -314,10 +260,9 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* 
             mGame->GetAudio()->PlaySound("Bump.wav");
 
             // Cast actor to Block to call OnBump
-            auto* block = dynamic_cast<Block*>(other->GetOwner());
+            auto *block = dynamic_cast<Block *>(other->GetOwner());
             block->OnBump();
-        }
-        else {
+        } else {
             mIsFalling = false;
             mIsJumping = false;
         }
@@ -327,11 +272,14 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent* 
 void Player::Hurt() {
     SDL_Log("Player hurt life: %d", mHealth);
 
-    mHealth--;
-    if (mHealth <= 0) {
+    HUD *hud = mGame->GetHUD(); // você deve garantir que Game tenha esse getter
+    hud->TakeDamage();
+
+    if (hud->GetCurrentBattery() <= 0) {
         Kill();
+        return;
     }
 
-    auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
-    mRigidBodyComponent->ApplyForce(Vector2{xComponent, -1} * 10000.0f);
+    // TODO: Adicionar som de hit
+    // mGame->GetAudio()->PlaySound("Hit.wav");
 }
