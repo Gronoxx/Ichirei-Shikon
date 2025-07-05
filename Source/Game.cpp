@@ -534,15 +534,19 @@ void Game::TogglePause()
         {
             mGamePlayState = GamePlayState::Paused;
 
-            mAudio->PauseSound(mMusicHandle);
-            mAudio->PlaySound("Coin.wav");
+            if (Mix_PlayingMusic()) {
+                Mix_PauseMusic();
+            }
+
         }
         else if (mGamePlayState == GamePlayState::Paused)
         {
             mGamePlayState = GamePlayState::Playing;
 
-            mAudio->ResumeSound(mMusicHandle);
-            mAudio->PlaySound("Coin.wav");
+            if (Mix_PausedMusic()) {
+                Mix_ResumeMusic();
+            }
+
         }
     }
 }
