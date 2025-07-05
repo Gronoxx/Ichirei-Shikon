@@ -236,7 +236,7 @@ void Player::Win(AABBColliderComponent *poleCollider) {
 }
 
 void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
-    if (other->GetLayer() == ColliderLayer::Enemy) {
+    if (other->GetLayer() == ColliderLayer::Enemy || other->GetLayer() == ColliderLayer::Boss) {
         Hurt();
         auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
         mRigidBodyComponent->ApplyForce(Vector2{xComponent, -1} * 10000000.0f);
