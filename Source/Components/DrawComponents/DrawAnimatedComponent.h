@@ -35,7 +35,7 @@ public:
     const std::string GetCurrentAnimationName() const { return mCurrentAnimationName; }
     float GetAnimationDuration(const std::string& animName) const;
     std::string GetAnimationName() const { return mCurrentAnimationName; }
-
+    Vector2 GetAnimationSize(const std::string& animName) const;
 
 private:
     // Carrega a textura e os dados do spritesheet para UMA animação.
@@ -64,7 +64,4 @@ private:
 
     std::map<std::string, std::vector<std::string>> mFrameTexturePaths;
     std::unordered_map<std::string, Vector2> mAnimationOffsets;
-
-
-
 };

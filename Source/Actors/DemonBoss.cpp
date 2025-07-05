@@ -230,13 +230,6 @@ void DemonBoss::LoadAnimationsFromFile(const std::string &filePath) {
 void DemonBoss::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
     auto owner = other->GetOwner();
     AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Player) {
-        Player *player = dynamic_cast<Player *>(owner);
-        if (!player->isPlayerAttacking()) {
-            player->Hurt();
-        }
-    }
-
     if (owner && collider->GetLayer() == ColliderLayer::Slash) {
         Hurt();
     }
@@ -245,13 +238,6 @@ void DemonBoss::OnHorizontalCollision(const float minOverlap, AABBColliderCompon
 void DemonBoss::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
     auto owner = other->GetOwner();
     AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Player) {
-        Player *player = dynamic_cast<Player *>(owner);
-        if (!player->isPlayerAttacking()) {
-            player->Hurt();
-        }
-    }
-
     if (owner && collider->GetLayer() == ColliderLayer::Slash) {
         Hurt();
     }
