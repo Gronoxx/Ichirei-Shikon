@@ -43,9 +43,13 @@ void UIScreen::Update(float deltaTime)
 
 void UIScreen::Draw(SDL_Renderer *renderer)
 {
+    for (int i=0;i<mRects.size();i++) {
+        if (mRects[i])
+            mRects[i]->Draw(renderer,mPos);
+    }
+
     for (int i=0;i<mTexts.size();i++)
         mTexts[i]->Draw(renderer,mPos);
-
 
     for (int i=0;i<mButtons.size();i++)
         mButtons[i]->Draw(renderer,mPos);
@@ -53,10 +57,7 @@ void UIScreen::Draw(SDL_Renderer *renderer)
     for (int i=0;i<mImages.size();i++)
         mImages[i]->Draw(renderer,mPos);
 
-    for (int i=0;i<mRects.size();i++) {
-        if (mRects[i])
-            mRects[i]->Draw(renderer,mPos);
-    }
+
 }
 
 void UIScreen::ProcessInput(const uint8_t* keys)
@@ -116,9 +117,16 @@ UIImage* UIScreen::AddImage(const std::string &imagePath, const Vector2 &pos, co
     mImages.push_back(img);
     return img;
 }
+UIRect* UIScreen::AddRect(const Vector2& pos, const Vector2& size, const Vector4& color)
+{
+    auto* rect = new UIRect(pos, size, color);
+    mRects.emplace_back(rect);
+    return rect;
+}
+
 UIRect* UIScreen::AddRect(const Vector2& pos, const Vector2& size, const Vector3& color)
 {
     auto* rect = new UIRect(pos, size, color);
-    mRects.emplace_back(rect); // igual ao que você já faz com UIText
+    mRects.emplace_back(rect);
     return rect;
 }

@@ -250,6 +250,8 @@ void DrawAnimatedComponent::Draw(SDL_Renderer* renderer, const Vector3& modColor
                            static_cast<Uint8>(modColor.z));
 
     AABBColliderComponent* collider = mOwner->GetComponent<AABBColliderComponent>();
+
+    // Desenha o collider para debug, se existir
     if (collider && collider->IsEnabled()) {
         Vector2 min = collider->GetMin();
         Vector2 max = collider->GetMax();
@@ -261,7 +263,7 @@ void DrawAnimatedComponent::Draw(SDL_Renderer* renderer, const Vector3& modColor
         rect.h = static_cast<int>(max.y - min.y);
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); // Vermelho
-        //SDL_RenderDrawRect(renderer, &rect);
+        SDL_RenderDrawRect(renderer, &rect);
     }
 
     SDL_RenderCopyEx(renderer, texture, srcRect, &dstRect, 0.0, nullptr, flip); // Rotação é tratada pelo flip

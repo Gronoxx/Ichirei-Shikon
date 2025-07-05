@@ -66,6 +66,7 @@ public:
 
     // Level functions
     void LoadMainMenu();
+    void ShowTutorialScreen();
     void LoadLevel(const std::string& levelName, const int levelWidth, const int levelHeight);
 
     std::vector<Actor *> GetNearbyActors(const Vector2& position, const int range = 1);
@@ -104,7 +105,7 @@ public:
     void TogglePause();
 
     // Game-specific
-    class Player* GetMario() { return mMario; }
+    class Player* GetMario() { return mPlayer; }
 
     void SetGamePlayState(GamePlayState state) { mGamePlayState = state; }
     GamePlayState GetGamePlayState() const { return mGamePlayState; }
@@ -173,7 +174,7 @@ private:
     bool mIsCameraLocked;
 
     // Game-specific
-    class Player *mMario;
+    class Player *mPlayer;
     class HUD *mHUD;
     SoundHandle mMusicHandle;
 

@@ -40,7 +40,7 @@ Game::Game(int windowWidth, int windowHeight)
         ,mIsRunning(true)
         ,mWindowWidth(windowWidth)
         ,mWindowHeight(windowHeight)
-        ,mMario(nullptr)
+        ,mPlayer(nullptr)
         ,mHUD(nullptr)
         ,mBackgroundColor(0, 0, 0)
         ,mModColor(255, 255, 255)
@@ -273,18 +273,41 @@ void Game::LoadMainMenu()
     mAudio->StopAllSounds();
 
     auto mainMenu = new UIScreen(this, "Assets/Fonts/SMB.ttf");
-    const Vector2 titleSize = Vector2(178.0f, 88.0f) * 2.0f;
-    const Vector2 titlePos = Vector2(mWindowWidth/2.0f - titleSize.x/2.0f, 64.0f);
 
     SetBackgroundImage("Assets/Sprites/MainMenu.png", Vector2(0,0), Vector2(mWindowWidth, mWindowHeight));
-    //mainMenu->AddImage("Assets/Sprites/Logo.png", titlePos, titleSize);
 
-    mainMenu->AddButton("START GAME", Vector2(mWindowWidth/2.0f - 110.0f, 350.0f), Vector2(200.0f, 40.0f),
-    [this]() { SetGameScene(GameScene::Level1);});
-    //mainMenu->AddButton("2 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 314.0f), Vector2(200.0f, 40.0f),
-    //                                       nullptr);
+    mainMenu->AddButton("START GAME", Vector2(mWindowWidth/2.0f - 110.0f, 300.0f), Vector2(200.0f, 40.0f),
+        [this]() { SetGameScene(GameScene::Level1); });
+
+    mainMenu->AddButton("CONTROLES", Vector2(mWindowWidth/2.0f - 100.0f, 350.0f), Vector2(200.0f, 40.0f),
+        [this]() { ShowTutorialScreen(); });
+
     mainMenu->AddButton("QUIT", Vector2(mWindowWidth/2.0f - 50.0f, 400.0f), Vector2(200.0f, 40.0f),
-        [this]() {mIsRunning = false;});
+        [this]() { mIsRunning = false; });
+}
+
+void Game::ShowTutorialScreen()
+{
+    auto tutorial = new UIScreen(this, "Assets/Fonts/SMB.ttf");
+    Vector2 pos(0.0f, 0.0f);
+    Vector2 size(static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+
+    // Fundo preto semi-transparente cobrindo toda a tela
+    tutorial->AddRect(pos, size, Vector4(0, 0, 0, 230));
+
+    // Centraliza os textos verticalmente e horizontalmente
+    float centerX = mWindowWidth / 2.0f;
+    float startY = mWindowHeight / 2.0f - 120.0f;
+
+    tutorial->AddText("CONTROLES", Vector2(centerX - 200.0f, startY), Vector2(400, 40), 32, 0);
+    tutorial->AddText("WASD: Movimentação", Vector2(centerX - 200.0f, startY + 60), Vector2(400, 30), 24, 0);
+    tutorial->AddText("Espaço: Pular", Vector2(centerX - 200.0f, startY + 100), Vector2(400, 30), 24, 0);
+    tutorial->AddText("E: Ataque Fraco", Vector2(centerX - 200.0f, startY + 140), Vector2(400, 30), 24, 0);
+    tutorial->AddText("SHIFT: Rolamento", Vector2(centerX - 200.0f, startY + 180), Vector2(400, 30), 24, 0);
+
+    // Botão centralizado na parte inferior
+    tutorial->AddButton("VOLTAR", Vector2(centerX - 75, startY + 240), Vector2(200, 40),
+        [this, tutorial]() { tutorial->SetState(UIScreen::UIState::Closing); });
 }
 
 void Game::LoadLevel(const std::string& levelName, const int levelWidth, const int levelHeight)
@@ -325,8 +348,8 @@ void Game::BuildLevel(int** levelData, int width, int height)
 
             if(tile == 9) // Samurai
             {
-                mMario = new Player(this);
-                mMario->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                mPlayer = new Player(this);
+                mPlayer->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
             }
             if(tile == 11) // Flying Demon
             {
@@ -458,19 +481,19 @@ void Game::ProcessInputActors()
 
         const Uint8* state = SDL_GetKeyboardState(nullptr);
 
-        bool isMarioOnCamera = false;
+        bool isPlayerOnCamera = false;
         for (auto actor: actorsOnCamera)
         {
             actor->ProcessInput(state);
 
-            if (actor == mMario) {
-                isMarioOnCamera = true;
+            if (actor == mPlayer) {
+                isPlayerOnCamera = true;
             }
         }
 
-        // If Mario is not on camera, process input for him
-        if (!isMarioOnCamera && mMario) {
-            mMario->ProcessInput(state);
+        // If Player is not on camera, process input for him
+        if (!isPlayerOnCamera && mPlayer) {
+            mPlayer->ProcessInput(state);
         }
     }
 }
@@ -484,19 +507,19 @@ void Game::HandleKeyPressActors(const int key, const bool isPressed)
                 mSpatialHashing->QueryOnCamera(mCameraPos,mWindowWidth,mWindowHeight);
 
         // Handle key press for actors
-        bool isMarioOnCamera = false;
+        bool isPlayerOnCamera = false;
         for (auto actor: actorsOnCamera) {
             actor->HandleKeyPress(key, isPressed);
 
-            if (actor == mMario) {
-                isMarioOnCamera = true;
+            if (actor == mPlayer) {
+                isPlayerOnCamera = true;
             }
         }
 
-        // If Mario is not on camera, handle key press for him
-        if (!isMarioOnCamera && mMario)
+        // If Player is not on camera, handle key press for him
+        if (!isPlayerOnCamera && mPlayer)
         {
-            mMario->HandleKeyPress(key, isPressed);
+            mPlayer->HandleKeyPress(key, isPressed);
         }
     }
 
@@ -635,15 +658,15 @@ void Game::UpdateLevelTime(float deltaTime)
     }
 
     if (mGameTimeLimit <= 0.0f) {
-        mMario->Kill();
+        mPlayer->Kill();
     }
 }
 
 void Game::UpdateCamera()
 {
-    if (!mMario) return;
+    if (!mPlayer) return;
 
-    float horizontalCameraPos = mMario->GetPosition().x - (mWindowWidth / 2.0f);
+    float horizontalCameraPos = mPlayer->GetPosition().x - (mWindowWidth / 2.0f);
 
     if (horizontalCameraPos > mCameraPos.x && !mIsCameraLocked)
     {
@@ -660,19 +683,19 @@ void Game::UpdateActors(float deltaTime)
     std::vector<Actor*> actorsOnCamera =
         mSpatialHashing->QueryOnCamera(mCameraPos, mWindowWidth, mWindowHeight);
 
-    bool isMarioOnCamera = false;
+    bool isPlayerOnCamera = false;
     for (auto actor : actorsOnCamera)
     {
         actor->Update(deltaTime);
-        if (actor == mMario)
+        if (actor == mPlayer)
         {
-            isMarioOnCamera = true;
+            isPlayerOnCamera = true;
         }
     }
 
-    if (!isMarioOnCamera && mMario)
+    if (!isPlayerOnCamera && mPlayer)
     {
-        mMario->Update(deltaTime);
+        mPlayer->Update(deltaTime);
     }
 
     std::vector<Actor*> actorsToDestroy;
@@ -687,8 +710,8 @@ void Game::UpdateActors(float deltaTime)
 
     for (auto actor : actorsToDestroy)
     {
-        if (actor == mMario) {
-            mMario = nullptr;
+        if (actor == mPlayer) {
+            mPlayer = nullptr;
         }
         delete actor;
     }

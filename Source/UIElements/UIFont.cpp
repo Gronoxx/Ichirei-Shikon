@@ -42,7 +42,7 @@ void UIFont::Unload()
 	mFontData.clear();
 }
 
-SDL_Texture* UIFont::RenderText(const std::string& text, const Vector3& color /*= Color::White*/,
+SDL_Texture* UIFont::RenderText(const std::string& text, const Vector4& color /*= Color::White*/,
                                 int pointSize /*= 24*/, unsigned wrapLength /*= 900*/)
 {
     if(!mRenderer)
