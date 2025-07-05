@@ -444,6 +444,8 @@ void Game::RunLoop()
 void Game::ProcessInput()
 {
     SDL_Event event;
+    const Uint8* state = SDL_GetKeyboardState(nullptr);
+
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
@@ -457,7 +459,9 @@ void Game::ProcessInput()
                     mUIStack.back()->HandleKeyPress(event.key.keysym.sym);
                 }
 
-                HandleKeyPressActors(event.key.keysym.sym, event.key.repeat == 0);
+                if (mPlayer) {
+                    mPlayer->HandleInput(state, &event);
+                }
 
                 // Check if the Return key has been pressed to pause/unpause the game
                 if (event.key.keysym.sym == SDLK_RETURN)
@@ -468,61 +472,9 @@ void Game::ProcessInput()
         }
     }
 
-    ProcessInputActors();
-}
-
-void Game::ProcessInputActors()
-{
-    if(mGamePlayState == GamePlayState::Playing)
-    {
-        // Get actors on camera
-        std::vector<Actor*> actorsOnCamera =
-                mSpatialHashing->QueryOnCamera(mCameraPos,mWindowWidth,mWindowHeight);
-
-        const Uint8* state = SDL_GetKeyboardState(nullptr);
-
-        bool isPlayerOnCamera = false;
-        for (auto actor: actorsOnCamera)
-        {
-            actor->ProcessInput(state);
-
-            if (actor == mPlayer) {
-                isPlayerOnCamera = true;
-            }
-        }
-
-        // If Player is not on camera, process input for him
-        if (!isPlayerOnCamera && mPlayer) {
-            mPlayer->ProcessInput(state);
-        }
+    if (mPlayer) {
+        mPlayer->HandleInput(state, nullptr);
     }
-}
-
-void Game::HandleKeyPressActors(const int key, const bool isPressed)
-{
-    if(mGamePlayState == GamePlayState::Playing)
-    {
-        // Get actors on camera
-        std::vector<Actor*> actorsOnCamera =
-                mSpatialHashing->QueryOnCamera(mCameraPos,mWindowWidth,mWindowHeight);
-
-        // Handle key press for actors
-        bool isPlayerOnCamera = false;
-        for (auto actor: actorsOnCamera) {
-            actor->HandleKeyPress(key, isPressed);
-
-            if (actor == mPlayer) {
-                isPlayerOnCamera = true;
-            }
-        }
-
-        // If Player is not on camera, handle key press for him
-        if (!isPlayerOnCamera && mPlayer)
-        {
-            mPlayer->HandleKeyPress(key, isPressed);
-        }
-    }
-
 }
 
 void Game::TogglePause()
