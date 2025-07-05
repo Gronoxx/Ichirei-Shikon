@@ -95,11 +95,18 @@ void Player::HandleInput(const uint8_t* state, const SDL_Event* event) {
         }
     }
 
+    float maxSpeed = mForwardSpeed;
+
     // Estado contínuo do teclado (movimentação)
     if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])
     {
-        mRigidBodyComponent->ApplyForce(Vector2::UnitX * mForwardSpeed);
+        Vector2 vel = mRigidBodyComponent->GetVelocity();
+        mRigidBodyComponent->SetVelocity(Vector2(mForwardSpeed, vel.y));
         mRotation = 0.0f;
+        if (vel.x > maxSpeed) {
+            vel.x = maxSpeed;
+            mRigidBodyComponent->SetVelocity(vel);
+        }
         if (!mIsStartingToRun && !mHasStartedIdleToRun) {
             mIsStartingToRun = true;
             mHasStartedIdleToRun = true;
@@ -111,8 +118,13 @@ void Player::HandleInput(const uint8_t* state, const SDL_Event* event) {
     }
     else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT])
     {
-        mRigidBodyComponent->ApplyForce(Vector2::UnitX * -mForwardSpeed);
+        Vector2 vel = mRigidBodyComponent->GetVelocity();
+        mRigidBodyComponent->SetVelocity(Vector2(-mForwardSpeed, vel.y));
         mRotation = Math::Pi;
+        if (vel.x < -maxSpeed) {
+            vel.x = -maxSpeed;
+            mRigidBodyComponent->SetVelocity(vel);
+        }
         if (!mIsStartingToRun && !mHasStartedIdleToRun) {
             mIsStartingToRun = true;
             mHasStartedIdleToRun = true;
