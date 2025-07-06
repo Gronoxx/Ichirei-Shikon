@@ -97,7 +97,7 @@ public:
     // Game-specific
     class Player* GetPlayer() const { return mPlayer; }
 
-    void SetGamePlayState(GamePlayState state) { mGamePlayState = state; }
+    void SetGamePlayState(const GamePlayState state) { mGamePlayState = state; }
     GamePlayState GetGamePlayState() const { return mGamePlayState; }
 
     SDL_Renderer* GetRenderer() const { return mRenderer; }
@@ -105,6 +105,9 @@ public:
 
     void LockCamera() { mIsCameraLocked = true; };
     void UnlockCamera() { mIsCameraLocked = false; };
+
+    // Set Pause Menu State
+    void SetPauseMenuState(const bool state) { mIsPauseMenuActive = state; }
 
 private:
     void ProcessInput();
@@ -173,4 +176,7 @@ private:
     Vector2 mBackgroundPosition;
 
     std::unordered_map<std::string, SDL_Texture*> mTextures;  //Manage Textures
+
+    // Pause menu
+    bool mIsPauseMenuActive;
 };

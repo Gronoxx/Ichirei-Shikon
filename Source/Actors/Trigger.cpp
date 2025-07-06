@@ -1,10 +1,5 @@
-//
-// Created by olive on 30/06/2025.
-//
-
 #include "Trigger.h"
 #include "../Game.h"
-
 
 Trigger::Trigger(Game *game) : Actor(game)
 {
@@ -26,5 +21,3 @@ void Trigger::OnHorizontalCollision(const float minOverlap, AABBColliderComponen
         mGame->SetGamePlayState(Game::GamePlayState::LevelComplete);
     }
 }
-
-
