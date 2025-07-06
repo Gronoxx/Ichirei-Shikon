@@ -65,6 +65,9 @@ void Particle::HandleCollision(AABBColliderComponent* other)
     if (p != nullptr && !mParried)
     {
         p->Hurt();
+        p->Hurt();
+        p->Hurt();
+        p->Hurt();
         SetState(ActorState::Destroy);
         return;
     }

@@ -61,6 +61,11 @@ float AABBColliderComponent::GetMinHorizontalOverlap(AABBColliderComponent* b) c
     return (Math::Abs(left) < Math::Abs(right)) ? left : right;
 }
 
+void AABBColliderComponent::Update(float deltaTime) {
+    DetectHorizontalCollision(nullptr);
+    DetectVertialCollision(nullptr);
+}
+
 float AABBColliderComponent::DetectHorizontalCollision(RigidBodyComponent *rigidBody)
 {
 
@@ -86,7 +91,9 @@ float AABBColliderComponent::DetectHorizontalCollision(RigidBodyComponent *rigid
         if (Intersect(*collider))
         {
             float minHorizontalOverlap = GetMinHorizontalOverlap(collider);
-            ResolveHorizontalCollisions(rigidBody, minHorizontalOverlap);
+            if (rigidBody != nullptr) {
+                ResolveHorizontalCollisions(rigidBody, minHorizontalOverlap);
+            }
 
             mOwner->OnHorizontalCollision(minHorizontalOverlap, collider);
             return minHorizontalOverlap;
@@ -120,7 +127,10 @@ float AABBColliderComponent::DetectVertialCollision(RigidBodyComponent *rigidBod
         if (Intersect(*collider))
         {
             float minVerticalOverlap = GetMinVerticalOverlap(collider);
-            ResolveVerticalCollisions(rigidBody, minVerticalOverlap);
+
+            if (rigidBody != nullptr) {
+                ResolveVerticalCollisions(rigidBody, minVerticalOverlap);
+            }
 
             // Callback only for closest (first) collision
             mOwner->OnVerticalCollision(minVerticalOverlap, collider);

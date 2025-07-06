@@ -26,6 +26,7 @@ FlyingDemon::FlyingDemon(Game *game, const Vector2 &targetPosition, float lifeti
       , mArrivalThreshold(10.0f)
       , mTimeToLive(lifetime)
       , mWorkingTime(0.0f)
+      , mEntranceTimer(0.5f)
       , mIsFlyingAway(false) {
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 5.0f, false);
 
@@ -76,32 +77,49 @@ void FlyingDemon::OnUpdate(float deltaTime) {
 }
 
 void FlyingDemon::MoveToTargetPosition(float deltaTime) {
-    // Calculate direction to target
+    mEntranceTimer += deltaTime;
+
+    // Calculate direction and distance to the target
     Vector2 direction = mTargetPosition - mPosition;
     float distance = direction.Length();
 
-    // Check if we've reached the target position
+    // Check if we've arrived at the target position
     if (distance <= mArrivalThreshold) {
         mInWorkingMode = true;
         mIsRunning = false;
-
-        mRigidBodyComponent->SetVelocity(Vector2::Zero);
-
+        mRigidBodyComponent->SetVelocity(Vector2::Zero); // Stop completely on arrival
         return;
     }
 
-    // Normalize direction and move towards target
+    // --- SINUSOIDAL ENTRANCE ---
+    // Normalize the direction vector
     if (distance > 0) {
         direction.Normalize();
     }
 
-    // Move towards target
-    Vector2 moveForce = direction * mForwardSpeed; // Move slightly slower than max speed
-    mRigidBodyComponent->ApplyForce(moveForce);
+    // Use a speed boost that decreases as the demon gets closer to the target
+    const float maxRushSpeed = mForwardSpeed * 0.75f;
+    const float minRushSpeed = mForwardSpeed * 0.3f;
+    const float decelerationRadius = 200.0f;
+    float speed;
+    if (distance > decelerationRadius) {
+        speed = maxRushSpeed;
+    } else {
+        speed = Math::Lerp(minRushSpeed, maxRushSpeed, distance / decelerationRadius);
+    }
+
+    // Calculate the sinusoidal velocity component
+    const float sineAmplitude = 40.0f; // How wide the wave is
+    const float sineFrequency = 2.0f; // How fast the wave oscillates
+    Vector2 perpendicularDir(-direction.y, direction.x);
+    float sinusoidalSpeed = sineAmplitude * sineFrequency * cos(mEntranceTimer * sineFrequency);
+
+    // Combine forward velocity with the sinusoidal velocity
+    Vector2 finalVelocity = (direction * speed) + (perpendicularDir * sinusoidalSpeed);
+    mRigidBodyComponent->SetVelocity(finalVelocity);
 
     // Update facing direction based on movement
     if (std::abs(direction.x) > 0.1f) {
-        // Only update if we're moving horizontally
         mRotation = (direction.x < 0) ? 0.0f : Math::Pi;
     }
 
@@ -116,10 +134,10 @@ void FlyingDemon::StartFlyingAway() {
     // Make the demon fly upward
     mRigidBodyComponent->SetApplyGravity(false);
     mRigidBodyComponent->ApplyForce(Vector2{0, -10000.0f});
+    mColliderComponent->SetEnabled(false);
 }
 
 void FlyingDemon::UpdateWorkingMode(float deltaTime) {
-    // Get Mario's position
     if (mIsDying) {
         if (mDrawComponent->IsAnimationFinished()) {
             SetState(ActorState::Destroy);
@@ -130,42 +148,57 @@ void FlyingDemon::UpdateWorkingMode(float deltaTime) {
     Player *player = mGame->GetPlayer();
     if (!player) return;
 
-    Vector2 marioPos = player->GetPosition();
+    Vector2 playerPos = player->GetPosition();
+    Vector2 targetPos;
 
-    // Only consider horizontal distance for following
-    float horizontalDistance = marioPos.x - mPosition.x;
-    float directionX = (horizontalDistance > 0) ? 1.0f : -1.0f;
+    // Define the demon's desired position relative to the player
+    const float hoverHeight = Game::TILE_SIZE * 5.0f;
+    const float maxHoverHeight = Game::TILE_SIZE * 6.5f;
 
-    // Update facing direction based on Mario's horizontal position
-    mRotation = (marioPos.x < mPosition.x) ? 0.0f : Math::Pi;
+    // Set target X to align with the player
+    targetPos.x = playerPos.x;
+    // Set target Y to be above the player, clamped by a max distance
+    targetPos.y = playerPos.y - hoverHeight;
+    targetPos.y = Math::Max(targetPos.y, playerPos.y - maxHoverHeight);
 
-    // Move horizontally towards Mario if not too close
-    float minFollowDistance = 150.0f; // Minimum distance to keep from Mario
+    // Calculate force to move towards the dynamic target position
+    Vector2 directionToTarget = targetPos - mPosition;
+    float distanceToTarget = directionToTarget.Length();
+    Vector2 moveForce = Vector2::Zero;
 
-    if (std::abs(horizontalDistance) > minFollowDistance) {
-        Vector2 moveForce = Vector2(directionX * mForwardSpeed, 0);
-        mRigidBodyComponent->ApplyForce(moveForce);
-        mIsRunning = true;
-    } else {
-        mIsRunning = false;
+    // Apply force only if not already at the target, to prevent jittering
+    if (distanceToTarget > 15.0f) {
+        directionToTarget.Normalize();
+        moveForce = directionToTarget * mForwardSpeed;
+    }
+    mRigidBodyComponent->ApplyForce(moveForce);
+    mIsRunning = moveForce.LengthSq() > 0.1f;
 
-        // Attack if in range and attack cooldown is over
-        if (!mIsAttacking) {
-            mIsAttacking = true;
-            mAttackStart = true;
-            mAttackTimer = ATTACK_TIME;
+    // Update facing direction based on player's horizontal position
+    mRotation = (playerPos.x < mPosition.x) ? 0.0f : Math::Pi;
 
-            // Calculate spawn position based on facing direction
-            float facingDirection = (mRotation == 0.0f) ? -1.0f : 1.0f;
-            float offsetX = 20.0f * facingDirection;
-            Vector2 spawnPos = mPosition + Vector2(offsetX, 25.0f);
+    // Attack if cooldown is over
+    if (!mIsAttacking) {
+        mIsAttacking = true;
+        mAttackStart = true;
+        mAttackTimer = ATTACK_TIME;
 
-            // Create projectile
-            auto *projectile = new Particle(mGame, 34.0f, "Assets/Sprites/Particles/projectile.png",
-                                            "Mushroow.wav", Vector2{facingDirection * 20000, 0}, 1.8f);
-            projectile->SetPosition(spawnPos);
-            projectile->SetRotation(0.0f);
-        }
+        // Calculate spawn position for the projectile
+        float facingDirection = (mRotation == 0.0f) ? -1.0f : 1.0f;
+        float offsetX = 30.0f * facingDirection;
+        Vector2 spawnPos = mPosition + Vector2(offsetX, 25.0f);
+
+        // Calculate direction to player for aiming
+        Vector2 directionToPlayer = player->GetPosition() - spawnPos;
+        directionToPlayer.Normalize();
+
+        // Create and launch projectile
+        const float projectileSpeed = 25000.0f;
+        Vector2 projectileForce = directionToPlayer * projectileSpeed;
+        auto *projectile = new Particle(mGame, 34.0f, "Assets/Sprites/Particles/projectile.png",
+                                        "Mushroow.wav", projectileForce, 2.5f);
+        projectile->SetPosition(spawnPos);
+        projectile->SetRotation(Math::Atan2(-directionToPlayer.y, directionToPlayer.x));
     }
 
     // Update attack timer
@@ -178,13 +211,7 @@ void FlyingDemon::UpdateWorkingMode(float deltaTime) {
 
     if (mAttackStart) mAttackStart = false;
 
-    if (mIsAttacking) {
-        mAttackTimer -= deltaTime;
-        if (mAttackTimer <= 0.0f) {
-            mIsAttacking = false;
-        }
-    }
-
+    // Reset velocity if not moving and on ground (to prevent sliding)
     if (!mIsRunning && mIsOnGround) {
         mRigidBodyComponent->SetVelocity(Vector2::Zero);
     }
@@ -197,19 +224,11 @@ void FlyingDemon::ManageAnimations() {
         return;
     }
     if (mAttackStart) {
-        // TODO 2: This is not working, fix it
         mDrawComponent->SetAnimation("attack");
-        mDrawComponent->SetLoop(false);
-
-        if (mDrawComponent->IsAnimationFinished()) {
-            mAttackStart = false;
-        }
     } else if (mIsRunning) {
         mDrawComponent->SetAnimation("flying");
-        mDrawComponent->SetLoop(true);
     } else {
         mDrawComponent->SetAnimation("idle");
-        mDrawComponent->SetLoop(true);
     }
 }
 
@@ -223,28 +242,4 @@ void FlyingDemon::Kill() {
 
     mRigidBodyComponent->SetEnabled(false);
     mColliderComponent->SetEnabled(false);
-}
-
-void FlyingDemon::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
-    auto owner = other->GetOwner();
-    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-
-    if (owner && collider->GetLayer() == ColliderLayer::Slash) {
-        Hurt();
-    }
-}
-
-void FlyingDemon::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
-    auto owner = other->GetOwner();
-    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Player) {
-        Player *player = dynamic_cast<Player *>(owner);
-        if (!player->isPlayerAttacking()) {
-            player->Hurt();
-        }
-    }
-
-    if (owner && collider->GetLayer() == ColliderLayer::Slash) {
-        Hurt();
-    }
 }

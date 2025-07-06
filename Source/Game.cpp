@@ -12,6 +12,7 @@
 #include "Game.h"
 #include "UIElements/UIHud.h"
 #include "SpatialHashing.h"
+#include "UIPauseMenuScreen.h"
 #include "Actors/Actor.h"
 #include "Actors/Player.h"
 #include "Actors/Block.h"
@@ -25,7 +26,6 @@
 #include "Components/ColliderComponents/AABBColliderComponent.h"
 #include "Components/DrawComponents/DrawAnimatedComponent.h"
 #include "Actors/InvisibleBlock.h"
-
 
 Game::Game(const int windowWidth, const int windowHeight)
         :mSceneManagerState(SceneManagerState::None)
@@ -53,10 +53,8 @@ Game::Game(const int windowWidth, const int windowHeight)
         ,mBackgroundTexture(nullptr)
         ,mBackgroundSize(Vector2::Zero)
         ,mBackgroundPosition(Vector2::Zero)
-        ,mNumberOfCoinsCollected(0)
-        ,mScore(0)
+        , mIsPauseMenuActive(false)
 {
-
 }
 
 bool Game::Initialize()
@@ -106,7 +104,6 @@ bool Game::Initialize()
 
     mAudio = new AudioSystem();
 
-
     mSpatialHashing = new SpatialHashing(TILE_SIZE * 4.0f,
                                          LEVEL_WIDTH * TILE_SIZE,
                                          LEVEL_HEIGHT * TILE_SIZE);
@@ -121,7 +118,7 @@ bool Game::Initialize()
     return true;
 }
 
-void Game::SetGameScene(Game::GameScene scene, float transitionTime)
+void Game::SetGameScene(const GameScene scene, const float transitionTime)
 {
     // Se uma transição já estiver em andamento, não faça nada.
     if (mSceneManagerState != SceneManagerState::None)
@@ -133,10 +130,9 @@ void Game::SetGameScene(Game::GameScene scene, float transitionTime)
     mSceneManagerState = SceneManagerState::Entering;
     mNextScene = scene;
     mSceneManagerTimer = transitionTime;
-
 }
 
-void Game::ResetGameScene(float transitionTime)
+void Game::ResetGameScene(const float transitionTime)
 {
     SetGameScene(mGameScene, transitionTime);
 }
@@ -257,7 +253,6 @@ void Game::ChangeScene()
     mGameScene = mNextScene;
     mIsSceneManagerActive = false;
 }
-
 
 void Game::LoadMainMenu()
 {
@@ -425,7 +420,7 @@ void Game::ProcessInput()
                 }
 
                 // Check if the Return key has been pressed to pause/unpause the game
-                if (event.key.keysym.sym == SDLK_RETURN)
+                if (event.key.keysym.sym == SDLK_RETURN && !mIsPauseMenuActive)
                 {
                     TogglePause();
                 }
@@ -442,26 +437,22 @@ void Game::ProcessInput()
 
 void Game::TogglePause()
 {
-
     if (mGameScene != GameScene::MainMenu)
     {
         if (mGamePlayState == GamePlayState::Playing)
         {
             mGamePlayState = GamePlayState::Paused;
-
-            if (Mix_PlayingMusic()) {
-                Mix_PauseMusic();
-            }
-
+            if (Mix_PlayingMusic()) Mix_PauseMusic();
+            // Create and push the pause menu screen onto the UI stack
+            mUIStack.push_back(new UIPauseMenuScreen(this));
+            mIsPauseMenuActive = true;
         }
         else if (mGamePlayState == GamePlayState::Paused)
         {
             mGamePlayState = GamePlayState::Playing;
-
-            if (Mix_PausedMusic()) {
-                Mix_ResumeMusic();
-            }
-
+            if (Mix_PausedMusic()) Mix_ResumeMusic();
+            // Remove the pause menu from the stack
+            mUIStack.pop_back();
         }
     }
 }
@@ -568,7 +559,6 @@ void Game::UpdateSceneManager(float deltaTime) {
     }
 }
 
-
 void Game::UpdateLevelTime(const float deltaTime)
 {
     mGameTimer += deltaTime;
@@ -601,38 +591,21 @@ void Game::UpdateCamera()
 
 void Game::UpdateActors(float deltaTime)
 {
-    const std::vector<Actor*> actorsOnCamera =
-        mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
-
-    bool isPlayerOnCamera = false;
-    for (const auto actor : actorsOnCamera)
-    {
-        actor->Update(deltaTime);
-        if (actor == mPlayer)
-        {
-            isPlayerOnCamera = true;
-        }
-    }
-
-    if (!isPlayerOnCamera && mPlayer)
-    {
-        mPlayer->Update(deltaTime);
-    }
-
-    std::vector<Actor*> actorsToDestroy;
+    auto actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
 
     for (auto actor : actorsOnCamera)
-    {
-        if (actor->GetState() == ActorState::Destroy)
-        {
-            actorsToDestroy.push_back(actor);
-        }
-    }
+        actor->Update(deltaTime);
 
-    for (auto actor : actorsToDestroy)
-    {
+    std::vector<Actor*> actorsToDestroy;
+    for (auto actor : actorsOnCamera)
+        if (actor->GetState() == ActorState::Destroy)
+            actorsToDestroy.push_back(actor);
+
+    for (auto actor : actorsToDestroy) {
         if (actor == mPlayer) {
+            delete mPlayer;
             mPlayer = nullptr;
+            continue;
         }
         delete actor;
     }
@@ -645,6 +618,7 @@ void Game::AddActor(Actor* actor) const {
 void Game::RemoveActor(Actor* actor) const {
     mSpatialHashing->Remove(actor);
 }
+
 void Game::Reinsert(Actor* actor) const {
     mSpatialHashing->Reinsert(actor);
 }
@@ -723,8 +697,6 @@ void Game::GenerateOutput() const {
         SDL_RenderFillRect(mRenderer, nullptr);
     }
 
-
-
     // Swap front buffer and back buffer
     SDL_RenderPresent(mRenderer);
 }
@@ -768,7 +740,6 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath)
     return texture;
 }
 
-
 UIFont* Game::LoadFont(const std::string& fileName)
 {
     if (const auto it = mFonts.find(fileName); it != mFonts.end())
@@ -786,11 +757,22 @@ UIFont* Game::LoadFont(const std::string& fileName)
     return nullptr;
 }
 
-
 void Game::UnloadScene()
 {
     // Delete actors
+    auto actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+    for (auto actor : actorsOnCamera)
+    {
+        if (actor == mPlayer) {
+            delete mPlayer;
+            mPlayer = nullptr;
+        } else {
+            delete actor;
+        }
+    }
+
     delete mSpatialHashing;
+    mSpatialHashing = nullptr;
 
     // Delete UI screens
     for (const auto ui : mUIStack) {
@@ -806,6 +788,9 @@ void Game::UnloadScene()
     mTextures.clear(); // Limpa o mapa para a próxima cena.
 
     mBackgroundTexture = nullptr;
+    mBackgroundColor = Vector3::Zero;
+    mBackgroundPosition = Vector2::Zero;
+    mBackgroundSize = Vector2::Zero;
 }
 
 void Game::Shutdown()
@@ -838,7 +823,6 @@ void Game::Shutdown()
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
 }
-
 
 void Game::LoadTilemapLayer(const std::string& csvPath,
                             const std::string& spritesheetPath,

@@ -1,14 +1,8 @@
-//
-// Created by Lucas N. Ferreira on 08/12/23.
-//
-
 #include "UIHud.h"
 #include "../Game.h"
 #include "UIText.h"
 #include "UIRect.h"
 #include "UITimerBar.h"
-
-
 
 UIHud::UIHud(class Game* game, const std::string& fontName, SDL_Renderer* renderer)
     : UIScreen(game, fontName),
@@ -67,9 +61,6 @@ void UIHud::SetTime(int time)
 
     float newPosY = HUD_POS_Y * 2.0f + WORD_HEIGHT;
     Vector2 newPosition(newPosX, newPosY);
-
-    // 4. Atualizar o objeto de texto com os novos valores.
-
 }
 
 void UIHud::TakeDamage()
