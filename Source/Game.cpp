@@ -1,23 +1,16 @@
-// ----------------------------------------------------------------
-// From Game Programming in C++ by Sanjay Madhav
-// Copyright (C) 2017 Sanjay Madhav. All rights reserved.
-//
-// Released under the BSD License
-// See LICENSE in root directory for full details.
-// ----------------------------------------------------------------
-
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <vector>
+#include <memory>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <SDL_mixer.h>
 #include "CSV.h"
 #include "Random.h"
 #include "Game.h"
-#include "HUD.h"
+#include "UIElements/UIHud.h"
 #include "SpatialHashing.h"
 #include "Actors/Actor.h"
 #include "Actors/Player.h"
@@ -28,35 +21,36 @@
 #include "Actors/Spawner.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
-#include "Components/DrawComponents/DrawSpriteComponent.h"
-#include "Components/DrawComponents/DrawPolygonComponent.h"
 #include "Components/ColliderComponents/AABBColliderComponent.h"
 
 
-Game::Game(int windowWidth, int windowHeight)
-        :mWindow(nullptr)
+Game::Game(const int windowWidth, const int windowHeight)
+        :mSceneManagerState(SceneManagerState::None)
+        ,mSceneManagerTimer(0.0f)
+        ,mIsSceneManagerActive(false)
+        ,mSpatialHashing(nullptr)
+        ,mWindow(nullptr)
         ,mRenderer(nullptr)
-        ,mTicksCount(0)
-        ,mIsRunning(true)
+        ,mAudio(nullptr)
         ,mWindowWidth(windowWidth)
         ,mWindowHeight(windowHeight)
-        ,mMario(nullptr)
-        ,mHUD(nullptr)
+        ,mTicksCount(0)
+        ,mIsRunning(true)
+        ,mGamePlayState(GamePlayState::NotStarted)
+        ,mGameScene(GameScene::Intro)
+        ,mNextScene(GameScene::Intro)
         ,mBackgroundColor(0, 0, 0)
         ,mModColor(255, 255, 255)
         ,mCameraPos(Vector2::Zero)
-        ,mAudio(nullptr)
+        ,mIsCameraLocked(false)
+        ,mPlayer(nullptr)
+        ,mHUD(nullptr)
         ,mGameTimer(0.0f)
         ,mGameTimeLimit(0)
-        ,mSceneManagerTimer(0.0f)
-        ,mSceneManagerState(SceneManagerState::None)
-        ,mGameScene(GameScene::Intro)
-        ,mNextScene(GameScene::Intro)
         ,mBackgroundTexture(nullptr)
         ,mBackgroundSize(Vector2::Zero)
         ,mBackgroundPosition(Vector2::Zero)
         ,mNumberOfCoinsCollected(0)
-        ,mIsCameraLocked(false)
         ,mScore(0)
 {
 
@@ -104,7 +98,7 @@ bool Game::Initialize()
         return false;
     }
 
-    // Start random number generator
+    // Start a random number generator
     Random::Init();
 
     mAudio = new AudioSystem();
@@ -129,11 +123,10 @@ void Game::SetGameScene(Game::GameScene scene, float transitionTime)
     // Se uma transição já estiver em andamento, não faça nada.
     if (mSceneManagerState != SceneManagerState::None)
     {
-        //SDL_Log("SceneManager is busy. Transition to a new scene was ignored.");
+        SDL_Log("SceneManager is busy. Transition to a new scene was ignored.");
         return;
     }
 
-    // Se o código chegou até aqui, 'scene' é um valor válido do enum GameScene.
     mSceneManagerState = SceneManagerState::Entering;
     mNextScene = scene;
     mSceneManagerTimer = transitionTime;
@@ -164,72 +157,62 @@ void Game::ChangeScene()
 
     mSceneManagerState = SceneManagerState::FadeIn;
 
-
     if (mNextScene == GameScene::Intro) {
         mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
 
         auto introScreen = new UIScreen(this, "Assets/Fonts/SMB.ttf");
 
-        const float originalWidth = 512.0f;
-        const float originalHeight = 420.0f;
-        const float aspectRatio = originalWidth / originalHeight;
+        constexpr float originalWidth = 512.0f;
+        constexpr float originalHeight = 420.0f;
+        constexpr float aspectRatio = originalWidth / originalHeight;
         Vector2 newImageSize;
-        newImageSize.y = mWindowHeight * (2.0f / 3.0f);
+        newImageSize.y = static_cast<float>(mWindowHeight) * (2.0f / 3.0f);
         newImageSize.x = newImageSize.y * aspectRatio;
         Vector2 newImagePos;
-        newImagePos.x = (mWindowWidth - newImageSize.x) / 2.0f;
-        newImagePos.y = (mWindowHeight - newImageSize.y) / 2.0f;
+        newImagePos.x = (static_cast<float>(mWindowWidth) - newImageSize.x) / 2.0f;
+        newImagePos.y = (static_cast<float>(mWindowHeight) - newImageSize.y) / 2.0f;
         introScreen->AddImage("Assets/Sprites/Intro.png", newImagePos, newImageSize, Vector3(255, 255, 255));
 
-        const int mainTextPointSize = 48;
-        const float mainTextRenderedHeight = mainTextPointSize / 3.0f; // 16px
-        const float mainTextCharWidth = mainTextRenderedHeight * 0.8f;
-        const float mainTextBoxHeight = mainTextRenderedHeight * 1.2f;
+        constexpr int mainTextPointSize = 48;
+        constexpr float mainTextRenderedHeight = mainTextPointSize / 3.0f; // 16px
+        constexpr float mainTextCharWidth = mainTextRenderedHeight * 0.8f;
+        constexpr float mainTextBoxHeight = mainTextRenderedHeight * 1.2f;
 
-        std::string mainTextStr = "Nao Grita Game Studios";
-        float mainTextWidth = mainTextStr.length() * mainTextCharWidth;
-
-        Vector2 mainTextDims(mainTextWidth, mainTextBoxHeight);
+        const std::string mainTextStr = "Nao Grita Game Studios";
+        const float mainTextWidth = static_cast<float>(mainTextStr.length()) * mainTextCharWidth;
+        const Vector2 mainTextDims(mainTextWidth, mainTextBoxHeight);
         Vector2 mainTextPos;
-        mainTextPos.x = (mWindowWidth - mainTextWidth) / 2.0f;
-        mainTextPos.y = newImagePos.y - mainTextBoxHeight - 24.0f; // 24px acima da imagem
+        mainTextPos.x = (static_cast<float>(mWindowWidth) - mainTextWidth) / 2.0f;
+        mainTextPos.y = newImagePos.y - mainTextBoxHeight - 24.0f; // 24px acima da imagem        mainTextPos.y = newImagePos.y - mainTextBoxHeight - 24.0f; // 24px acima da imagem
 
         introScreen->AddText(mainTextStr, mainTextPos, mainTextDims, mainTextPointSize, 0);
 
-        const int subTextPointSize = mainTextPointSize;
-        const float subTextRenderedHeight = subTextPointSize / 3.0f;
-        const float subTextCharWidth = subTextRenderedHeight * 0.8f;
-        const float subTextBoxHeight = subTextRenderedHeight * 1.2f;
+        constexpr int subTextPointSize = mainTextPointSize;
+        constexpr float subTextRenderedHeight = subTextPointSize / 3.0f;
+        constexpr float subTextCharWidth = subTextRenderedHeight * 0.8f;
+        constexpr float subTextBoxHeight = subTextRenderedHeight * 1.2f;
 
-        std::string subTextStr = "presents";
-        float subTextWidth = subTextStr.length() * subTextCharWidth;
-
-        Vector2 subTextDims(subTextWidth, subTextBoxHeight);
+        const std::string subTextStr = "presents";
+        const float subTextWidth = static_cast<float>(subTextStr.length()) * subTextCharWidth;
+        const Vector2 subTextDims(subTextWidth, subTextBoxHeight);
         Vector2 subTextPos;
-        subTextPos.x = (mWindowWidth - subTextWidth) / 2.0f;
+        subTextPos.x = (static_cast<float>(mWindowWidth) - subTextWidth) / 2.0f;
         subTextPos.y = newImagePos.y + newImageSize.y + 24.0f; // 24px abaixo da imagem
 
         introScreen->AddText(subTextStr, subTextPos, subTextDims, subTextPointSize, 0);
 
-        mAudio->PlaySound("Intro.mp3", 0);
+        mAudio->PlaySound("Intro.mp3", false);
     }
     else if (mNextScene == GameScene::MainMenu)
     {
-        // Set background color
-        mBackgroundColor.Set(107.0f, 140.0f, 255.0f);
-
-        // Initialize main menu actors
         LoadMainMenu();
-
-        mAudio->PlaySound("MainMenu_Goetia.mp3", true);
     }
     else if (mNextScene == GameScene::Level1)
     {
-        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf", mRenderer);
+        mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
 
         mGameTimeLimit = 400;
         mHUD->SetTime(mGameTimeLimit);
-        mHUD->SetLevelName("1-1");
 
         mAudio->StopAllSounds();
         mAudio->PlayMusic("Level1_NhacNhatBanHay.mp3",true,13);
@@ -245,11 +228,10 @@ void Game::ChangeScene()
     }
     else if (mNextScene == GameScene::Level2)
     {
-        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf", mRenderer);
+        mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
 
         mGameTimeLimit = 400;
         mHUD->SetTime(mGameTimeLimit);
-        mHUD->SetLevelName("1-2");
 
         mAudio->StopAllSounds();
         mAudio->PlayMusic("FinalFight_Inferia.mp3",true,13);
@@ -263,28 +245,56 @@ void Game::ChangeScene()
         LoadLevel("Assets/Levels/Level2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
     }
 
-    // Set new scene
+    // Set a new scene
     mGameScene = mNextScene;
+    mIsSceneManagerActive = false;
 }
 
 
 void Game::LoadMainMenu()
 {
+    // Set background color
+    mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
+
     mAudio->StopAllSounds();
+    mAudio->PlayMusic("MainMenu_Goetia.mp3", true, 50);
 
-    auto mainMenu = new UIScreen(this, "Assets/Fonts/SMB.ttf");
-    const Vector2 titleSize = Vector2(178.0f, 88.0f) * 2.0f;
-    const Vector2 titlePos = Vector2(mWindowWidth/2.0f - titleSize.x/2.0f, 64.0f);
+    const auto mainMenu = new UIScreen(this, "Assets/Fonts/SMB.ttf");
 
-    SetBackgroundImage("Assets/Sprites/MainMenu.png", Vector2(0,0), Vector2(mWindowWidth, mWindowHeight));
-    //mainMenu->AddImage("Assets/Sprites/Logo.png", titlePos, titleSize);
+    SetBackgroundImage("Assets/Sprites/MainMenu.png", Vector2(0,0), Vector2(static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight)));
 
-    mainMenu->AddButton("START GAME", Vector2(mWindowWidth/2.0f - 110.0f, 350.0f), Vector2(200.0f, 40.0f),
-    [this]() { SetGameScene(GameScene::Level1);});
-    //mainMenu->AddButton("2 PLAYER GAME", Vector2(mWindowWidth/2.0f - 115.0f, 314.0f), Vector2(200.0f, 40.0f),
-    //                                       nullptr);
-    mainMenu->AddButton("QUIT", Vector2(mWindowWidth/2.0f - 50.0f, 400.0f), Vector2(200.0f, 40.0f),
-        [this]() {mIsRunning = false;});
+    mainMenu->AddButton("START GAME", Vector2(static_cast<float>(mWindowWidth)/2.0f - 110.0f, 300.0f), Vector2(200.0f, 40.0f),
+        [this]() { SetGameScene(GameScene::Level1); });
+
+    mainMenu->AddButton("CONTROLES", Vector2(static_cast<float>(mWindowWidth)/2.0f - 100.0f, 350.0f), Vector2(200.0f, 40.0f),
+        [this]() { ShowTutorialScreen(); });
+
+    mainMenu->AddButton("QUIT", Vector2(static_cast<float>(mWindowWidth)/2.0f - 50.0f, 400.0f), Vector2(200.0f, 40.0f),
+        [this]() { mIsRunning = false; });
+}
+
+void Game::ShowTutorialScreen()
+{
+    auto tutorial = new UIScreen(this, "Assets/Fonts/SMB.ttf");
+    Vector2 pos(0.0f, 0.0f);
+    Vector2 size(static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+
+    // Fundo preto semitransparente cobrindo toda a tela
+    tutorial->AddRect(pos, size, Vector4(0, 0, 0, 230));
+
+    // Centraliza os textos verticalmente e horizontalmente
+    float centerX = static_cast<float>(mWindowWidth) / 2.0f;
+    float startY = static_cast<float>(mWindowHeight) / 2.0f - 120.0f;
+
+    tutorial->AddText("CONTROLES", Vector2(centerX - 200.0f, startY), Vector2(400, 40), 32, 0);
+    tutorial->AddText("WASD: Movimentação", Vector2(centerX - 200.0f, startY + 60), Vector2(400, 30), 24, 0);
+    tutorial->AddText("Espaço: Pular", Vector2(centerX - 200.0f, startY + 100), Vector2(400, 30), 24, 0);
+    tutorial->AddText("E: Ataque Fraco", Vector2(centerX - 200.0f, startY + 140), Vector2(400, 30), 24, 0);
+    tutorial->AddText("SHIFT: Rolamento", Vector2(centerX - 200.0f, startY + 180), Vector2(400, 30), 24, 0);
+
+    // Botão centralizado na parte inferior
+    tutorial->AddButton("VOLTAR", Vector2(centerX - 75, startY + 240), Vector2(200, 40),
+        [this, tutorial]() { tutorial->SetState(UIScreen::UIState::Closing); });
 }
 
 void Game::LoadLevel(const std::string& levelName, const int levelWidth, const int levelHeight)
@@ -325,44 +335,43 @@ void Game::BuildLevel(int** levelData, int width, int height)
 
             if(tile == 9) // Samurai
             {
-                mMario = new Player(this);
-                mMario->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                mPlayer = new Player(this);
+                mPlayer->SetPosition(Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE));
             }
             if(tile == 11) // Flying Demon
             {
-                auto demon = new FlyingDemon(this, Vector2((x) * TILE_SIZE, (y) * TILE_SIZE), 6.0f);
-                demon->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                auto demon = new FlyingDemon(this, Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE), 6.0f);
+                demon->SetPosition(Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE));
             }
             else if (tile == 12) // Demon Boss
             {
                 auto demonBoss = new DemonBoss(this);
-                demonBoss->SetPosition(Vector2((x) * TILE_SIZE, (y) * TILE_SIZE));
+                demonBoss->SetPosition(Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE));
             }
             else if(tile == 10) // Spawner
             {
-                Spawner* spawner = new Spawner(this, SPAWN_DISTANCE);
-                spawner->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
+                auto* spawner = new Spawner(this, SPAWN_DISTANCE);
+                spawner->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
             }
             else if (tile == 13) // End level trigger
             {
-                Trigger* trigger = new Trigger(this);
-                trigger->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
+                auto* trigger = new Trigger(this);
+                trigger->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
             }
             else // Blocks
             {
-                auto it = tileMap.find(tile);
-                if (it != tileMap.end())
+                if (auto it = tileMap.find(tile); it != tileMap.end())
                 {
                     // Create a block actor
-                    Block* block = new Block(this, it->second);
-                    block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
+                    auto* block = new Block(this, it->second);
+                    block->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
                 }
             }
         }
     }
 }
 
-int **Game::ReadLevelData(const std::string& fileName, int width, int height)
+int **Game::ReadLevelData(const std::string& fileName, const int width, const int height)
 {
     std::ifstream file(fileName);
     if (!file.is_open())
@@ -372,7 +381,7 @@ int **Game::ReadLevelData(const std::string& fileName, int width, int height)
     }
 
     // Create a 2D array of size width and height to store the level data
-    int** levelData = new int*[height];
+    const auto levelData = new int*[height];
     for (int i = 0; i < height; ++i)
     {
         levelData[i] = new int[width];
@@ -421,6 +430,8 @@ void Game::RunLoop()
 void Game::ProcessInput()
 {
     SDL_Event event;
+    const Uint8* state = SDL_GetKeyboardState(nullptr);
+
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
@@ -434,7 +445,9 @@ void Game::ProcessInput()
                     mUIStack.back()->HandleKeyPress(event.key.keysym.sym);
                 }
 
-                HandleKeyPressActors(event.key.keysym.sym, event.key.repeat == 0);
+                if (mPlayer) {
+                    mPlayer->HandleInput(state, &event);
+                }
 
                 // Check if the Return key has been pressed to pause/unpause the game
                 if (event.key.keysym.sym == SDLK_RETURN)
@@ -442,64 +455,14 @@ void Game::ProcessInput()
                     TogglePause();
                 }
                 break;
+            default:
+                break;
         }
     }
 
-    ProcessInputActors();
-}
-
-void Game::ProcessInputActors()
-{
-    if(mGamePlayState == GamePlayState::Playing)
-    {
-        // Get actors on camera
-        std::vector<Actor*> actorsOnCamera =
-                mSpatialHashing->QueryOnCamera(mCameraPos,mWindowWidth,mWindowHeight);
-
-        const Uint8* state = SDL_GetKeyboardState(nullptr);
-
-        bool isMarioOnCamera = false;
-        for (auto actor: actorsOnCamera)
-        {
-            actor->ProcessInput(state);
-
-            if (actor == mMario) {
-                isMarioOnCamera = true;
-            }
-        }
-
-        // If Mario is not on camera, process input for him
-        if (!isMarioOnCamera && mMario) {
-            mMario->ProcessInput(state);
-        }
+    if (mPlayer) {
+        mPlayer->HandleInput(state, nullptr);
     }
-}
-
-void Game::HandleKeyPressActors(const int key, const bool isPressed)
-{
-    if(mGamePlayState == GamePlayState::Playing)
-    {
-        // Get actors on camera
-        std::vector<Actor*> actorsOnCamera =
-                mSpatialHashing->QueryOnCamera(mCameraPos,mWindowWidth,mWindowHeight);
-
-        // Handle key press for actors
-        bool isMarioOnCamera = false;
-        for (auto actor: actorsOnCamera) {
-            actor->HandleKeyPress(key, isPressed);
-
-            if (actor == mMario) {
-                isMarioOnCamera = true;
-            }
-        }
-
-        // If Mario is not on camera, handle key press for him
-        if (!isMarioOnCamera && mMario)
-        {
-            mMario->HandleKeyPress(key, isPressed);
-        }
-    }
-
 }
 
 void Game::TogglePause()
@@ -511,24 +474,28 @@ void Game::TogglePause()
         {
             mGamePlayState = GamePlayState::Paused;
 
-            mAudio->PauseSound(mMusicHandle);
-            mAudio->PlaySound("Coin.wav");
+            if (Mix_PlayingMusic()) {
+                Mix_PauseMusic();
+            }
+
         }
         else if (mGamePlayState == GamePlayState::Paused)
         {
             mGamePlayState = GamePlayState::Playing;
 
-            mAudio->ResumeSound(mMusicHandle);
-            mAudio->PlaySound("Coin.wav");
+            if (Mix_PausedMusic()) {
+                Mix_ResumeMusic();
+            }
+
         }
     }
 }
 
 void Game::UpdateGame()
 {
-    while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16));
+    while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16)){}
 
-    float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
+    float deltaTime = static_cast<float>(SDL_GetTicks() - mTicksCount) / 1000.0f;
     if (deltaTime > 0.05f)
     {
         deltaTime = 0.05f;
@@ -542,14 +509,8 @@ void Game::UpdateGame()
         UpdateActors(deltaTime);
     }
 
-    if (mGamePlayState == GamePlayState::LevelComplete) {
-            // If the level is complete, change to the next scene
-        if (mGameScene == GameScene::Level1) {
-            SetGameScene(GameScene::Level2);
-        } else if (mGameScene == GameScene::Level2) {
-            SetGameScene(GameScene::MainMenu);
-        }
-    }
+    // Update the game scenes
+    UpdateScenes();
 
     // Reinsert audio system
     mAudio->Update(deltaTime);
@@ -572,9 +533,6 @@ void Game::UpdateGame()
         }
     }
 
-    // ---------------------
-    // Game Specific Updates
-    // ---------------------
     UpdateCamera();
 
     UpdateSceneManager(deltaTime);
@@ -583,10 +541,21 @@ void Game::UpdateGame()
         UpdateLevelTime(deltaTime);
 }
 
+void Game::UpdateScenes() {
+    if (mGamePlayState == GamePlayState::LevelComplete && !mIsSceneManagerActive) {
+        mIsSceneManagerActive = true;
+        if (mGameScene == GameScene::Level1) {
+            SetGameScene(GameScene::Level2);
+        } else if (mGameScene == GameScene::Level2) {
+            SetGameScene(GameScene::MainMenu);
+        }
+    }
+}
+
 void Game::UpdateSceneManager(float deltaTime) {
     // FSM de Transição
     if (SceneManagerState::Entering == mSceneManagerState) {
-        // O estado 'Entering' serve como um pequeno buffer antes do FadeOut.
+        // O estado 'Entering' serve como um pequeno ‘buffer’ antes do FadeOut.
         mSceneManagerTimer -= deltaTime;
         if (mSceneManagerTimer <= 0) {
             mSceneManagerTimer = TRANSITION_TIME;
@@ -608,7 +577,7 @@ void Game::UpdateSceneManager(float deltaTime) {
             if (mGameScene == GameScene::Intro) {
                 mSceneManagerTimer = INTRO_TIME;
             } else {
-                mSceneManagerTimer = 0.0f; // Zera para outras cenas
+                mSceneManagerTimer = 0.0f;
             }
         }
     }
@@ -625,7 +594,7 @@ void Game::UpdateSceneManager(float deltaTime) {
 }
 
 
-void Game::UpdateLevelTime(float deltaTime)
+void Game::UpdateLevelTime(const float deltaTime)
 {
     mGameTimer += deltaTime;
     if (mGameTimer >= 1.0) {
@@ -634,21 +603,21 @@ void Game::UpdateLevelTime(float deltaTime)
         mHUD->SetTime(mGameTimeLimit);
     }
 
-    if (mGameTimeLimit <= 0.0f) {
-        mMario->Kill();
+    if (static_cast<float>(mGameTimeLimit) <= 0.0f) {
+        mPlayer->Kill();
     }
 }
 
 void Game::UpdateCamera()
 {
-    if (!mMario) return;
+    if (!mPlayer) return;
 
-    float horizontalCameraPos = mMario->GetPosition().x - (mWindowWidth / 2.0f);
+    float horizontalCameraPos = mPlayer->GetPosition().x - (static_cast<float>(mWindowWidth) / 2.0f);
 
     if (horizontalCameraPos > mCameraPos.x && !mIsCameraLocked)
     {
-        // Limit camera to the right side of the level
-        float maxCameraPos = (LEVEL_WIDTH * TILE_SIZE) - mWindowWidth;
+        // Limit the camera to the right side of the level
+        const float maxCameraPos = static_cast<float>(LEVEL_WIDTH * TILE_SIZE) - static_cast<float>(mWindowWidth);
         horizontalCameraPos = Math::Clamp(horizontalCameraPos, 0.0f, maxCameraPos);
 
         mCameraPos.x = horizontalCameraPos;
@@ -657,22 +626,22 @@ void Game::UpdateCamera()
 
 void Game::UpdateActors(float deltaTime)
 {
-    std::vector<Actor*> actorsOnCamera =
-        mSpatialHashing->QueryOnCamera(mCameraPos, mWindowWidth, mWindowHeight);
+    const std::vector<Actor*> actorsOnCamera =
+        mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
 
-    bool isMarioOnCamera = false;
-    for (auto actor : actorsOnCamera)
+    bool isPlayerOnCamera = false;
+    for (const auto actor : actorsOnCamera)
     {
         actor->Update(deltaTime);
-        if (actor == mMario)
+        if (actor == mPlayer)
         {
-            isMarioOnCamera = true;
+            isPlayerOnCamera = true;
         }
     }
 
-    if (!isMarioOnCamera && mMario)
+    if (!isPlayerOnCamera && mPlayer)
     {
-        mMario->Update(deltaTime);
+        mPlayer->Update(deltaTime);
     }
 
     std::vector<Actor*> actorsToDestroy;
@@ -687,42 +656,35 @@ void Game::UpdateActors(float deltaTime)
 
     for (auto actor : actorsToDestroy)
     {
-        if (actor == mMario) {
-            mMario = nullptr;
+        if (actor == mPlayer) {
+            mPlayer = nullptr;
         }
         delete actor;
     }
 }
 
-void Game::AddActor(Actor* actor)
-{
+void Game::AddActor(Actor* actor) const {
     mSpatialHashing->Insert(actor);
 }
 
-void Game::RemoveActor(Actor* actor)
-{
+void Game::RemoveActor(Actor* actor) const {
     mSpatialHashing->Remove(actor);
 }
-void Game::Reinsert(Actor* actor)
-{
+void Game::Reinsert(Actor* actor) const {
     mSpatialHashing->Reinsert(actor);
 }
 
-std::vector<Actor *> Game::GetNearbyActors(const Vector2& position, const int range)
-{
+std::vector<Actor *> Game::GetNearbyActors(const Vector2& position, const int range) const {
     return mSpatialHashing->Query(position, range);
 }
 
-std::vector<AABBColliderComponent *> Game::GetNearbyColliders(const Vector2& position, const int range)
-{
+std::vector<AABBColliderComponent *> Game::GetNearbyColliders(const Vector2& position, const int range) const {
     return mSpatialHashing->QueryColliders(position, range);
 }
 
-void Game::GenerateOutput()
-{
+void Game::GenerateOutput() const {
     // Clear frame with background color
-    SDL_SetRenderDrawColor(mRenderer, mBackgroundColor.x, mBackgroundColor.y, mBackgroundColor.z, 255);
-
+    SDL_SetRenderDrawColor(mRenderer, static_cast<Uint8>(mBackgroundColor.x), static_cast<Uint8>(mBackgroundColor.y), static_cast<Uint8>(mBackgroundColor.z), 255);
     // Clear back buffer
     SDL_RenderClear(mRenderer);
 
@@ -739,9 +701,9 @@ void Game::GenerateOutput()
 
     // Get actors on camera
     std::vector<Actor*> actorsOnCamera =
-            mSpatialHashing->QueryOnCamera(mCameraPos,mWindowWidth,mWindowHeight);
+            mSpatialHashing->QueryOnCamera(mCameraPos,static_cast<float>(mWindowWidth),static_cast<float>(mWindowHeight));
 
-    // Get list of drawables in draw order
+    // Get a list of drawables in draw order
     std::vector<DrawComponent*> drawables;
 
     for (auto actor : actorsOnCamera)
@@ -794,73 +756,58 @@ void Game::GenerateOutput()
 
 void Game::SetBackgroundImage(const std::string& texturePath, const Vector2 &position, const Vector2 &size)
 {
-    // Apenas pegue a textura do nosso gerenciador.
-    // A chamada a LoadTexture agora é inteligente: se a textura já existir no cache,
-    // ela retorna o ponteiro existente; senão, ela carrega, armazena no cache e retorna.
     mBackgroundTexture = LoadTexture(texturePath);
     if (!mBackgroundTexture) {
         SDL_Log("Failed to load background texture: %s", texturePath.c_str());
     }
 
-    // Set background position
+    // Set the background position
     mBackgroundPosition.Set(position.x, position.y);
 
     // Set background size
     mBackgroundSize.Set(size.x, size.y);
 }
 
-// Em Game.cpp
 SDL_Texture* Game::LoadTexture(const std::string& texturePath)
 {
-    auto iter = mTextures.find(texturePath);
-    if (iter != mTextures.end())
+    if (const auto iter = mTextures.find(texturePath); iter != mTextures.end())
     {
         return iter->second;
     }
-    else
-    {
-        SDL_Surface* surface = IMG_Load(texturePath.c_str());
-        if (!surface) {
-            //SDL_Log("Failed to load image: %s", IMG_GetError());
-            return nullptr;
-        }
-
-        SDL_Texture* texture = SDL_CreateTextureFromSurface(mRenderer, surface);
-        SDL_FreeSurface(surface);
-
-        if (!texture) {
-            SDL_Log("Failed to create texture: %s", SDL_GetError());
-            return nullptr;
-        }
-
-        mTextures[texturePath] = texture;
-
-        return texture;
+    SDL_Surface* surface = IMG_Load(texturePath.c_str());
+    if (!surface) {
+        SDL_Log("Failed to load image: %s", IMG_GetError());
+        return nullptr;
     }
+
+    SDL_Texture* texture = SDL_CreateTextureFromSurface(mRenderer, surface);
+    SDL_FreeSurface(surface);
+
+    if (!texture) {
+        SDL_Log("Failed to create texture: %s", SDL_GetError());
+        return nullptr;
+    }
+
+    mTextures[texturePath] = texture;
+
+    return texture;
 }
 
 
 UIFont* Game::LoadFont(const std::string& fileName)
 {
-    auto it = mFonts.find(fileName);
-    if (it != mFonts.end())
+    if (const auto it = mFonts.find(fileName); it != mFonts.end())
     {
-        return it->second;
+        return it->second.get();
     }
-    else
+
+    auto font = std::make_unique<UIFont>(mRenderer);
+    if (font->Load(fileName))
     {
-        UIFont* font = new UIFont(mRenderer);
-        if (font->Load(fileName))
-        {
-            mFonts[fileName] = font;
-            return font;
-        }
-        else
-        {
-            font->Unload();
-            delete font;
-        }
+        mFonts[fileName] = std::move(font);
+        return mFonts[fileName].get();
     }
+
     return nullptr;
 }
 
@@ -871,7 +818,7 @@ void Game::UnloadScene()
     delete mSpatialHashing;
 
     // Delete UI screens
-    for (auto ui : mUIStack) {
+    for (const auto ui : mUIStack) {
         delete ui;
     }
     mUIStack.clear();
@@ -890,9 +837,10 @@ void Game::Shutdown()
 {
     UnloadScene();
 
-    for (auto font : mFonts) {
-        font.second->Unload();
-        delete font.second;
+    for (auto& pair : mFonts) {
+        if (pair.second) {
+            pair.second->Unload();
+        }
     }
     mFonts.clear();
 

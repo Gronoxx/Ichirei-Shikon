@@ -45,6 +45,9 @@ public:
     // Get state of UI screen
 	UIState GetState() const { return mState; }
 
+	// Set state of UI screen
+	void SetState(UIState state) { mState = state; }
+
     // Game getter
     class Game* GetGame() { return mGame; }
 
@@ -52,6 +55,7 @@ public:
 	UIButton* AddButton(const std::string& name, const Vector2& pos, const Vector2& dims, std::function<void()> onClick);
     UIText* AddText(const std::string& name, const Vector2& pos, const Vector2& dims, const int pointSize = 40, const int unsigned wrapLength = 1024);
     UIImage* AddImage(const std::string& imagePath, const Vector2& pos, const Vector2& dims, const Vector3& color = Color::White);
+	UIRect* AddRect(const Vector2& pos, const Vector2& size, const Vector4& color);
 	UIRect* AddRect(const Vector2& pos, const Vector2& size, const Vector3& color);
 
 protected:

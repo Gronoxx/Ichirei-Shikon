@@ -8,12 +8,11 @@
 #include "../GameMath.h" // Para Math::Pi
 #include "../Actors/Player.h"
 
-Goomba::Goomba(Game* game, float forwardSpeed, float deathTime)
+Goomba::Goomba(Game *game, float forwardSpeed, float deathTime)
     : Actor(game)
-    , mDyingTimer(deathTime)
-    , mIsDying(false)
-    , mForwardSpeed(forwardSpeed)
-{
+      , mDyingTimer(deathTime)
+      , mIsDying(false)
+      , mForwardSpeed(forwardSpeed) {
     // A ordem de criação dos componentes está correta
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f);
     mRigidBodyComponent->SetVelocity(Vector2(-mForwardSpeed, 0.0f));
@@ -36,8 +35,7 @@ Goomba::Goomba(Game* game, float forwardSpeed, float deathTime)
     // --- FIM DA CONEXÃO ---
 }
 
-void Goomba::Kill()
-{
+void Goomba::Kill() {
     mIsDying = true;
 
     // Agora é simples: basta dizer o nome da animação a ser tocada.
@@ -49,8 +47,7 @@ void Goomba::Kill()
     mColliderComponent->SetEnabled(false);
 }
 
-void Goomba::BumpKill(const float bumpForce)
-{
+void Goomba::BumpKill(const float bumpForce) {
     // Define a animação para 'Idle' (o sprite de pé, mas estático)
     if (mDrawComponent) {
         mDrawComponent->SetAnimation("Idle");
@@ -65,10 +62,8 @@ void Goomba::BumpKill(const float bumpForce)
 }
 
 // O resto do Goomba.cpp (OnUpdate, colisões, etc.) permanece o mesmo.
-void Goomba::OnUpdate(float deltaTime)
-{
-    if (mIsDying)
-    {
+void Goomba::OnUpdate(float deltaTime) {
+    if (mIsDying) {
         mDyingTimer -= deltaTime;
         if (mDyingTimer <= 0.0f) {
             mState = ActorState::Destroy;
@@ -76,45 +71,32 @@ void Goomba::OnUpdate(float deltaTime)
     }
 
     // Se o Goomba cair para fora do mundo (após um BumpKill, por exemplo)
-    if (GetPosition().y > GetGame()->GetWindowHeight() + 100)
-    {
+    if (GetPosition().y > GetGame()->GetWindowHeight() + 100) {
         mState = ActorState::Destroy;
     }
 }
 
-void Goomba::OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other)
-{
-    if ((other->GetLayer() == ColliderLayer::Blocks || other->GetLayer() == ColliderLayer::Enemy))
-    {
+void Goomba::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
+    if (other->GetLayer() == ColliderLayer::Blocks ||
+        other->GetLayer() == ColliderLayer::Enemy ||
+        other->GetLayer() == ColliderLayer::Player) {
         if (minOverlap > 0) {
             mRigidBodyComponent->SetVelocity(Vector2(-mForwardSpeed, 0.0f));
-        }
-        else {
+        } else {
             mRigidBodyComponent->SetVelocity(Vector2(mForwardSpeed, 0.0f));
         }
     }
 
     auto owner = other->GetOwner();
-    AABBColliderComponent* collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Player) {
-        Player* mario = dynamic_cast<Player*>(owner);
-        if (mario->isPlayerAttacking()) {
-            Kill();
-        }
-        // else{
-        //     mario->Kill();
-        // }
-    }
-
+    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
     if (owner && collider->GetLayer() == ColliderLayer::Slash) {
         Kill();
     }
 }
 
-void Goomba::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)
-{
+void Goomba::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
     auto owner = other->GetOwner();
-    AABBColliderComponent* collider = owner->GetComponent<AABBColliderComponent>();
+    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
     if (owner && collider->GetLayer() == ColliderLayer::Player) {
         Kill();
     }

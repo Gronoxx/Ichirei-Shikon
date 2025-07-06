@@ -411,6 +411,19 @@ public:
 	static const Vector3 NegInfinity;
 };
 
+// Vector 4
+class Vector4
+{
+public:
+	float x, y, z, w;
+
+	Vector4()
+		: x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+
+	Vector4(float inX, float inY, float inZ, float inW)
+		: x(inX), y(inY), z(inZ), w(inW) {}
+};
+
 // 3x3 Matrix
 class Matrix3
 {
@@ -1029,4 +1042,5 @@ namespace Color
 	static const Vector3 LightBlue(0.68f, 0.85f, 0.9f);
 	static const Vector3 LightPink(1.0f, 0.71f, 0.76f);
 	static const Vector3 LightGreen(0.56f, 0.93f, 0.56f);
+	static const Vector4 WhiteWithAlpha(1.0f, 1.0f, 1.0f, 1.0f);
 }
