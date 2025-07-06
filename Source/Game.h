@@ -1,27 +1,22 @@
-// ----------------------------------------------------------------
-// From Game Programming in C++ by Sanjay Madhav
-// Copyright (C) 2017 Sanjay Madhav. All rights reserved.
-// 
-// Released under the BSD License
-// See LICENSE in root directory for full details.
-// ----------------------------------------------------------------
-
 #pragma once
+
 #include <SDL.h>
 #include <vector>
 #include <unordered_map>
+#include <memory>
 #include "AudioSystem.h"
 #include "GameMath.h"
+#include "UIFont.h"
 
 class Game
 {
 public:
-    static const int LEVEL_WIDTH = 215;
-    static const int LEVEL_HEIGHT = 15;
-    static const int TILE_SIZE = 32;
-    static const int SPAWN_DISTANCE = 700;
-    static const int TRANSITION_TIME = 1;
-    static const int INTRO_TIME = 2;
+    static constexpr int LEVEL_WIDTH = 215;
+    static constexpr int LEVEL_HEIGHT = 15;
+    static constexpr int TILE_SIZE = 32;
+    static constexpr int SPAWN_DISTANCE = 700;
+    static constexpr int TRANSITION_TIME = 1;
+    static constexpr int INTRO_TIME = 2;
 
     enum class GameScene
     {
@@ -43,6 +38,7 @@ public:
 
     enum class GamePlayState
     {
+        NotStarted,
         Playing,
         Paused,
         GameOver,
@@ -59,25 +55,25 @@ public:
 
     // Actor functions
     void UpdateActors(float deltaTime);
-    void AddActor(class Actor* actor);
-    void RemoveActor(class Actor* actor);
+    void AddActor(class Actor* actor) const;
+    void RemoveActor(class Actor* actor) const;
 
     // Level functions
     void LoadMainMenu();
     void ShowTutorialScreen();
-    void LoadLevel(const std::string& levelName, const int levelWidth, const int levelHeight);
+    void LoadLevel(const std::string& levelName, int levelWidth, int levelHeight);
 
-    std::vector<Actor *> GetNearbyActors(const Vector2& position, const int range = 1);
-    std::vector<class AABBColliderComponent *> GetNearbyColliders(const Vector2& position, const int range = 2);
+    std::vector<Actor *> GetNearbyActors(const Vector2& position, int range = 1) const;
+    std::vector<class AABBColliderComponent *> GetNearbyColliders(const Vector2& position, int range = 2) const;
 
-    void Reinsert(Actor* actor);
+    void Reinsert(Actor* actor) const;
 
     // Camera functions
     Vector2& GetCameraPos() { return mCameraPos; };
     void SetCameraPos(const Vector2& position) { mCameraPos = position; };
 
     // Audio functions
-    class AudioSystem* GetAudio() { return mAudio; }
+    AudioSystem* GetAudio() const { return mAudio; }
 
     // UI functions
     void PushUI(class UIScreen* screen) { mUIStack.emplace_back(screen); }
@@ -99,18 +95,18 @@ public:
     void TogglePause();
 
     // Game-specific
-    class Player* GetMario() { return mPlayer; }
+    class Player* GetPlayer() const { return mPlayer; }
 
     void SetGamePlayState(GamePlayState state) { mGamePlayState = state; }
     GamePlayState GetGamePlayState() const { return mGamePlayState; }
 
-    SDL_Renderer* GetRenderer() { return mRenderer; }
-    class UIHud * GetHUD(){return mHUD;};
+    SDL_Renderer* GetRenderer() const { return mRenderer; }
+    class UIHud * GetHUD() const {return mHUD;};
 
     void SetNumberOfCoinsCollected(int NumberOfCoinsCollected) {mNumberOfCoinsCollected = NumberOfCoinsCollected; };
-    int GetNumberOfCoinsCollected() {return mNumberOfCoinsCollected; };
+    int GetNumberOfCoinsCollected() const {return mNumberOfCoinsCollected; };
     void SetScore(int points) { mScore = points; };
-    int GetScore() {return mScore;};
+    int GetScore() const {return mScore;};
 
     void LockCamera() { mIsCameraLocked = true; };
     void UnlockCamera() { mIsCameraLocked = false; };
@@ -119,7 +115,7 @@ private:
     void ProcessInput();
     void UpdateGame();
     void UpdateCamera();
-    void GenerateOutput();
+    void GenerateOutput() const;
 
     // Scene Manager
     void UpdateSceneManager(float deltaTime);
@@ -133,7 +129,7 @@ private:
     void UpdateLevelTime(float deltaTime);
 
     // Load the level from a CSV file as a 2D array
-    int **ReadLevelData(const std::string& fileName, int width, int height);
+    static int **ReadLevelData(const std::string& fileName, int width, int height);
     void BuildLevel(int** levelData, int width, int height);
 
     // Spatial Hashing for collision detection
@@ -141,7 +137,7 @@ private:
 
     // All the UI elements
     std::vector<class UIScreen*> mUIStack;
-    std::unordered_map<std::string, class UIFont*> mFonts;
+    std::unordered_map<std::string, std::unique_ptr<UIFont>> mFonts;
 
     // SDL stuff
     SDL_Window* mWindow;
@@ -152,10 +148,10 @@ private:
     int mWindowWidth;
     int mWindowHeight;
 
-    // Track elapsed time since game start
+    // Track elapsed time since the game start
     Uint32 mTicksCount;
 
-    // Track actors state
+    // Track actors' state
     bool mIsRunning;
     GamePlayState mGamePlayState;
 
@@ -184,5 +180,4 @@ private:
     std::unordered_map<std::string, SDL_Texture*> mTextures;  //Manage Textures
     int mNumberOfCoinsCollected;
     int mScore;
-    //std::vector<class DrawComponent*> mDrawables;
 };

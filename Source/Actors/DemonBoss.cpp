@@ -91,7 +91,7 @@ void DemonBoss::OnUpdate(float deltaTime) {
 }
 
 void DemonBoss::UpdateMoving(float deltaTime) {
-    Player *mario = mGame->GetMario();
+    Player *mario = mGame->GetPlayer();
     if (!mario)
         return;
 
@@ -109,7 +109,7 @@ void DemonBoss::UpdateMoving(float deltaTime) {
 }
 
 void DemonBoss::UpdateWaiting(float deltaTime) {
-    auto playerPos = mGame->GetMario()->GetPosition();
+    auto playerPos = mGame->GetPlayer()->GetPosition();
 
     if (playerPos.x - mPosition.x < mGame->GetWindowWidth() - Game::TILE_SIZE * 4) {
         mCurrentState = State::Moving;
@@ -160,14 +160,14 @@ void DemonBoss::SpawnMinions() {
     SDL_Log("Left minion pos: %f, %f, target pos: %f, %f", leftMinion->GetPosition().x, leftMinion->GetPosition().y, leftTarget.x, leftTarget.y);
     SDL_Log("Right minion pos: %f, %f, target pos: %f, %f", rightMinion->GetPosition().x, rightMinion->GetPosition().y, rightTarget.x, rightTarget.y);
 
-    SDL_Log("Player pos: %f, %f", mGame->GetMario()->GetPosition().x, mGame->GetMario()->GetPosition().y);
+    SDL_Log("Player pos: %f, %f", mGame->GetPlayer()->GetPosition().x, mGame->GetPlayer()->GetPosition().y);
 }
 
 void DemonBoss::ManageAnimations() {
 }
 
 bool DemonBoss::IsSamuraiOnLeft() const {
-    Player *mario = mGame->GetMario();
+    Player *mario = mGame->GetPlayer();
     if (!mario) return false;
 
     return mario->GetPosition().x < mPosition.x;

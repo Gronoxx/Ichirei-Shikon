@@ -16,7 +16,7 @@ Spawner::Spawner(Game* game, float spawnDistance)
 
 void Spawner::OnUpdate(float deltaTime)
 {
-    if (abs(GetGame()->GetMario()->GetPosition().x - GetPosition().x) < mSpawnDistance)
+    if (abs(GetGame()->GetPlayer()->GetPosition().x - GetPosition().x) < mSpawnDistance)
     {
         auto goomba = new Goomba(GetGame());
         goomba->SetPosition(GetPosition());
