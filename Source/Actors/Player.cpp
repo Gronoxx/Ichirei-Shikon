@@ -22,7 +22,9 @@ Player::Player(Game *game, const float forwardSpeed, const float jumpSpeed)
       , mForwardSpeed(forwardSpeed)
       , mJumpSpeed(jumpSpeed)
       , mPoleSlideTimer(0.0f)
-      , mHealth(5) {
+      , mIsHurt(false)
+      , mHurtTimer(0.0f)
+      {
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 5.0f);
     mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE, Game::TILE_SIZE,
                                                    ColliderLayer::Player);
@@ -38,7 +40,7 @@ Player::Player(Game *game, const float forwardSpeed, const float jumpSpeed)
 
 void Player::HandleInput(const uint8_t* state, const SDL_Event* event) {
     if (mGame->GetGamePlayState() != Game::GamePlayState::Playing) return;
-    if (mIsRolling) return;
+    if (mIsRolling || mIsHurt) return;
 
     // Eventos de tecla (pressionar/release)
     if (event) {
@@ -141,6 +143,12 @@ void Player::OnUpdate(float deltaTime) {
     mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
     mPosition.x = Math::Min(mPosition.x, mGame->GetCameraPos().x + mGame->GetWindowWidth() - Game::TILE_SIZE);
 
+    if (mIsHurt) {
+        mHurtTimer -= deltaTime;
+        if (mHurtTimer <= 0.0f) {
+            mIsHurt = false;
+        }
+    }
 
     // Jumping && Falling
     if (mRigidBodyComponent && mRigidBodyComponent->GetVelocity().y != 0) {
@@ -256,8 +264,7 @@ void Player::Win(AABBColliderComponent *poleCollider) {
 void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
     if (other->GetLayer() == ColliderLayer::Enemy || other->GetLayer() == ColliderLayer::Boss) {
         Hurt();
-        auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
-        mRigidBodyComponent->ApplyForce(Vector2{xComponent, -1} * 10000000.0f);
+        KnockBack();
     } else if (other->GetLayer() == ColliderLayer::EndLevel) {
         Win(other);
     }
@@ -266,8 +273,7 @@ void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
 void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
     if (other->GetLayer() == ColliderLayer::Enemy || other->GetLayer() == ColliderLayer::Boss) {
         Hurt();
-        auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
-        mRigidBodyComponent->ApplyForce(Vector2{xComponent, -1} * 10000000.0f);
+        KnockBack();
     } else if (other->GetLayer() == ColliderLayer::Blocks) {
         if (mIsOnGround) {
             mIsFalling = false;
@@ -277,8 +283,6 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent *
 }
 
 void Player::Hurt() {
-    SDL_Log("Player hurt life: %d", mHealth);
-
     UIHud *hud = mGame->GetHUD(); // você deve garantir que Game tenha esse getter
     hud->TakeDamage();
 
@@ -287,6 +291,16 @@ void Player::Hurt() {
         return;
     }
 
+    if (!mIsHurt) {
+        mIsHurt = true;
+        mHurtTimer = HURT_DURATION;
+    }
+
     // TODO: Adicionar som de hit
     // mGame->GetAudio()->PlaySound("Hit.wav");
+}
+
+void Player::KnockBack() {
+    auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
+    mRigidBodyComponent->SetVelocity(Vector2(xComponent * 300.0f, -300.0f));
 }

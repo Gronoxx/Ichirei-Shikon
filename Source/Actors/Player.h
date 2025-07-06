@@ -34,19 +34,19 @@ private:
     const float ATTACK_TIME = 0.25f;
     const float ROLL_TOTAL_DISTANCE = 300.0f;
     const float ROLL_DURATION = 0.3f; // segundos, depende da duração da animação "roll"
+    const float HURT_DURATION = 0.5f;
     float mRollTimer = 0.0f;
     const int SPLASH_WIDTH = 106;
 
-
-
     void ManageAnimations();
+    void KnockBack();
 
     float mForwardSpeed;
     float mJumpSpeed;
     float mPoleSlideTimer;
-    float mAttackTimer{};
-    float mIdleToRunTimer{};
-    int mHealth;
+    float mAttackTimer;
+    float mIdleToRunTimer;
+    float mHurtTimer;
     bool mIsRunning;
     bool mIsOnPole;
     bool mIsDying;
@@ -54,7 +54,8 @@ private:
     bool mIsRolling;
     bool mIsFalling;
     bool mIsJumping;
-    bool mIsStartingToRun{};
+    bool mIsHurt;
+    bool mIsStartingToRun;
     bool mHasStartedIdleToRun;
     Slash* mSlash{};
 
