@@ -11,7 +11,7 @@
 class Player : public Actor
 {
 public:
-    explicit Player(Game* game, float forwardSpeed = 1500.0f, float jumpSpeed = -750.0f);
+    explicit Player(Game* game, float forwardSpeed = 300.0f, float jumpSpeed = -750.0f);
 
     //void OnProcessInput(const Uint8* keyState) override;
     void OnUpdate(float deltaTime) override;
@@ -57,7 +57,7 @@ private:
     bool mIsHurt;
     bool mIsStartingToRun;
     bool mHasStartedIdleToRun;
-    Slash* mSlash;
+    Slash* mSlash{};
 
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;

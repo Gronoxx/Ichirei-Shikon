@@ -34,7 +34,8 @@ public:
 
     // Position getter/setter
     const Vector2& GetPosition() const { return mPosition; }
-    void SetPosition(const Vector2& pos);
+
+    virtual void SetPosition(const Vector2& pos);
 
     Vector2 GetForward() const { return Vector2(Math::Cos(mRotation), -Math::Sin(mRotation)); }
 

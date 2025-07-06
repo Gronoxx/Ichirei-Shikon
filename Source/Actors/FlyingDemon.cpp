@@ -127,7 +127,7 @@ void FlyingDemon::UpdateWorkingMode(float deltaTime) {
         return;
     }
 
-    Player *player = mGame->GetMario();
+    Player *player = mGame->GetPlayer();
     if (!player) return;
 
     Vector2 marioPos = player->GetPosition();

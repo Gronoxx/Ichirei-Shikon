@@ -1,15 +1,10 @@
-//
-// Created by Lucas N. Ferreira on 03/08/23.
-//
-
 #include "Player.h"
 #include "Block.h"
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 #include "../Json.h"
-#include <fstream>
-#include <HUD.h>
+#include <../UIElements/UIHud.h>
 #include <string>
 
 #include "Slash.h"
@@ -97,11 +92,18 @@ void Player::HandleInput(const uint8_t* state, const SDL_Event* event) {
         }
     }
 
+    float maxSpeed = mForwardSpeed;
+
     // Estado contínuo do teclado (movimentação)
     if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT])
     {
-        mRigidBodyComponent->ApplyForce(Vector2::UnitX * mForwardSpeed);
+        Vector2 vel = mRigidBodyComponent->GetVelocity();
+        mRigidBodyComponent->SetVelocity(Vector2(mForwardSpeed, vel.y));
         mRotation = 0.0f;
+        if (vel.x > maxSpeed) {
+            vel.x = maxSpeed;
+            mRigidBodyComponent->SetVelocity(vel);
+        }
         if (!mIsStartingToRun && !mHasStartedIdleToRun) {
             mIsStartingToRun = true;
             mHasStartedIdleToRun = true;
@@ -113,8 +115,13 @@ void Player::HandleInput(const uint8_t* state, const SDL_Event* event) {
     }
     else if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT])
     {
-        mRigidBodyComponent->ApplyForce(Vector2::UnitX * -mForwardSpeed);
+        Vector2 vel = mRigidBodyComponent->GetVelocity();
+        mRigidBodyComponent->SetVelocity(Vector2(-mForwardSpeed, vel.y));
         mRotation = Math::Pi;
+        if (vel.x < -maxSpeed) {
+            vel.x = -maxSpeed;
+            mRigidBodyComponent->SetVelocity(vel);
+        }
         if (!mIsStartingToRun && !mHasStartedIdleToRun) {
             mIsStartingToRun = true;
             mHasStartedIdleToRun = true;
@@ -268,18 +275,7 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent *
         Hurt();
         KnockBack();
     } else if (other->GetLayer() == ColliderLayer::Blocks) {
-        if (!mIsOnGround) {
-            // --------------
-            // TODO - PARTE 4
-            // --------------
-
-            // TODO 1.: Toque o som "Bump.wav"
-            mGame->GetAudio()->PlaySound("Bump.wav");
-
-            // Cast actor to Block to call OnBump
-            auto *block = dynamic_cast<Block *>(other->GetOwner());
-            block->OnBump();
-        } else {
+        if (mIsOnGround) {
             mIsFalling = false;
             mIsJumping = false;
         }
@@ -287,7 +283,7 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent *
 }
 
 void Player::Hurt() {
-    HUD *hud = mGame->GetHUD(); // você deve garantir que Game tenha esse getter
+    UIHud *hud = mGame->GetHUD(); // você deve garantir que Game tenha esse getter
     hud->TakeDamage();
 
     if (hud->GetCurrentBattery() <= 0) {

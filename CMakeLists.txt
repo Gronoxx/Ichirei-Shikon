@@ -37,11 +37,9 @@ add_executable(${PROJECT_NAME}
         Source/UIElements/UIButton.cpp
         Source/UIElements/UIText.cpp
         Source/UIElements/UIElement.cpp
-        Source/HUD.cpp
+        Source/UIElements/UIHud.cpp
         Source/UIElements/UIImage.cpp
         Source/SpatialHashing.cpp
-        Source/Actors/Coin.cpp
-        Source/Actors/Points.cpp
         Source/Actors/DemonBoss.cpp
         Source/Actors/Slash.cpp
         Source/Actors/Trigger.cpp
