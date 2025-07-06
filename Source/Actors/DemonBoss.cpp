@@ -7,8 +7,8 @@
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 
-const float JUMP_FORCE = 50000.0f;
-const float JUMP_COOLDOWN = 2.5f;
+const float JUMP_FORCE = 40000.0f;
+const float JUMP_COOLDOWN = 5.0f;
 const int INITIAL_HEALTH = 20;
 
 DemonBoss::DemonBoss(Game *game, float attackCooldown, float unvulnerableCooldown, float moveSpeed)
@@ -24,25 +24,20 @@ DemonBoss::DemonBoss(Game *game, float attackCooldown, float unvulnerableCooldow
       , mHealth(INITIAL_HEALTH)
       , mIsGrounded(true)
       , mIsFacingLeft(true) {
-
     float size = Game::TILE_SIZE * 3.0f;
 
     // Set up physics
-    mRigidBodyComponent = new RigidBodyComponent(this, 1.5f, 10.0f, true);
-    // mColliderComponent = new AABBColliderComponent(this, 0, 0, size, size - 10, ColliderLayer::Boss);
+    mRigidBodyComponent = new RigidBodyComponent(this, 1.5f, 3.0f, true);
+    mColliderComponent = new AABBColliderComponent(this, 0, 0, size, size - 10, ColliderLayer::Boss);
 
     // Set up animations
     std::vector<Vector2> vertices;
 
-    mDrawComponent = new DrawAnimatedComponent(this, 150);
-    mDrawComponent->LoadCharacterAnimations("Assets/Sprites/DemonBoss/DemonBoss.json");
-    mDrawComponent->SetAnimation("idle");
+    mDrawComponent = new DrawSpriteComponent(this, "Assets/Sprites/DemonBoss/DemonBoss.png", size, size - 10);
+    SetScale(1.0f);
 
-    // Get the animation size to set the collider
-    Vector2 animSize = mDrawComponent->GetAnimationSize("idle");
-
-    mColliderComponent = new AABBColliderComponent(this, 0, 0, animSize.x, animSize.y,
-                                                   ColliderLayer::Boss);
+    // Start with moving animation
+    // mDrawComponent->SetAnimation("idle");
 
     Random::Init();
 }
@@ -63,14 +58,18 @@ void DemonBoss::OnUpdate(float deltaTime) {
             break;
 
         case State::Moving:
-            mAttackTimer += deltaTime;
             UpdateMoving(deltaTime);
+
+            mAttackTimer += deltaTime;
+            if (mAttackTimer >= mAttackCooldown) {
+                StartAttack();
+            }
             break;
 
         case State::Vulnerable:
             // Just wait until attack cooldown is over
-            mAttackTimer -= deltaTime;
-            if (mAttackTimer <= 0.0f) {
+            mAttackTimer += deltaTime;
+            if (mAttackTimer >= mVulnerableCooldown) {
                 mCurrentState = State::Moving;
             }
             break;
@@ -79,17 +78,10 @@ void DemonBoss::OnUpdate(float deltaTime) {
     // Update animations
     ManageAnimations();
 
-    // Keep boss on screen and reverse direction if it hits the edge
+    // Keep boss on screen
     Vector2 cameraPos = mGame->GetCameraPos();
-    float minX = cameraPos.x + Game::TILE_SIZE * 0.1f;
-    float maxX = cameraPos.x + mGame->GetWindowWidth() - Game::TILE_SIZE * 3.0f;
-
-    auto velocity = mRigidBodyComponent->GetVelocity();
-    if ((mPosition.x <= minX && velocity.x < 0.0f) || (mPosition.x >= maxX && velocity.x > 0.0f)) {
-        velocity.x *= -1.0f;
-        mRigidBodyComponent->SetVelocity(velocity);
-    }
-
+    float minX = cameraPos.x + Game::TILE_SIZE * 4;
+    float maxX = cameraPos.x + mGame->GetWindowWidth() - (Game::TILE_SIZE * 4);
     mPosition.x = Math::Clamp(mPosition.x, minX, maxX);
 }
 
@@ -99,19 +91,26 @@ void DemonBoss::UpdateMoving(float deltaTime) {
     }
 
     Player *mario = mGame->GetPlayer();
-    if (!mario) {
+    if (!mario)
+        return;
+
+    // Check if player is too close
+    float distance = mario->GetPosition().x - mPosition.x;
+    if (abs(distance) < Game::TILE_SIZE * 5 && CanJump()) {
+        Jump(true); // Jump towards player
         return;
     }
 
-    FaceTowardsSamurai();
+    // Face away from Mario
+    FaceAwayFromSamurai();
 
-    if (mAttackTimer >= mAttackCooldown) {
-        StartAttack();
-        return;
-    }
+    // Move away from Mario
+    float direction = mIsFacingLeft ? -1.0f : 1.0f;
+    Vector2 moveForce = Vector2(direction * mMoveSpeed, 0);
+    mRigidBodyComponent->ApplyForce(moveForce);
 
-    if (CanJump()) {
-        Jump(true);
+    if (CanJump() && Random::GetFloat() < 0.01f) {
+        Jump();
     }
 }
 
@@ -135,30 +134,34 @@ void DemonBoss::StartAttack() {
     SpawnMinions();
 
     mCurrentState = State::Vulnerable;
-    mAttackTimer = mVulnerableCooldown; // Reset attack timer
+    mAttackTimer = 0.0f; // Reset attack timer
 }
 
 void DemonBoss::SpawnMinions() {
     // Get screen bounds
     float screenLeft = mGame->GetCameraPos().x;
     float screenRight = screenLeft + mGame->GetWindowWidth();
+    float screenMiddle = screenLeft + mGame->GetWindowWidth() / 2;
     float screenTop = mGame->GetCameraPos().y;
 
-    for (int i = 0; i < 3; ++i) {
-        // Randomize spawn position (just above the screen)
-        float spawnX = Random::GetFloatRange(screenLeft, screenRight);
-        float spawnY = screenTop - Game::TILE_SIZE;
+    // Calculate spawn positions just outside the screen
+    float spawnY = screenTop;
+    float leftSpawnX = screenLeft + Game::TILE_SIZE * 2.0f; // Left of screen
+    float rightSpawnX = screenRight + Game::TILE_SIZE * 2.0f; // Right of screen
 
-        // Randomize target position (within the screen)
-        float targetX = Random::GetFloatRange(screenLeft + Game::TILE_SIZE * 2, screenRight - Game::TILE_SIZE * 2);
-        float targetY = Random::GetFloatRange(Game::TILE_SIZE * 3, Game::TILE_SIZE * 5);
+    // Target positions near the boss
+    float targetOffset = Game::TILE_SIZE * 3.0f;
 
-        Vector2 targetPos(targetX, targetY);
+    Vector2 leftTarget = Vector2(screenMiddle - targetOffset, Game::TILE_SIZE * 3);
+    Vector2 rightTarget = Vector2(screenMiddle + targetOffset, Game::TILE_SIZE * 3);
 
-        // Create and position the minion
-        auto *minion = new FlyingDemon(mGame, targetPos, 6.0f, 400.0f);
-        minion->SetPosition(Vector2(spawnX, spawnY));
-    }
+    // Left minion (spawns from left, moves to right of boss)
+    auto *leftMinion = new FlyingDemon(mGame, leftTarget, 6.0f, 400.0f);
+    leftMinion->SetPosition(Vector2(leftSpawnX, spawnY));
+
+    // Right minion (spawns from right, moves to left of boss)
+    auto *rightMinion = new FlyingDemon(mGame, rightTarget, 6.0f, 400.0f);
+    rightMinion->SetPosition(Vector2(rightSpawnX, spawnY));
 }
 
 void DemonBoss::ManageAnimations() {
@@ -177,18 +180,12 @@ void DemonBoss::FaceAwayFromSamurai() {
     mRotation = samuraiOnLeft ? Math::Pi : 0.0f;
 }
 
-void DemonBoss::FaceTowardsSamurai() {
-    bool samuraiOnLeft = IsSamuraiOnLeft();
-    mIsFacingLeft = samuraiOnLeft;
-    mRotation = samuraiOnLeft ? Math::Pi : 0.0f;
-}
-
 void DemonBoss::Jump(bool towardsPlayer) {
     if (!CanJump())
         return;
 
     // A more natural jump has a stronger vertical component.
-    const float horizontalForceMultiplier = 0.5f;
+    const float horizontalForceMultiplier = 0.75f;
     float horizontalForce = mJumpForce * horizontalForceMultiplier;
 
     Vector2 jumpForce(0.0f, -mJumpForce);
