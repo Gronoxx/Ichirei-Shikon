@@ -6,7 +6,6 @@
 #include "../Json.h"
 #include <../UIElements/UIHud.h>
 #include <string>
-
 #include "Slash.h"
 
 Player::Player(Game *game, const float forwardSpeed, const float jumpSpeed)

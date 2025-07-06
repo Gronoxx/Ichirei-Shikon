@@ -1,17 +1,12 @@
-//
-// Created by Lucas N. Ferreira on 08/12/23.
-//
-
 #pragma once
 
 #include <string>
-
 #include "UIScreen.h"
 #include <iomanip>
 #include <sstream>
 #include <vector>
-
 #include "UITimerBar.h"
+
 class UIRect;
 
 class UIHud : public UIScreen
