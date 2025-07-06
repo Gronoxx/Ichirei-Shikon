@@ -6,7 +6,7 @@ class DrawSpriteComponent;
 
 class DemonBoss : public Actor {
 public:
-    explicit DemonBoss(Game *game, float attackCooldown = 9.0f, float vulnerableCooldown = 4.0f,
+    explicit DemonBoss(Game *game, float attackCooldown = 6.0f, float unvulnerableCooldown = 1.3f,
                        float moveSpeed = 400.0f);
 
     void OnUpdate(float deltaTime) override;
@@ -40,7 +40,7 @@ private:
 
     void FaceAwayFromSamurai();
 
-    void Jump();
+    void Jump(bool towardsPlayer = false);
 
     bool CanJump() const;
 

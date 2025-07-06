@@ -15,6 +15,8 @@ private:
     float mLifeTime; // Tempo restante de vida
     Vector2 mVelocity;
 
+    std::set<Actor*> mHitActors;
+
     class DrawAnimatedComponent* mDrawComponent;
     class AABBColliderComponent* mColliderComponent;
 };
