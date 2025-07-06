@@ -11,41 +11,12 @@
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 
-Block::Block(Game* game, const std::string &texturePath,int numberOfCoins, const bool isStatic, bool hasMushroom)
-        :Actor(game),
-        mNumberOfCoins(numberOfCoins),
-        mHasMushroom(hasMushroom)
+Block::Block(Game* game, const std::string &texturePath, const bool isStatic)
+        :Actor(game)
 {
     mDrawSpriteComponent = new DrawSpriteComponent(this, texturePath, Game::TILE_SIZE, Game::TILE_SIZE, 10);
     mColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE, Game::TILE_SIZE, ColliderLayer::Blocks, isStatic);
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 0.0f, false);
-}
-
-void Block::OnBump()
-{
-    if (mDrawSpriteComponent->GetTexturePath() == "Assets/Sprites/Blocks/BlockE.png") {
-     return ;
-    }
-
-    if (mPosition.y != mOriginalPosition.y)
-    {
-        mPosition.Set(mOriginalPosition.x, mOriginalPosition.y);
-    }
-
-    //change Block
-    if (mDrawSpriteComponent->GetTexturePath() == "Assets/Sprites/Blocks/BlockC.png") {
-        ChangeBlockTexture("Assets/Sprites/Blocks/BlockE.png");
-    }
-    if (mNumberOfCoins > 0) {
-        new Coin(mGame,mPosition+ Vector2(Game::TILE_SIZE/2.0 - COIN_WIDTH/2.0,-24));
-        mNumberOfCoins --;
-    }
-
-    // Disable collider
-    mColliderComponent->SetStatic(false);
-    mRigidBodyComponent->SetVelocity(Vector2::NegUnitY * BUMP_FORCE);
-    mRigidBodyComponent->SetApplyGravity(true);
-
 }
 
 void Block::OnUpdate(float deltaTime)

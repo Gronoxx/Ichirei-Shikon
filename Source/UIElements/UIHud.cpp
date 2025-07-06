@@ -2,15 +2,15 @@
 // Created by Lucas N. Ferreira on 08/12/23.
 //
 
-#include "HUD.h"
-#include "Game.h"
-#include "UIElements/UIText.h"
-#include "UIElements/UIRect.h"
-#include "UIElements/UITimerBar.h"
+#include "UIHud.h"
+#include "../Game.h"
+#include "UIText.h"
+#include "UIRect.h"
+#include "UITimerBar.h"
 
 
 
-HUD::HUD(class Game* game, const std::string& fontName, SDL_Renderer* renderer)
+UIHud::UIHud(class Game* game, const std::string& fontName, SDL_Renderer* renderer)
     : UIScreen(game, fontName),
         mTimerBar(nullptr){
     // Imagens base
@@ -48,14 +48,14 @@ HUD::HUD(class Game* game, const std::string& fontName, SDL_Renderer* renderer)
             Vector2(93, 8), 60.0f);
 }
 
-HUD::~HUD()
+UIHud::~UIHud()
 {
     if (mTimerBar)
         delete mTimerBar;
     mTimerBar = nullptr;
 }
 
-void HUD::SetTime(int time)
+void UIHud::SetTime(int time)
 {
     std::string timeStr = std::to_string(time);
 
@@ -72,30 +72,7 @@ void HUD::SetTime(int time)
 
 }
 
-void HUD::SetLevelName(const std::string &levelName)
-{
-
-}
-
-void HUD::SetCoins()
-{
-    std::string coinsStr = std::to_string(mGame->GetNumberOfCoinsCollected());
-
-
-}
-
-void HUD::SetScore()
-{
-    int score = mGame->GetScore();
-    std::stringstream ss;
-    ss << std::setw(6) << std::setfill('0') << score;
-
-    std::string coinsStr = ss.str();
-
-
-}
-
-void HUD::TakeDamage()
+void UIHud::TakeDamage()
 {
     if (!mBatteryBars.empty())
     {
@@ -120,12 +97,12 @@ void HUD::TakeDamage()
     }
 }
 
-void HUD::Update(float deltaTime) {
+void UIHud::Update(float deltaTime) {
     if(mTimerBar)
         mTimerBar->Update(deltaTime);
 }
 
-void HUD::Draw(SDL_Renderer *renderer) {
+void UIHud::Draw(SDL_Renderer *renderer) {
     for (int i=0;i<mTexts.size();i++)
         mTexts[i]->Draw(renderer,mPos);
 
@@ -145,7 +122,7 @@ void HUD::Draw(SDL_Renderer *renderer) {
         mTimerBar->Draw(renderer,mPos);
 }
 
-UITimerBar* HUD::AddTimerBar(const Vector2& pos, const Vector2& size, float duration)
+UITimerBar* UIHud::AddTimerBar(const Vector2& pos, const Vector2& size, float duration)
 {
     if (mTimerBar)
     {

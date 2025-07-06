@@ -1,23 +1,16 @@
-// ----------------------------------------------------------------
-// From Game Programming in C++ by Sanjay Madhav
-// Copyright (C) 2017 Sanjay Madhav. All rights reserved.
-//
-// Released under the BSD License
-// See LICENSE in root directory for full details.
-// ----------------------------------------------------------------
-
 #include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <vector>
+#include <memory>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <SDL_mixer.h>
 #include "CSV.h"
 #include "Random.h"
 #include "Game.h"
-#include "HUD.h"
+#include "UIElements/UIHud.h"
 #include "SpatialHashing.h"
 #include "Actors/Actor.h"
 #include "Actors/Player.h"
@@ -28,8 +21,6 @@
 #include "Actors/Spawner.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
-#include "Components/DrawComponents/DrawSpriteComponent.h"
-#include "Components/DrawComponents/DrawPolygonComponent.h"
 #include "Components/ColliderComponents/AABBColliderComponent.h"
 
 
@@ -129,11 +120,10 @@ void Game::SetGameScene(Game::GameScene scene, float transitionTime)
     // Se uma transição já estiver em andamento, não faça nada.
     if (mSceneManagerState != SceneManagerState::None)
     {
-        //SDL_Log("SceneManager is busy. Transition to a new scene was ignored.");
+        SDL_Log("SceneManager is busy. Transition to a new scene was ignored.");
         return;
     }
 
-    // Se o código chegou até aqui, 'scene' é um valor válido do enum GameScene.
     mSceneManagerState = SceneManagerState::Entering;
     mNextScene = scene;
     mSceneManagerTimer = transitionTime;
@@ -163,7 +153,6 @@ void Game::ChangeScene()
     mSpatialHashing = new SpatialHashing(TILE_SIZE * 4.0f, LEVEL_WIDTH * TILE_SIZE, LEVEL_HEIGHT * TILE_SIZE);
 
     mSceneManagerState = SceneManagerState::FadeIn;
-
 
     if (mNextScene == GameScene::Intro) {
         mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
@@ -215,21 +204,14 @@ void Game::ChangeScene()
     }
     else if (mNextScene == GameScene::MainMenu)
     {
-        // Set background color
-        mBackgroundColor.Set(107.0f, 140.0f, 255.0f);
-
-        // Initialize main menu actors
         LoadMainMenu();
-
-        mAudio->PlaySound("MainMenu_Goetia.mp3", true);
     }
     else if (mNextScene == GameScene::Level1)
     {
-        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf", mRenderer);
+        mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
 
         mGameTimeLimit = 400;
         mHUD->SetTime(mGameTimeLimit);
-        mHUD->SetLevelName("1-1");
 
         mAudio->StopAllSounds();
         mAudio->PlayMusic("Level1_NhacNhatBanHay.mp3",true,13);
@@ -245,11 +227,10 @@ void Game::ChangeScene()
     }
     else if (mNextScene == GameScene::Level2)
     {
-        mHUD = new HUD(this, "Assets/Fonts/SMB.ttf", mRenderer);
+        mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
 
         mGameTimeLimit = 400;
         mHUD->SetTime(mGameTimeLimit);
-        mHUD->SetLevelName("1-2");
 
         mAudio->StopAllSounds();
         mAudio->PlayMusic("FinalFight_Inferia.mp3",true,13);
@@ -265,12 +246,17 @@ void Game::ChangeScene()
 
     // Set new scene
     mGameScene = mNextScene;
+    mIsSceneManagerActive = false;
 }
 
 
 void Game::LoadMainMenu()
 {
+    // Set background color
+    mBackgroundColor.Set(0.0f, 0.0f, 0.0f);
+
     mAudio->StopAllSounds();
+    mAudio->PlayMusic("MainMenu_Goetia.mp3", true, 13);
 
     auto mainMenu = new UIScreen(this, "Assets/Fonts/SMB.ttf");
 
@@ -363,12 +349,12 @@ void Game::BuildLevel(int** levelData, int width, int height)
             }
             else if(tile == 10) // Spawner
             {
-                Spawner* spawner = new Spawner(this, SPAWN_DISTANCE);
+                auto* spawner = new Spawner(this, SPAWN_DISTANCE);
                 spawner->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
             else if (tile == 13) // End level trigger
             {
-                Trigger* trigger = new Trigger(this);
+                auto* trigger = new Trigger(this);
                 trigger->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
             }
             else // Blocks
@@ -377,7 +363,7 @@ void Game::BuildLevel(int** levelData, int width, int height)
                 if (it != tileMap.end())
                 {
                     // Create a block actor
-                    Block* block = new Block(this, it->second);
+                    auto* block = new Block(this, it->second);
                     block->SetPosition(Vector2(x * TILE_SIZE, y * TILE_SIZE));
                 }
             }
@@ -521,14 +507,8 @@ void Game::UpdateGame()
         UpdateActors(deltaTime);
     }
 
-    if (mGamePlayState == GamePlayState::LevelComplete) {
-            // If the level is complete, change to the next scene
-        if (mGameScene == GameScene::Level1) {
-            SetGameScene(GameScene::Level2);
-        } else if (mGameScene == GameScene::Level2) {
-            SetGameScene(GameScene::MainMenu);
-        }
-    }
+    // Update the game scenes
+    UpdateScenes();
 
     // Reinsert audio system
     mAudio->Update(deltaTime);
@@ -551,9 +531,6 @@ void Game::UpdateGame()
         }
     }
 
-    // ---------------------
-    // Game Specific Updates
-    // ---------------------
     UpdateCamera();
 
     UpdateSceneManager(deltaTime);
@@ -562,10 +539,21 @@ void Game::UpdateGame()
         UpdateLevelTime(deltaTime);
 }
 
+void Game::UpdateScenes() {
+    if (mGamePlayState == GamePlayState::LevelComplete && !mIsSceneManagerActive) {
+        mIsSceneManagerActive = true;
+        if (mGameScene == GameScene::Level1) {
+            SetGameScene(GameScene::Level2);
+        } else if (mGameScene == GameScene::Level2) {
+            SetGameScene(GameScene::MainMenu);
+        }
+    }
+}
+
 void Game::UpdateSceneManager(float deltaTime) {
     // FSM de Transição
     if (SceneManagerState::Entering == mSceneManagerState) {
-        // O estado 'Entering' serve como um pequeno buffer antes do FadeOut.
+        // O estado 'Entering' serve como um pequeno ‘buffer’ antes do FadeOut.
         mSceneManagerTimer -= deltaTime;
         if (mSceneManagerTimer <= 0) {
             mSceneManagerTimer = TRANSITION_TIME;
@@ -773,9 +761,6 @@ void Game::GenerateOutput()
 
 void Game::SetBackgroundImage(const std::string& texturePath, const Vector2 &position, const Vector2 &size)
 {
-    // Apenas pegue a textura do nosso gerenciador.
-    // A chamada a LoadTexture agora é inteligente: se a textura já existir no cache,
-    // ela retorna o ponteiro existente; senão, ela carrega, armazena no cache e retorna.
     mBackgroundTexture = LoadTexture(texturePath);
     if (!mBackgroundTexture) {
         SDL_Log("Failed to load background texture: %s", texturePath.c_str());
@@ -800,7 +785,7 @@ SDL_Texture* Game::LoadTexture(const std::string& texturePath)
     {
         SDL_Surface* surface = IMG_Load(texturePath.c_str());
         if (!surface) {
-            //SDL_Log("Failed to load image: %s", IMG_GetError());
+            SDL_Log("Failed to load image: %s", IMG_GetError());
             return nullptr;
         }
 
@@ -826,20 +811,15 @@ UIFont* Game::LoadFont(const std::string& fileName)
     {
         return it->second;
     }
-    else
+
+    std::unique_ptr<UIFont> font = std::make_unique<UIFont>(mRenderer);
+    if (font->Load(fileName))
     {
-        UIFont* font = new UIFont(mRenderer);
-        if (font->Load(fileName))
-        {
-            mFonts[fileName] = font;
-            return font;
-        }
-        else
-        {
-            font->Unload();
-            delete font;
-        }
+        UIFont* fontPtr = font.get();
+        mFonts[fileName] = font.release();
+        return fontPtr;
     }
+
     return nullptr;
 }
 

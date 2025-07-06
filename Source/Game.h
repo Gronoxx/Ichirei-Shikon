@@ -87,10 +87,6 @@ public:
     int GetWindowWidth() const { return mWindowWidth; }
     int GetWindowHeight() const { return mWindowHeight; }
 
-    //Drawable Functions
-    // void AddDrawable(class DrawComponent* drawable);
-    // void RemoveDrawable(class DrawComponent* drawable);
-
     // Loading functions
     class UIFont* LoadFont(const std::string& fileName);
     SDL_Texture* LoadTexture(const std::string& texturePath);
@@ -109,7 +105,7 @@ public:
     GamePlayState GetGamePlayState() const { return mGamePlayState; }
 
     SDL_Renderer* GetRenderer() { return mRenderer; }
-    class HUD * GetHUD(){return mHUD;};
+    class UIHud * GetHUD(){return mHUD;};
 
     void SetNumberOfCoinsCollected(int NumberOfCoinsCollected) {mNumberOfCoinsCollected = NumberOfCoinsCollected; };
     int GetNumberOfCoinsCollected() {return mNumberOfCoinsCollected; };
@@ -128,8 +124,10 @@ private:
     // Scene Manager
     void UpdateSceneManager(float deltaTime);
     void ChangeScene();
+    void UpdateScenes();
     SceneManagerState mSceneManagerState;
     float mSceneManagerTimer;
+    bool mIsSceneManagerActive;
 
     // HUD functions
     void UpdateLevelTime(float deltaTime);
@@ -173,7 +171,7 @@ private:
 
     // Game-specific
     class Player *mPlayer;
-    class HUD *mHUD;
+    class UIHud *mHUD;
     SoundHandle mMusicHandle;
 
     float mGameTimer;

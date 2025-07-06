@@ -1,15 +1,10 @@
-//
-// Created by Lucas N. Ferreira on 03/08/23.
-//
-
 #include "Player.h"
 #include "Block.h"
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 #include "../Json.h"
-#include <fstream>
-#include <HUD.h>
+#include <../UIElements/UIHud.h>
 #include <string>
 
 #include "Slash.h"
@@ -274,18 +269,7 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent *
         auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
         mRigidBodyComponent->ApplyForce(Vector2{xComponent, -1} * 10000000.0f);
     } else if (other->GetLayer() == ColliderLayer::Blocks) {
-        if (!mIsOnGround) {
-            // --------------
-            // TODO - PARTE 4
-            // --------------
-
-            // TODO 1.: Toque o som "Bump.wav"
-            mGame->GetAudio()->PlaySound("Bump.wav");
-
-            // Cast actor to Block to call OnBump
-            auto *block = dynamic_cast<Block *>(other->GetOwner());
-            block->OnBump();
-        } else {
+        if (mIsOnGround) {
             mIsFalling = false;
             mIsJumping = false;
         }
@@ -295,7 +279,7 @@ void Player::OnVerticalCollision(const float minOverlap, AABBColliderComponent *
 void Player::Hurt() {
     SDL_Log("Player hurt life: %d", mHealth);
 
-    HUD *hud = mGame->GetHUD(); // você deve garantir que Game tenha esse getter
+    UIHud *hud = mGame->GetHUD(); // você deve garantir que Game tenha esse getter
     hud->TakeDamage();
 
     if (hud->GetCurrentBattery() <= 0) {

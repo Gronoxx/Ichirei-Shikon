@@ -44,8 +44,8 @@ private:
     float mForwardSpeed;
     float mJumpSpeed;
     float mPoleSlideTimer;
-    float mAttackTimer;
-    float mIdleToRunTimer;
+    float mAttackTimer{};
+    float mIdleToRunTimer{};
     int mHealth;
     bool mIsRunning;
     bool mIsOnPole;
@@ -54,9 +54,9 @@ private:
     bool mIsRolling;
     bool mIsFalling;
     bool mIsJumping;
-    bool mIsStartingToRun;
+    bool mIsStartingToRun{};
     bool mHasStartedIdleToRun;
-    Slash* mSlash;
+    Slash* mSlash{};
 
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;

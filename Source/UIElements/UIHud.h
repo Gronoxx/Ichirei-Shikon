@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "UIElements/UIScreen.h"
+#include "UIScreen.h"
 #include <iomanip>
 #include <sstream>
 #include <vector>
@@ -14,7 +14,7 @@
 #include "UITimerBar.h"
 class UIRect;
 
-class HUD : public UIScreen
+class UIHud : public UIScreen
 {
 public:
     const int POINT_SIZE = 48;
@@ -23,19 +23,14 @@ public:
     const int CHAR_WIDTH = 20.0f;
     const int HUD_POS_Y = 10.0f;
 
-    HUD(class Game* game, const std::string& fontName, SDL_Renderer * renderer);
-    ~HUD();
+    UIHud(class Game* game, const std::string& fontName, SDL_Renderer * renderer);
+    ~UIHud();
 
     void TakeDamage();
     int GetCurrentBattery() const { return currentBars; }
 
     // Reinsert the HUD elements
     void SetTime(int time);
-
-    void SetLevelName(const std::string& levelName);
-
-    void SetCoins();
-    void SetScore();
 
     void Update(float deltaTime) override;
     void Draw(class SDL_Renderer *renderer) override;
