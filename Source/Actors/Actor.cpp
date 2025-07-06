@@ -31,6 +31,8 @@ Actor::~Actor()
         delete component;
     }
     mComponents.clear();
+
+    mGame = nullptr;
 }
 
 void Actor::SetPosition(const Vector2& pos)
