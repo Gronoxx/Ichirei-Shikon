@@ -116,6 +116,7 @@ void FlyingDemon::StartFlyingAway() {
     // Make the demon fly upward
     mRigidBodyComponent->SetApplyGravity(false);
     mRigidBodyComponent->ApplyForce(Vector2{0, -10000.0f});
+    mColliderComponent->SetEnabled(false);
 }
 
 void FlyingDemon::UpdateWorkingMode(float deltaTime) {
@@ -225,26 +226,3 @@ void FlyingDemon::Kill() {
     mColliderComponent->SetEnabled(false);
 }
 
-void FlyingDemon::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
-    auto owner = other->GetOwner();
-    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-
-    if (owner && collider->GetLayer() == ColliderLayer::Slash) {
-        Hurt();
-    }
-}
-
-void FlyingDemon::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
-    auto owner = other->GetOwner();
-    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Player) {
-        Player *player = dynamic_cast<Player *>(owner);
-        if (!player->isPlayerAttacking()) {
-            player->Hurt();
-        }
-    }
-
-    if (owner && collider->GetLayer() == ColliderLayer::Slash) {
-        Hurt();
-    }
-}

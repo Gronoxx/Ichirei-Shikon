@@ -7,16 +7,16 @@
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 
-const float JUMP_FORCE = 50000.0f;
+const float JUMP_FORCE = 40000.0f;
 const float JUMP_COOLDOWN = 5.0f;
-const int INITIAL_HEALTH = 50;
+const int INITIAL_HEALTH = 20;
 
-DemonBoss::DemonBoss(Game *game, float attackCooldown, float vulnerableCooldown, float moveSpeed)
+DemonBoss::DemonBoss(Game *game, float attackCooldown, float unvulnerableCooldown, float moveSpeed)
     : Actor(game)
       , mCurrentState(State::Waiting)
       , mAttackCooldown(attackCooldown)
-      , mVulnerableCooldown(vulnerableCooldown)
-      , mAttackTimer(attackCooldown / 3.0f)
+      , mVulnerableCooldown(unvulnerableCooldown)
+      , mAttackTimer(attackCooldown / 1.5f)
       , mMoveSpeed(moveSpeed)
       , mJumpForce(JUMP_FORCE)
       , mJumpCooldown(JUMP_COOLDOWN)
@@ -24,11 +24,10 @@ DemonBoss::DemonBoss(Game *game, float attackCooldown, float vulnerableCooldown,
       , mHealth(INITIAL_HEALTH)
       , mIsGrounded(true)
       , mIsFacingLeft(true) {
-    // Set size to 4x4 tiles
     float size = Game::TILE_SIZE * 3.0f;
 
     // Set up physics
-    mRigidBodyComponent = new RigidBodyComponent(this, 2.0f, 10.0f, true);
+    mRigidBodyComponent = new RigidBodyComponent(this, 1.5f, 3.0f, true);
     mColliderComponent = new AABBColliderComponent(this, 0, 0, size, size - 10, ColliderLayer::Boss);
 
     // Set up animations
@@ -52,7 +51,6 @@ void DemonBoss::OnUpdate(float deltaTime) {
         mJumpTimer -= deltaTime;
     }
 
-
     // Update state machine
     switch (mCurrentState) {
         case State::Waiting:
@@ -61,11 +59,9 @@ void DemonBoss::OnUpdate(float deltaTime) {
 
         case State::Moving:
             UpdateMoving(deltaTime);
-        // Check if it's time to attack
 
             mAttackTimer += deltaTime;
             if (mAttackTimer >= mAttackCooldown) {
-                SDL_Log("Change state to vulnerable");
                 StartAttack();
             }
             break;
@@ -74,7 +70,6 @@ void DemonBoss::OnUpdate(float deltaTime) {
             // Just wait until attack cooldown is over
             mAttackTimer += deltaTime;
             if (mAttackTimer >= mVulnerableCooldown) {
-                SDL_Log("Change state to moving");
                 mCurrentState = State::Moving;
             }
             break;
@@ -91,9 +86,20 @@ void DemonBoss::OnUpdate(float deltaTime) {
 }
 
 void DemonBoss::UpdateMoving(float deltaTime) {
+    if (!mIsGrounded) {
+        return;
+    }
+
     Player *mario = mGame->GetPlayer();
     if (!mario)
         return;
+
+    // Check if player is too close
+    float distance = mario->GetPosition().x - mPosition.x;
+    if (abs(distance) < Game::TILE_SIZE * 5 && CanJump()) {
+        Jump(true); // Jump towards player
+        return;
+    }
 
     // Face away from Mario
     FaceAwayFromSamurai();
@@ -111,7 +117,9 @@ void DemonBoss::UpdateMoving(float deltaTime) {
 void DemonBoss::UpdateWaiting(float deltaTime) {
     auto playerPos = mGame->GetPlayer()->GetPosition();
 
-    if (playerPos.x - mPosition.x < mGame->GetWindowWidth() - Game::TILE_SIZE * 4) {
+    if (playerPos.x - mPosition.x < mGame->GetWindowWidth() - Game::TILE_SIZE * 10) {
+        SDL_Log("Boss: stop waiting");
+
         mCurrentState = State::Moving;
         mGame->LockCamera();
     }
@@ -130,8 +138,6 @@ void DemonBoss::StartAttack() {
 }
 
 void DemonBoss::SpawnMinions() {
-    SDL_Log("Spawning minions");
-
     // Get screen bounds
     float screenLeft = mGame->GetCameraPos().x;
     float screenRight = screenLeft + mGame->GetWindowWidth();
@@ -156,11 +162,6 @@ void DemonBoss::SpawnMinions() {
     // Right minion (spawns from right, moves to left of boss)
     auto *rightMinion = new FlyingDemon(mGame, rightTarget, 6.0f, 400.0f);
     rightMinion->SetPosition(Vector2(rightSpawnX, spawnY));
-
-    SDL_Log("Left minion pos: %f, %f, target pos: %f, %f", leftMinion->GetPosition().x, leftMinion->GetPosition().y, leftTarget.x, leftTarget.y);
-    SDL_Log("Right minion pos: %f, %f, target pos: %f, %f", rightMinion->GetPosition().x, rightMinion->GetPosition().y, rightTarget.x, rightTarget.y);
-
-    SDL_Log("Player pos: %f, %f", mGame->GetPlayer()->GetPosition().x, mGame->GetPlayer()->GetPosition().y);
 }
 
 void DemonBoss::ManageAnimations() {
@@ -179,20 +180,33 @@ void DemonBoss::FaceAwayFromSamurai() {
     mRotation = samuraiOnLeft ? Math::Pi : 0.0f;
 }
 
-void DemonBoss::Jump() {
+void DemonBoss::Jump(bool towardsPlayer) {
     if (!CanJump())
         return;
 
+    // A more natural jump has a stronger vertical component.
+    const float horizontalForceMultiplier = 0.75f;
+    float horizontalForce = mJumpForce * horizontalForceMultiplier;
+
     Vector2 jumpForce(0.0f, -mJumpForce);
 
-    if (IsSamuraiOnLeft()) {
-        jumpForce.x = mJumpForce;
+    bool samuraiOnLeft = IsSamuraiOnLeft();
+    float direction;
+
+    if (towardsPlayer) {
+        // Jump towards the player
+        direction = samuraiOnLeft ? -1.0f : 1.0f;
     } else {
-        jumpForce.x = -mJumpForce;
+        // Jump away from the player
+        direction = samuraiOnLeft ? 1.0f : -1.0f;
     }
 
+    jumpForce.x = horizontalForce * direction;
+
+    mRigidBodyComponent->SetApplyFriction(false);
     mRigidBodyComponent->ApplyForce(jumpForce);
     mJumpTimer = JUMP_COOLDOWN;
+    mIsGrounded = false;
 }
 
 bool DemonBoss::CanJump() const {
@@ -210,10 +224,10 @@ void DemonBoss::Kill() {
 }
 
 void DemonBoss::Hurt() {
-    SDL_Log("Boss hurt life: %d", mHealth);
-
-    auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
-    mRigidBodyComponent->ApplyForce(Vector2{xComponent, -10} * 10000.0f);
+    SDL_Log("Boss hurt!");
+    if (mCurrentState == State::Vulnerable) {
+        return;
+    }
 
     mHealth--;
     if (mHealth <= 0) {
@@ -228,17 +242,14 @@ void DemonBoss::LoadAnimationsFromFile(const std::string &filePath) {
 }
 
 void DemonBoss::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
-    auto owner = other->GetOwner();
-    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Slash) {
-        Hurt();
-    }
 }
 
 void DemonBoss::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
     auto owner = other->GetOwner();
     AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Slash) {
-        Hurt();
+
+    if (owner && collider->GetLayer() == ColliderLayer::Blocks) {
+        mIsGrounded = true;
+        mRigidBodyComponent->SetApplyFriction(true);
     }
 }
