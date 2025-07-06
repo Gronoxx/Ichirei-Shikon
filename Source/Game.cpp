@@ -50,8 +50,6 @@ Game::Game(const int windowWidth, const int windowHeight)
         ,mBackgroundTexture(nullptr)
         ,mBackgroundSize(Vector2::Zero)
         ,mBackgroundPosition(Vector2::Zero)
-        ,mNumberOfCoinsCollected(0)
-        ,mScore(0)
 {
 
 }
@@ -626,38 +624,21 @@ void Game::UpdateCamera()
 
 void Game::UpdateActors(float deltaTime)
 {
-    const std::vector<Actor*> actorsOnCamera =
-        mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
-
-    bool isPlayerOnCamera = false;
-    for (const auto actor : actorsOnCamera)
-    {
-        actor->Update(deltaTime);
-        if (actor == mPlayer)
-        {
-            isPlayerOnCamera = true;
-        }
-    }
-
-    if (!isPlayerOnCamera && mPlayer)
-    {
-        mPlayer->Update(deltaTime);
-    }
-
-    std::vector<Actor*> actorsToDestroy;
+    auto actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
 
     for (auto actor : actorsOnCamera)
-    {
-        if (actor->GetState() == ActorState::Destroy)
-        {
-            actorsToDestroy.push_back(actor);
-        }
-    }
+        actor->Update(deltaTime);
 
-    for (auto actor : actorsToDestroy)
-    {
+    std::vector<Actor*> actorsToDestroy;
+    for (auto actor : actorsOnCamera)
+        if (actor->GetState() == ActorState::Destroy)
+            actorsToDestroy.push_back(actor);
+
+    for (auto actor : actorsToDestroy) {
         if (actor == mPlayer) {
+            delete mPlayer;
             mPlayer = nullptr;
+            continue;
         }
         delete actor;
     }
@@ -815,7 +796,19 @@ UIFont* Game::LoadFont(const std::string& fileName)
 void Game::UnloadScene()
 {
     // Delete actors
+    auto actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+    for (auto actor : actorsOnCamera)
+    {
+        if (actor == mPlayer) {
+            delete mPlayer;
+            mPlayer = nullptr;
+        } else {
+            delete actor;
+        }
+    }
+
     delete mSpatialHashing;
+    mSpatialHashing = nullptr;
 
     // Delete UI screens
     for (const auto ui : mUIStack) {
@@ -831,6 +824,9 @@ void Game::UnloadScene()
     mTextures.clear(); // Limpa o mapa para a próxima cena.
 
     mBackgroundTexture = nullptr;
+    mBackgroundColor = Vector3::Zero;
+    mBackgroundPosition = Vector2::Zero;
+    mBackgroundSize = Vector2::Zero;
 }
 
 void Game::Shutdown()

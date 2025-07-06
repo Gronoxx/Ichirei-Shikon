@@ -103,11 +103,6 @@ public:
     SDL_Renderer* GetRenderer() const { return mRenderer; }
     class UIHud * GetHUD() const {return mHUD;};
 
-    void SetNumberOfCoinsCollected(int NumberOfCoinsCollected) {mNumberOfCoinsCollected = NumberOfCoinsCollected; };
-    int GetNumberOfCoinsCollected() const {return mNumberOfCoinsCollected; };
-    void SetScore(int points) { mScore = points; };
-    int GetScore() const {return mScore;};
-
     void LockCamera() { mIsCameraLocked = true; };
     void UnlockCamera() { mIsCameraLocked = false; };
 
@@ -178,6 +173,4 @@ private:
     Vector2 mBackgroundPosition;
 
     std::unordered_map<std::string, SDL_Texture*> mTextures;  //Manage Textures
-    int mNumberOfCoinsCollected;
-    int mScore;
 };
