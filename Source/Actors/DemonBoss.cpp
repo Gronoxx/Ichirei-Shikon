@@ -7,8 +7,8 @@
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 
-const float JUMP_FORCE = 40000.0f;
-const float JUMP_COOLDOWN = 5.0f;
+const float JUMP_FORCE = 50000.0f;
+const float JUMP_COOLDOWN = 2.5f;
 const int INITIAL_HEALTH = 20;
 
 DemonBoss::DemonBoss(Game *game, float attackCooldown, float unvulnerableCooldown, float moveSpeed)
@@ -27,7 +27,7 @@ DemonBoss::DemonBoss(Game *game, float attackCooldown, float unvulnerableCooldow
     float size = Game::TILE_SIZE * 3.0f;
 
     // Set up physics
-    mRigidBodyComponent = new RigidBodyComponent(this, 1.5f, 3.0f, true);
+    mRigidBodyComponent = new RigidBodyComponent(this, 1.5f, 10.0f, true);
     mColliderComponent = new AABBColliderComponent(this, 0, 0, size, size - 10, ColliderLayer::Boss);
 
     // Set up animations
@@ -58,18 +58,14 @@ void DemonBoss::OnUpdate(float deltaTime) {
             break;
 
         case State::Moving:
-            UpdateMoving(deltaTime);
-
             mAttackTimer += deltaTime;
-            if (mAttackTimer >= mAttackCooldown) {
-                StartAttack();
-            }
+            UpdateMoving(deltaTime);
             break;
 
         case State::Vulnerable:
             // Just wait until attack cooldown is over
-            mAttackTimer += deltaTime;
-            if (mAttackTimer >= mVulnerableCooldown) {
+            mAttackTimer -= deltaTime;
+            if (mAttackTimer <= 0.0f) {
                 mCurrentState = State::Moving;
             }
             break;
@@ -78,10 +74,17 @@ void DemonBoss::OnUpdate(float deltaTime) {
     // Update animations
     ManageAnimations();
 
-    // Keep boss on screen
+    // Keep boss on screen and reverse direction if it hits the edge
     Vector2 cameraPos = mGame->GetCameraPos();
-    float minX = cameraPos.x + Game::TILE_SIZE * 4;
-    float maxX = cameraPos.x + mGame->GetWindowWidth() - (Game::TILE_SIZE * 4);
+    float minX = cameraPos.x + Game::TILE_SIZE * 0.1f;
+    float maxX = cameraPos.x + mGame->GetWindowWidth() - Game::TILE_SIZE * 3.0f;
+
+    auto velocity = mRigidBodyComponent->GetVelocity();
+    if ((mPosition.x <= minX && velocity.x < 0.0f) || (mPosition.x >= maxX && velocity.x > 0.0f)) {
+        velocity.x *= -1.0f;
+        mRigidBodyComponent->SetVelocity(velocity);
+    }
+
     mPosition.x = Math::Clamp(mPosition.x, minX, maxX);
 }
 
@@ -91,26 +94,19 @@ void DemonBoss::UpdateMoving(float deltaTime) {
     }
 
     Player *mario = mGame->GetPlayer();
-    if (!mario)
-        return;
-
-    // Check if player is too close
-    float distance = mario->GetPosition().x - mPosition.x;
-    if (abs(distance) < Game::TILE_SIZE * 5 && CanJump()) {
-        Jump(true); // Jump towards player
+    if (!mario) {
         return;
     }
 
-    // Face away from Mario
-    FaceAwayFromSamurai();
+    FaceTowardsSamurai();
 
-    // Move away from Mario
-    float direction = mIsFacingLeft ? -1.0f : 1.0f;
-    Vector2 moveForce = Vector2(direction * mMoveSpeed, 0);
-    mRigidBodyComponent->ApplyForce(moveForce);
+    if (mAttackTimer >= mAttackCooldown) {
+        StartAttack();
+        return;
+    }
 
-    if (CanJump() && Random::GetFloat() < 0.01f) {
-        Jump();
+    if (CanJump()) {
+        Jump(true);
     }
 }
 
@@ -134,34 +130,30 @@ void DemonBoss::StartAttack() {
     SpawnMinions();
 
     mCurrentState = State::Vulnerable;
-    mAttackTimer = 0.0f; // Reset attack timer
+    mAttackTimer = mVulnerableCooldown; // Reset attack timer
 }
 
 void DemonBoss::SpawnMinions() {
     // Get screen bounds
     float screenLeft = mGame->GetCameraPos().x;
     float screenRight = screenLeft + mGame->GetWindowWidth();
-    float screenMiddle = screenLeft + mGame->GetWindowWidth() / 2;
     float screenTop = mGame->GetCameraPos().y;
 
-    // Calculate spawn positions just outside the screen
-    float spawnY = screenTop;
-    float leftSpawnX = screenLeft + Game::TILE_SIZE * 2.0f; // Left of screen
-    float rightSpawnX = screenRight + Game::TILE_SIZE * 2.0f; // Right of screen
+    for (int i = 0; i < 3; ++i) {
+        // Randomize spawn position (just above the screen)
+        float spawnX = Random::GetFloatRange(screenLeft, screenRight);
+        float spawnY = screenTop - Game::TILE_SIZE;
 
-    // Target positions near the boss
-    float targetOffset = Game::TILE_SIZE * 3.0f;
+        // Randomize target position (within the screen)
+        float targetX = Random::GetFloatRange(screenLeft + Game::TILE_SIZE * 2, screenRight - Game::TILE_SIZE * 2);
+        float targetY = Random::GetFloatRange(Game::TILE_SIZE * 3, Game::TILE_SIZE * 5);
 
-    Vector2 leftTarget = Vector2(screenMiddle - targetOffset, Game::TILE_SIZE * 3);
-    Vector2 rightTarget = Vector2(screenMiddle + targetOffset, Game::TILE_SIZE * 3);
+        Vector2 targetPos(targetX, targetY);
 
-    // Left minion (spawns from left, moves to right of boss)
-    auto *leftMinion = new FlyingDemon(mGame, leftTarget, 6.0f, 400.0f);
-    leftMinion->SetPosition(Vector2(leftSpawnX, spawnY));
-
-    // Right minion (spawns from right, moves to left of boss)
-    auto *rightMinion = new FlyingDemon(mGame, rightTarget, 6.0f, 400.0f);
-    rightMinion->SetPosition(Vector2(rightSpawnX, spawnY));
+        // Create and position the minion
+        auto *minion = new FlyingDemon(mGame, targetPos, 6.0f, 400.0f);
+        minion->SetPosition(Vector2(spawnX, spawnY));
+    }
 }
 
 void DemonBoss::ManageAnimations() {
@@ -180,12 +172,18 @@ void DemonBoss::FaceAwayFromSamurai() {
     mRotation = samuraiOnLeft ? Math::Pi : 0.0f;
 }
 
+void DemonBoss::FaceTowardsSamurai() {
+    bool samuraiOnLeft = IsSamuraiOnLeft();
+    mIsFacingLeft = samuraiOnLeft;
+    mRotation = samuraiOnLeft ? Math::Pi : 0.0f;
+}
+
 void DemonBoss::Jump(bool towardsPlayer) {
     if (!CanJump())
         return;
 
     // A more natural jump has a stronger vertical component.
-    const float horizontalForceMultiplier = 0.75f;
+    const float horizontalForceMultiplier = 0.5f;
     float horizontalForce = mJumpForce * horizontalForceMultiplier;
 
     Vector2 jumpForce(0.0f, -mJumpForce);
