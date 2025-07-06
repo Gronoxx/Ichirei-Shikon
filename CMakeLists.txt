@@ -48,6 +48,10 @@ add_executable(${PROJECT_NAME}
         Source/UIElements/UIRect.h
         Source/UIElements/UITimerBar.cpp
         Source/UIElements/UITimerBar.h
+        Source/Actors/BlockSpriteSheet.cpp
+        Source/Actors/BlockSpriteSheet.h
+        Source/Actors/InvisibleBlock.cpp
+        Source/Actors/InvisibleBlock.h
 )
 
 # Inclui os diretórios de cabeçalho para que o compilador os encontre

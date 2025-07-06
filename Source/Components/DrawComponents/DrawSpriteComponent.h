@@ -15,11 +15,12 @@ public:
 
     void Draw(SDL_Renderer* renderer, const Vector3 &modColor = Color::White) override;
     void SetTexture(SDL_Texture* texture, const std::string &texturePath);
-    void SetSourceRect(int x, int y, int w, int h){mSourceRect = {x,y,w,h};};
-    void SetDstRect(int x, int y, int w, int h){mDstRect_aux = {x,y,w,h}; mCustomDstRect = true;};
-    void ResetCustomSourceRect() {mSourceRect = {}; mCustomSourceRect = false;};
-    void ResetCustomDstRect() {mDstRect = {}; mCustomDstRect = false;};
-    std::string GetTexturePath() {return mTexturePath;};
+    void SetSourceRect(int x, int y, int w, int h) { mSourceRect = {x, y, w, h}; }
+    void EnableSourceRect(bool enable) { mCustomSourceRect = enable; }
+    void SetDstRect(int x, int y, int w, int h) { mDstRect_aux = {x, y, w, h}; mCustomDstRect = true; }
+    void ResetCustomSourceRect() { mSourceRect = {}; mCustomSourceRect = false; }
+    void ResetCustomDstRect() { mDstRect = {}; mCustomDstRect = false; }
+    std::string GetTexturePath() { return mTexturePath; }
 
 protected:
     // Map of textures loaded

@@ -19,9 +19,12 @@
 #include "Actors/FlyingDemon.h"
 #include "Actors/Trigger.h"
 #include "Actors/Spawner.h"
+#include "Actors/BlockSpriteSheet.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Components/ColliderComponents/AABBColliderComponent.h"
+#include "Components/DrawComponents/DrawAnimatedComponent.h"
+#include "Actors/InvisibleBlock.h"
 
 
 Game::Game(const int windowWidth, const int windowHeight)
@@ -209,41 +212,46 @@ void Game::ChangeScene()
     }
     else if (mNextScene == GameScene::Level1)
     {
-        mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
+        // Crie o HUD apenas uma vez, se necessário
+        if (!mHUD)
+        {
+            mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
+        }
 
-        mGameTimeLimit = 400;
-        mHUD->SetTime(mGameTimeLimit);
+        // Defina todos os dados para o Nível 1
+        LevelData level1_data;
+        level1_data.nameForHUD = "1-1";
+        level1_data.timeLimit = 400;
+        level1_data.backgroundTilemapFile = "Assets/Levels/bg_layer_tiledata.csv";
+        level1_data.actorFile = "Assets/Levels/level1.csv";
+        level1_data.backgroundSpritesheet = "Assets/Sprites/spr_chinatown_background_0.png";
+        level1_data.foregroundTilemapFile = "Assets/Levels/fg_layer_tiledata.csv";
+        level1_data.foregroundSpritesheet = "Assets/Sprites/spr_chinatown_foreground_0.png";
+        level1_data.musicFile = "Level1_NhacNhatBanHay.mp3";
+        level1_data.width = LEVEL_WIDTH;
+        level1_data.height = LEVEL_HEIGHT;
 
-        mAudio->StopAllSounds();
-        mAudio->PlayMusic("Level1_NhacNhatBanHay.mp3",true,13);
-
-        // Set background color
-        mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
-
-        // Set background color
-        SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
-
-        // Initialize actors
-        LoadLevel("Assets/Levels/Level1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+        // Chame a função genérica para carregar o nível
+        LoadLevel(level1_data);
     }
-    else if (mNextScene == GameScene::Level2)
-    {
-        mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
-
-        mGameTimeLimit = 400;
-        mHUD->SetTime(mGameTimeLimit);
-
-        mAudio->StopAllSounds();
-        mAudio->PlayMusic("FinalFight_Inferia.mp3",true,13);
-
-        // Set background color
-        mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
-
-        // Set background color
-        SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
-
-        LoadLevel("Assets/Levels/Level2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
-    }
+    // else if (mNextScene == GameScene::Level2)
+    // {
+    //     mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
+    //
+    //     mGameTimeLimit = 400;
+    //     mHUD->SetTime(mGameTimeLimit);
+    //
+    //     mAudio->StopAllSounds();
+    //     mAudio->PlayMusic("FinalFight_Inferia.mp3",true,13);
+    //
+    //     // Set background color
+    //     mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
+    //
+    //     // Set background color
+    //     SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
+    //
+    //     LoadLevel("Assets/Levels/Level2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+    // }
 
     // Set a new scene
     mGameScene = mNextScene;
@@ -297,58 +305,80 @@ void Game::ShowTutorialScreen()
         [this, tutorial]() { tutorial->SetState(UIScreen::UIState::Closing); });
 }
 
-void Game::LoadLevel(const std::string& levelName, const int levelWidth, const int levelHeight)
+void Game::LoadLevel(const LevelData& data)
 {
-    // Load level data
-    int **mLevelData = ReadLevelData(levelName, levelWidth, levelHeight);
+    // --- Etapa 1: Configurar HUD e Áudio ---
+    mGameTimeLimit = data.timeLimit;
+    mHUD->SetTime(mGameTimeLimit);
 
-    if (!mLevelData) {
-        SDL_Log("Failed to load level data");
-        return;
+    mAudio->StopAllSounds();
+    mAudio->PlayMusic(data.musicFile, true, 13);
+
+    // --- Etapa 2: Carregar e construir os ATORES ESPECIAIS ---
+    // Carrega os dados para um std::vector, que é mais seguro.
+    std::vector<std::vector<int>> actorData = LoadMapFromCSV(data.actorFile);
+
+    // A verificação agora é para checar se o vetor não está vazio.
+    if (!actorData.empty())
+    {
+        // Passa o vetor diretamente para a BuildLevel (que também será refatorada).
+        BuildLevel(actorData);
+    }
+    else
+    {
+        SDL_Log("Could not load actor data for level: %s", data.actorFile.c_str());
     }
 
-    // Instantiate level actors
-    BuildLevel(mLevelData, levelWidth, levelHeight);
+    // O bloco "delete[] actorData" foi REMOVIDO. O std::vector cuida da memória automaticamente!
+
+    // --- Etapa 3: Carregar as CAMADAS DE TILES do cenário ---
+    int tileSize = 32;
+    int spritesheetColumns = 16;
+
+    // Carrega a camada de fundo (background)
+    LoadTilemapLayer(data.backgroundTilemapFile, data.backgroundSpritesheet, tileSize, spritesheetColumns, 5);
+
+    // Carrega a camada da frente (foreground)
+    LoadTilemapLayer(data.foregroundTilemapFile, data.foregroundSpritesheet, tileSize, spritesheetColumns, 15);
 }
 
-void Game::BuildLevel(int** levelData, int width, int height)
+void Game::BuildLevel(const std::vector<std::vector<int>>& levelData)
 {
-
-    // Const map to convert tile ID to block type
-    const std::map<int, const std::string> tileMap = {
-            {0, "Assets/Sprites/Blocks/japan/bamboo.png"},
-            {1, "Assets/Sprites/Blocks/japan/dirt.png"},
-            {2, "Assets/Sprites/Blocks/japan/grass.png"},
-            {3, "Assets/Sprites/Blocks/japan/stone.png"},
-            {4, "Assets/Sprites/Blocks/japan/stone2.png"},
-            {5, "Assets/Sprites/Blocks/japan/wood.png"},
-            {6, "Assets/Sprites/Blocks/japan/wood2.png"},
-            {7, "Assets/Sprites/Blocks/japan/woodengate.png"},
-            {8, "Assets/Sprites/Blocks/japan/woodengate2.png"}
-    };
-
-    for (int y = 0; y < LEVEL_HEIGHT; ++y)
+    // Usamos o .size() do vetor para controlar os laços, tornando a função mais segura.
+    for (size_t y = 0; y < levelData.size(); ++y)
     {
-        for (int x = 0; x < LEVEL_WIDTH; ++x)
+        for (size_t x = 0; x < levelData[y].size(); ++x)
         {
             int tile = levelData[y][x];
 
-            if(tile == 9) // Samurai
+            if (tile == 9) // Samurai
             {
                 mPlayer = new Player(this);
-                mPlayer->SetPosition(Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE));
+                mPlayer->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
+                if (auto* drawComp = mPlayer->GetComponent<DrawAnimatedComponent>())
+                {
+                    drawComp->SetDrawOrder(10);
+                }
             }
-            if(tile == 11) // Flying Demon
+            else if (tile == 11) // Flying Demon
             {
-                auto demon = new FlyingDemon(this, Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE), 6.0f);
-                demon->SetPosition(Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE));
+                auto demon = new FlyingDemon(this, Vector2(0,0), 6.0f); // Posição alvo e lifetime de exemplo
+                demon->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
+                if (auto* drawComp = demon->GetComponent<DrawAnimatedComponent>())
+                {
+                    drawComp->SetDrawOrder(10);
+                }
             }
             else if (tile == 12) // Demon Boss
             {
                 auto demonBoss = new DemonBoss(this);
-                demonBoss->SetPosition(Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE));
+                demonBoss->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
+                if (auto* drawComp = demonBoss->GetComponent<DrawAnimatedComponent>())
+                {
+                    drawComp->SetDrawOrder(10);
+                }
             }
-            else if(tile == 10) // Spawner
+            else if (tile == 10) // Spawner
             {
                 auto* spawner = new Spawner(this, SPAWN_DISTANCE);
                 spawner->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
@@ -358,63 +388,8 @@ void Game::BuildLevel(int** levelData, int width, int height)
                 auto* trigger = new Trigger(this);
                 trigger->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
             }
-            else // Blocks
-            {
-                if (auto it = tileMap.find(tile); it != tileMap.end())
-                {
-                    // Create a block actor
-                    auto* block = new Block(this, it->second);
-                    block->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
-                }
-            }
         }
     }
-}
-
-int **Game::ReadLevelData(const std::string& fileName, const int width, const int height)
-{
-    std::ifstream file(fileName);
-    if (!file.is_open())
-    {
-        SDL_Log("Failed to load paths: %s", fileName.c_str());
-        return nullptr;
-    }
-
-    // Create a 2D array of size width and height to store the level data
-    const auto levelData = new int*[height];
-    for (int i = 0; i < height; ++i)
-    {
-        levelData[i] = new int[width];
-    }
-
-    // Read the file line by line
-    int row = 0;
-
-    std::string line;
-    while (!file.eof())
-    {
-        std::getline(file, line);
-        if(!line.empty())
-        {
-            auto tiles = CSVHelper::Split(line);
-
-            if (tiles.size() != width) {
-                SDL_Log("Invalid level data");
-                return nullptr;
-            }
-
-            for (int i = 0; i < width; ++i) {
-                levelData[row][i] = tiles[i];
-            }
-        }
-
-        ++row;
-    }
-
-    // Close the file
-    file.close();
-
-    return levelData;
 }
 
 void Game::RunLoop()
@@ -862,4 +837,131 @@ void Game::Shutdown()
     SDL_DestroyRenderer(mRenderer);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
+}
+
+
+void Game::LoadTilemapLayer(const std::string& csvPath,
+                            const std::string& spritesheetPath,
+                            int tileSize,
+                            int spritesheetColumns,
+                            int drawOrder)
+{
+    // 1. Carregue os dados do mapa a partir do arquivo CSV.
+    std::vector<std::vector<int>> tileIDs = LoadMapFromCSV(csvPath);
+
+    // Se o CSV não pôde ser lido, tileIDs estará vazio.
+    if (tileIDs.empty()) {
+        SDL_Log("Falha ao carregar ou CSV vazio para: %s", csvPath.c_str());
+        return;
+    }
+
+    int tilesCreated = 0;
+
+    // 2. Itere sobre a matriz de IDs para criar cada tile.
+    for (size_t y = 0; y < tileIDs.size(); ++y)
+    {
+        for (size_t x = 0; x < tileIDs[y].size(); ++x)
+        {
+            int currentTileID = tileIDs[y][x];
+
+            if (currentTileID != 0)
+            {
+                // Crie uma nova instância de BlockSpriteSheet para este tile.
+                BlockSpriteSheet* tile = new BlockSpriteSheet(this,
+                                                              spritesheetPath,
+                                                              currentTileID,
+                                                              tileSize,
+                                                              spritesheetColumns,
+                                                              drawOrder);
+                if (drawOrder == 15)
+                {
+                    auto* solidBlock = new InvisibleBlock(this);
+                    solidBlock->SetPosition(Vector2(x * tileSize, y * tileSize));
+                }
+
+                // Calcule e defina a posição do tile no mundo do jogo.
+                tile->SetPosition(Vector2(x * tileSize, y * tileSize));
+                tilesCreated++;
+            }
+        }
+    }
+
+    // ADICIONE ESTES LOGS NO FINAL DA FUNÇÃO
+    SDL_Log("--------------------------------------------------");
+    SDL_Log("Relatorio de LoadTilemapLayer:");
+    SDL_Log("Arquivo: %s", csvPath.c_str());
+    SDL_Log("Dimensoes do CSV lido: %zu linhas, %zu colunas", tileIDs.size(), tileIDs[0].size());
+    SDL_Log("Total de tiles instanciados: %d", tilesCreated);
+    SDL_Log("--------------------------------------------------");
+}
+
+#include <sstream>    // Necessário para std::stringstream
+#include <algorithm>  // Necessário para std::count
+
+// Substitua sua função por esta versão final e flexível
+std::vector<std::vector<int>> Game::LoadMapFromCSV(const std::string& filePath)
+{
+    std::vector<std::vector<int>> mapData;
+    std::ifstream file(filePath);
+
+    if (!file.is_open())
+    {
+        SDL_Log("ERRO FATAL: Nao foi possivel abrir o arquivo CSV: %s", filePath.c_str());
+        return mapData;
+    }
+
+    // --- LÓGICA DE DETECÇÃO AUTOMÁTICA ---
+    char delimiter = ','; // Assume vírgula como padrão
+    std::string firstLine;
+    if (std::getline(file, firstLine))
+    {
+        // Conta a ocorrência de cada separador na primeira linha
+        size_t commaCount = std::count(firstLine.begin(), firstLine.end(), ',');
+        size_t semicolonCount = std::count(firstLine.begin(), firstLine.end(), ';');
+
+        // Usa o separador que aparecer mais vezes
+        if (semicolonCount > commaCount)
+        {
+            delimiter = ';';
+        }
+        SDL_Log("Arquivo '%s' - Separador detectado: '%c'", filePath.c_str(), delimiter);
+    }
+
+    // Reinicia o leitor para o início do arquivo para processá-lo por completo
+    file.clear();
+    file.seekg(0, std::ios::beg);
+    // --- FIM DA LÓGICA DE DETECÇÃO ---
+
+
+    std::string line;
+    // Lê o arquivo linha por linha
+    while (std::getline(file, line))
+    {
+        if (line.empty() || line.find_first_not_of(" \t\n\r") == std::string::npos)
+        {
+            continue;
+        }
+
+        std::vector<int> row;
+        std::stringstream ss(line);
+        std::string cell;
+
+        // Usa o separador que foi detectado automaticamente
+        while (std::getline(ss, cell, delimiter))
+        {
+            try
+            {
+                row.push_back(std::stoi(cell));
+            }
+            catch (const std::exception& e)
+            {
+                SDL_Log("AVISO: Valor invalido no CSV ('%s')", cell.c_str());
+                row.push_back(-1);
+            }
+        }
+        mapData.push_back(row);
+    }
+
+    file.close();
+    return mapData;
 }
