@@ -39,6 +39,7 @@ private:
     float mArrivalThreshold;  // How close we need to be to consider target reached
     float mTimeToLive;        // How long the demon stays in working mode before flying away
     float mWorkingTime;       // Tracks how long the demon has been in working mode
+    float mEntranceTimer;     // Timer for the sinusoidal entrance movement
     bool mIsFlyingAway;       // True when the demon is in the process of flying away
 
     class RigidBodyComponent* mRigidBodyComponent;
