@@ -46,6 +46,27 @@ public:
         Leaving
     };
 
+    struct LevelData
+    {
+        // Informações gerais
+        std::string nameForHUD; // Ex: "1-1"
+        int timeLimit;          // Ex: 400
+
+        // Arquivos de dados
+        std::string actorFile;
+        std::string backgroundTilemapFile;
+        std::string foregroundTilemapFile;
+
+        // Arquivos de arte e som
+        std::string backgroundSpritesheet;
+        std::string foregroundSpritesheet;
+        std::string musicFile;
+
+        // Dimensões do mapa
+        int width;
+        int height;
+    };
+
     Game(int windowWidth, int windowHeight);
 
     bool Initialize();
@@ -61,7 +82,7 @@ public:
     // Level functions
     void LoadMainMenu();
     void ShowTutorialScreen();
-    void LoadLevel(const std::string& levelName, int levelWidth, int levelHeight);
+    void LoadLevel(const LevelData& data);
 
     std::vector<Actor *> GetNearbyActors(const Vector2& position, int range = 1) const;
     std::vector<class AABBColliderComponent *> GetNearbyColliders(const Vector2& position, int range = 2) const;
@@ -105,6 +126,12 @@ public:
 
     void LockCamera() { mIsCameraLocked = true; };
     void UnlockCamera() { mIsCameraLocked = false; };
+    void LoadTilemapLayer(const std::string& csvPath,
+                        const std::string& spritesheetPath,
+                        int tileSize,
+                        int spritesheetColumns,
+                        int drawOrder);
+    std::vector<std::vector<int>> LoadMapFromCSV(const std::string& filePath);
 
     // Set Pause Menu State
     void SetPauseMenuState(const bool state) { mIsPauseMenuActive = state; }
@@ -128,8 +155,7 @@ private:
 
     // Load the level from a CSV file as a 2D array
     static int **ReadLevelData(const std::string& fileName, int width, int height);
-    void BuildLevel(int** levelData, int width, int height);
-
+    void BuildLevel(const std::vector<std::vector<int>>& levelData);
     // Spatial Hashing for collision detection
     class SpatialHashing* mSpatialHashing;
 

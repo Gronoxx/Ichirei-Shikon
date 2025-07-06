@@ -22,6 +22,8 @@ public:
 
     int GetDrawOrder() const { return mDrawOrder; }
 
+    void SetDrawOrder(const int drawOrder) { mDrawOrder = drawOrder; }
+
 protected:
     bool mIsVisible;
     int mDrawOrder;

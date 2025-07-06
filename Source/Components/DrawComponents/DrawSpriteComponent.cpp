@@ -24,20 +24,27 @@ DrawSpriteComponent::~DrawSpriteComponent()
 
 void DrawSpriteComponent::Draw(SDL_Renderer *renderer, const Vector3 &modColor) {
 
+    // Pega o fator de zoom da câmera
+    Vector2 cameraPos = mOwner->GetGame()->GetCameraPos();
+
     if (mCustomDstRect) {
+        // Lógica para retângulo de destino customizado (se você usar)
         mDstRect = {
-            static_cast<int>(mDstRect_aux.x - mOwner->GetGame()->GetCameraPos().x),
-            static_cast<int>(mDstRect_aux.y - mOwner->GetGame()->GetCameraPos().y),
+            static_cast<int>((mDstRect_aux.x - cameraPos.x)),
+            static_cast<int>((mDstRect_aux.y - cameraPos.y)),
             static_cast<int>(mDstRect_aux.w * mOwner->GetScale()),
-            static_cast<int> (mDstRect_aux.h * mOwner->GetScale())
+            static_cast<int>(mDstRect_aux.h * mOwner->GetScale())
         };
     }
     else  {
+        // Lógica principal de desenho
         mDstRect = {
-            static_cast<int>(mOwner->GetPosition().x - mOwner->GetGame()->GetCameraPos().x),
-            static_cast<int>(mOwner->GetPosition().y - mOwner->GetGame()->GetCameraPos().y),
-            static_cast<int>(mWidth * mOwner->GetScale()),
-            static_cast<int> (mHeight * mOwner->GetScale())
+            // A posição do ator na tela é (pos_ator - pos_camera) * zoom
+            static_cast<int>((mOwner->GetPosition().x - cameraPos.x) ),
+            static_cast<int>((mOwner->GetPosition().y - cameraPos.y) ),
+            // A largura do ator na tela é largura_original * escala_ator * zoom
+            static_cast<int>(mWidth * mOwner->GetScale() ),
+            static_cast<int>(mHeight * mOwner->GetScale() )
         };
     }
 
@@ -47,7 +54,6 @@ void DrawSpriteComponent::Draw(SDL_Renderer *renderer, const Vector3 &modColor) 
     }
 
     SDL_SetTextureBlendMode(mSpriteSheetSurface, SDL_BLENDMODE_BLEND);
-
     SDL_SetTextureColorMod(mSpriteSheetSurface,
                            static_cast<Uint8>(modColor.x),
                            static_cast<Uint8>(modColor.y),
@@ -55,7 +61,7 @@ void DrawSpriteComponent::Draw(SDL_Renderer *renderer, const Vector3 &modColor) 
 
     if (mCustomSourceRect) {
         SDL_RenderCopyEx(renderer, mSpriteSheetSurface, &mSourceRect, &mDstRect, mOwner->GetRotation(), nullptr, flip);
-    }else{
+    } else {
         SDL_RenderCopyEx(renderer, mSpriteSheetSurface, nullptr, &mDstRect, mOwner->GetRotation(), nullptr, flip);
     }
 }
