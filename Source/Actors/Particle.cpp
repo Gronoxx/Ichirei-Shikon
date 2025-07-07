@@ -14,7 +14,7 @@ Particle::Particle(class Game *game, float length,
                    const float mass,
                    float deathTimer)
     : Actor(game)
-	  , mParried(false)
+      , mParried(false)
       , mLength(length)
       , mDeathTimer(deathTimer) {
     std::vector<Vector2> vertices = {
@@ -27,7 +27,8 @@ Particle::Particle(class Game *game, float length,
 
     mRigidBodyComponent = new RigidBodyComponent(this, mass);
     mRigidBodyComponent->ApplyForce(initialForce);
-    mAABBColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE/2, Game::TILE_SIZE/2, ColliderLayer::EnemyProjectile);
+    mAABBColliderComponent = new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE / 2, Game::TILE_SIZE / 2,
+                                                       ColliderLayer::EnemyProjectile);
 }
 
 void Particle::OnUpdate(float deltaTime) {
@@ -42,28 +43,38 @@ void Particle::OnUpdate(float deltaTime) {
     // Update rotation based on velocity direction
     if (mRigidBodyComponent) {
         Vector2 velocity = mRigidBodyComponent->GetVelocity();
-        if (velocity.LengthSq() > 0.1f) {  // Only update if moving
+        if (velocity.LengthSq() > 0.1f) {
+            // Only update if moving
             mRotation = atan2f(velocity.y, velocity.x);
         }
     }
 }
 
-void Particle::OnHorizontalCollision(float minOverlap, AABBColliderComponent* other)
-{
+void Particle::OnHorizontalCollision(float minOverlap, AABBColliderComponent *other) {
+
+    if (other->GetLayer() == ColliderLayer::Blocks) {
+        SetState(ActorState::Destroy);
+        return;
+    }
+
     HandleCollision(other);
+    SetState(ActorState::Destroy);
 }
 
-void Particle::OnVerticalCollision(float minOverlap, AABBColliderComponent* other)
-{
+void Particle::OnVerticalCollision(float minOverlap, AABBColliderComponent *other) {
+    if (other->GetLayer() == ColliderLayer::Blocks) {
+        SetState(ActorState::Destroy);
+        return;
+    }
+    
     HandleCollision(other);
+    SetState(ActorState::Destroy);
 }
 
-void Particle::HandleCollision(AABBColliderComponent* other)
-{
+void Particle::HandleCollision(AABBColliderComponent *other) {
     Actor *a = other->GetOwner();
-    Player *p = dynamic_cast<Player*>(a);
-    if (p != nullptr && !mParried)
-    {
+    Player *p = dynamic_cast<Player *>(a);
+    if (p != nullptr && !mParried) {
         p->Hurt();
         p->Hurt();
         p->Hurt();
@@ -72,14 +83,12 @@ void Particle::HandleCollision(AABBColliderComponent* other)
         return;
     }
 
-    Particle *p2 = dynamic_cast<Particle*>(a);
-    {
+    Particle *p2 = dynamic_cast<Particle *>(a); {
         Parry(a->GetPosition());
     }
 }
 
-void Particle::Parry(Vector2 parryOrigin)
-{
+void Particle::Parry(Vector2 parryOrigin) {
     if (mParried) return;
 
     SDL_Log("Parrying.");
