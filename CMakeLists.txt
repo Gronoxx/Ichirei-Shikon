@@ -50,10 +50,6 @@ add_executable(${PROJECT_NAME}
         Source/UIElements/UITimerBar.h
         Source/UIElements/UIPauseMenuScreen.cpp
         Source/UIElements/UIPauseMenuScreen.h
-        Source/Actors/BlockSpriteSheet.cpp
-        Source/Actors/BlockSpriteSheet.h
-        Source/Actors/InvisibleBlock.cpp
-        Source/Actors/InvisibleBlock.h
         Source/PerlinNoise.h
         Source/PerlinNoise.cpp
 )
