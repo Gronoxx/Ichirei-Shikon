@@ -49,7 +49,7 @@ public:
         { ColliderLayer::EnemyProjectile, {
             ColliderLayer::Enemy,
             ColliderLayer::Boss,
-            ColliderLayer::Blocks,
+            // ColliderLayer::Blocks,
             ColliderLayer::EnemyProjectile
             }},
         {ColliderLayer::EndLevel,{}}

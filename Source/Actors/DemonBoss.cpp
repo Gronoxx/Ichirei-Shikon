@@ -127,6 +127,8 @@ void DemonBoss::StartAttack() {
 
     mCurrentState = State::Vulnerable;
     mAttackTimer = mVulnerableCooldown; // Reset attack timer
+
+    ManageAnimations();
 }
 
 void DemonBoss::SpawnMinions() {
@@ -161,11 +163,17 @@ void DemonBoss::SpawnMinions() {
 }
 
 void DemonBoss::ManageAnimations() {
-    if (!mIsGrounded) {
-        mDrawComponent->SetAnimation("jump");
-    } else if (mAttackTimer <= mVulnerableCooldown) {
+    if (mCurrentState == State::Vulnerable) {
         mDrawComponent->SetAnimation("invoking");
-    } else {
+    }
+
+    else if (!mIsGrounded) {
+        mDrawComponent->SetAnimation("jump");
+    }
+    //  else if (mAttackTimer <= mVulnerableCooldown) {
+    //     mDrawComponent->SetAnimation("invoking");
+    // }
+     else {
         mDrawComponent->SetAnimation("idle");
     }
 }
