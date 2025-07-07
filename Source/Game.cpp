@@ -373,6 +373,7 @@ void Game::BuildLevel(const std::vector<std::vector<int>>& levelData)
             {
                 auto* ghost = new Ghost(this);
                 ghost->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
+                ghost->StartPatrol();
             }
             else if (tile == 13) // End level trigger
             {

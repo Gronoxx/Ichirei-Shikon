@@ -25,6 +25,7 @@ public:
     // Funções override da classe Actor
     void OnUpdate(float deltaTime) override;
 
+    void StartPatrol();
     // Função para iniciar o processo de morte do fantasma
     void Kill();
 

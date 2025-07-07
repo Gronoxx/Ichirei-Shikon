@@ -41,7 +41,6 @@ Ghost::Ghost(Game* game, float patrolSpeed, float chasingSpeed, float deathTime)
     SetScale(1.25);
 
     // Set initial patrol state
-    mPatrolStartPoint = GetPosition();
     mRigidBodyComponent->SetVelocity(Vector2(-mPatrolSpeed, 0.0f));
 }
 
@@ -166,4 +165,11 @@ void Ghost::OnVerticalCollision(const float minOverlap, AABBColliderComponent* o
         currentVel.y *= -0.5f;
         mRigidBodyComponent->SetVelocity(currentVel);
     }
+}
+void Ghost::StartPatrol()
+{
+    // Mova as linhas que você removeu do construtor para cá.
+    // Agora, GetPosition() retornará a posição correta definida pelo CSV.
+    mPatrolStartPoint = GetPosition();
+    mRigidBodyComponent->SetVelocity(Vector2(-mPatrolSpeed, 0.0f));
 }
