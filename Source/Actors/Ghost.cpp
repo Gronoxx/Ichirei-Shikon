@@ -1,5 +1,3 @@
-// Goomba.cpp
-
 #include "Ghost.h"
 #include "../Game.h"
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
@@ -18,7 +16,7 @@ Ghost::Ghost(Game* game, float patrolSpeed, float chasingSpeed, float deathTime)
       mSeePlayerDistance(200.0f),
       mLosePlayerDistance(350.0f),
       mSpawnGracePeriod(0.2f),
-      mPatrolRadius(50.0f),
+      mPatrolRadius(10.0f),
       mPerlin(std::random_device()()),
       mNoiseInput(0.0f),
       mNoiseScale(0.7f),
@@ -41,7 +39,6 @@ Ghost::Ghost(Game* game, float patrolSpeed, float chasingSpeed, float deathTime)
     SetScale(1.25);
 
     // Set initial patrol state
-    mPatrolStartPoint = GetPosition();
     mRigidBodyComponent->SetVelocity(Vector2(-mPatrolSpeed, 0.0f));
 }
 
@@ -166,4 +163,11 @@ void Ghost::OnVerticalCollision(const float minOverlap, AABBColliderComponent* o
         currentVel.y *= -0.5f;
         mRigidBodyComponent->SetVelocity(currentVel);
     }
+}
+void Ghost::StartPatrol()
+{
+    // Mova as linhas que você removeu do construtor para cá.
+    // Agora, GetPosition() retornará a posição correta definida pelo CSV.
+    mPatrolStartPoint = GetPosition();
+    mRigidBodyComponent->SetVelocity(Vector2(-mPatrolSpeed, 0.0f));
 }

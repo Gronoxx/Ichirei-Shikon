@@ -20,7 +20,7 @@
 #include "Actors/FlyingDemon.h"
 #include "Actors/Trigger.h"
 #include "Actors/Spawner.h"
-#include "Actors/BlockSpriteSheet.h"
+#include "Actors/Ghost.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
 #include "Components/ColliderComponents/AABBColliderComponent.h"
@@ -231,28 +231,6 @@ void Game::ChangeScene()
 
         // Initialize actors
         LoadLevel("Assets/Levels/Level1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
-    }
-    else if (mNextScene == GameScene::Level2)
-    {
-        mGameTimeLimit = 400;
-
-        // Crie o HUD apenas uma vez, se necessário
-        if (!mHUD)
-        {
-            mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
-            SDL_Log("mHUD: %p", mHUD);
-        }
-
-        mAudio->StopAllSounds();
-        mAudio->PlayMusic("FinalFight_FullConfession.mp3",true,13);
-
-        // Set background color
-        mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
-
-        // Set background color
-        SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
-
-        LoadLevel("Assets/Levels/Level2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
     }
     else if (mNextScene == GameScene::Level2)
     {
@@ -958,7 +936,6 @@ void Game::CreateLevelBoundaries(int levelWidthInTiles, int levelHeightInTiles, 
     }
 }
 
-// Em Game.cpp
 // Em Game.cpp
 void Game::LoadBossLevel()
 {
