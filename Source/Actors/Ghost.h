@@ -17,17 +17,10 @@ public:
     // Enum para a máquina de estados do comportamento do fantasma
     enum class GhostState {
         Patrolling,
-        Pursuing,
-        Retreating
+        Chasing
     };
 
-    /**
-     * Construtor do Ghost.
-     * @param game Ponteiro para a classe Game principal.
-     * @param forwardSpeed Velocidade base de movimento.
-     * @param deathTime Tempo que a animação de morte leva.
-     */
-    Ghost(class Game* game, float forwardSpeed = 80.0f, float deathTime = 1.0f);
+    Ghost(class Game* game, float patrolSpeed = 70.0f, float chasingSpeed = 140.0f, float deathTime = 1.0f);
 
     // Funções override da classe Actor
     void OnUpdate(float deltaTime) override;
@@ -46,26 +39,20 @@ private:
     RigidBodyComponent* mRigidBodyComponent;
 
     // --- Atributos Principais ---
-    float mForwardSpeed;
+    float mPatrolSpeed;
+    float mChasingSpeed;
     float mDyingTimer;
     bool mIsDying;
 
     // --- Máquina de Estados e IA ---
     GhostState mCurrentState;
-    float mRetreatTimer;
-    float mSeekingRadius;
-    float mSpawnGracePeriod; // Período de tolerância ao nascer
+    float mSeePlayerDistance;    // Distância para começar a perseguir
+    float mLosePlayerDistance;   // Distância para parar de perseguir
+    float mSpawnGracePeriod;     // Período de tolerância ao nascer
 
     // --- Lógica de Patrulha ---
-    Vector2 mPatrolAnchorPoint;
-    float mPatrolRadius;
-    float mPatrolDirectionChangeInterval;
-    float mPatrolTimer;
-    Vector2 mCurrentPatrolDirection;
-
-    // --- Geradores de Aleatoriedade ---
-    std::mt19937 mRandomGenerator; // Motor de aleatoriedade
-    std::uniform_real_distribution<float> mDistribution; // Mapeia para um ângulo
+    Vector2 mPatrolStartPoint;   // O ponto central da área de patrulha
+    float mPatrolRadius;         // A distância para patrulhar a partir do ponto inicial
 
     // --- Lógica de Perseguição (Perlin Noise) ---
     PerlinNoise mPerlin;
@@ -74,7 +61,7 @@ private:
     float mNoiseStrength;
 
     // --- Modificadores de Movimento ---
-    float mTurnSpeed; // Quão rápido ele vira
+    float mTurnSpeed;            // Quão rápido ele vira
     float mOscillationFrequency; // Velocidade do "sobe e desce"
     float mOscillationAmplitude; // Altura do "sobe e desce"
 };
