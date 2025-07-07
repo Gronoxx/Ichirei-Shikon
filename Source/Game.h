@@ -11,8 +11,8 @@
 class Game
 {
 public:
-    static constexpr int LEVEL_WIDTH = 215;
-    static constexpr int LEVEL_HEIGHT = 15;
+    static constexpr int LEVEL_WIDTH = 64;
+    static constexpr int LEVEL_HEIGHT = 32;
     static constexpr int TILE_SIZE = 32;
     static constexpr int SPAWN_DISTANCE = 700;
     static constexpr int TRANSITION_TIME = 1;
@@ -135,6 +135,7 @@ public:
 
     // Set Pause Menu State
     void SetPauseMenuState(const bool state) { mIsPauseMenuActive = state; }
+    void CreateLevelBoundaries(int levelWidthInTiles, int levelHeightInTiles);
 
 private:
     void ProcessInput();

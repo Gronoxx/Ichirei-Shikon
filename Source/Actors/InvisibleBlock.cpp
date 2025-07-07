@@ -11,5 +11,5 @@ InvisibleBlock::InvisibleBlock(Game* game)
 {
     // Adiciona um componente de colisão AABB (Axis-Aligned Bounding Box) a este ator.
     // O colisor terá o mesmo tamanho de um tile padrão.
-    new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE, Game::TILE_SIZE, ColliderLayer::Blocks);
+    new AABBColliderComponent(this, 0, 0, Game::TILE_SIZE, Game::TILE_SIZE, ColliderLayer::Blocks,true);
 }
