@@ -27,6 +27,7 @@ add_executable(${PROJECT_NAME}
         Source/Components/ColliderComponents/AABBColliderComponent.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
         Source/Actors/Block.cpp
+        Source/Actors/InvisibleBlock.cpp
         Source/Actors/Ghost.cpp
         Source/Actors/Spawner.cpp
         Source/Actors/FlyingDemon.cpp

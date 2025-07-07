@@ -113,10 +113,13 @@ public:
     float GetLevelPixelHeight() const { return mCurrentLevelPixelHeight; }
     const Vector2& GetLevelOffset() const { return mCurrentLevelOffset; }
 private:
+    void CreateLevelBoundaries(int levelWidthInTiles, int levelHeightInTiles, const Vector2& offset = Vector2::Zero);
     void ProcessInput();
     void UpdateGame();
     void UpdateCamera();
     void GenerateOutput() const;
+
+    void LoadBossLevel();
 
     // Scene Manager
     void UpdateSceneManager(float deltaTime);
@@ -186,4 +189,5 @@ private:
     float mCurrentLevelPixelWidth;
     float mCurrentLevelPixelHeight;
     Vector2 mCurrentLevelOffset;
+    void CreateArenaFloorAndCeiling(float arenaWidth, float arenaHeight, const Vector2& arenaOffset);
 };
