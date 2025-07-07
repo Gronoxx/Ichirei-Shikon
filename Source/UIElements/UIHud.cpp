@@ -32,10 +32,10 @@ UIHud::UIHud(Game* game, const std::string& fontName, SDL_Renderer*)
         float y = barArea.y + padding;
 
         // Azul principal
-        auto* bar = AddRect(Vector2(x, y), Vector2(barWidth, barHeight), Vector3(91, 187, 255));
+        auto* bar = AddRect(Vector2(x, y), Vector2(barWidth, barHeight), Vector4(91, 187, 255, 255));
         mBatteryBars.push_back(bar);
 
-        AddRect(Vector2(x, y), Vector2(barWidth, barHeight / 3), Vector3(200, 240, 255));
+        AddRect(Vector2(x, y), Vector2(barWidth, barHeight / 3), Vector4(200, 240, 255, 255));
     }
 
     AddTimerBar(Vector2(mGame->GetWindowWidth() / 2 - TIMER_WIDTH / 2 + 18, 3),
