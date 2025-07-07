@@ -204,7 +204,7 @@ void Game::ChangeScene()
     {
         LoadMainMenu();
     }
-    else if (mNextScene == GameScene::Level2)
+    else if (mNextScene == GameScene::Level1)
     {
         mGameTimeLimit = 400;
 
@@ -215,7 +215,28 @@ void Game::ChangeScene()
             SDL_Log("mHUD: %p", mHUD);
         }
 
+        mAudio->StopAllSounds();
+        mAudio->PlayMusic("Level1_NhacNhatBanHay.mp3",true,13);
+
+        // Set background color
+        mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
+
+        // Set background color
+        SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
+
+        // Initialize actors
+        LoadLevel("Assets/Levels/Level1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+    }
+    else if (mNextScene == GameScene::Level2)
+    {
         mGameTimeLimit = 400;
+
+        // Crie o HUD apenas uma vez, se necessário
+        if (!mHUD)
+        {
+            mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
+            SDL_Log("mHUD: %p", mHUD);
+        }
 
         mAudio->StopAllSounds();
         mAudio->PlayMusic("FinalFight_FullConfession.mp3",true,13);
@@ -284,6 +305,10 @@ void Game::LoadLevel(const std::string& levelName, const int levelWidth, const i
 {
     // Load level data
     int **mLevelData = ReadLevelData(levelName, levelWidth, levelHeight);
+
+    mCurrentLevelPixelWidth = levelWidth * TILE_SIZE;
+    mCurrentLevelPixelHeight = levelHeight * TILE_SIZE;
+    mCurrentLevelOffset = Vector2::Zero;
 
     if (!mLevelData) {
         SDL_Log("Failed to load level data");
@@ -583,7 +608,7 @@ void Game::UpdateLevelTime(const float deltaTime)
     }
 
     if (static_cast<float>(mGameTimeLimit) <= 0.0f) {
-        mPlayer->Kill();
+        if (mPlayer) mPlayer->Kill();
     }
 }
 

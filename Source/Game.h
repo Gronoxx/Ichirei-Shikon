@@ -109,6 +109,9 @@ public:
     // Set Pause Menu State
     void SetPauseMenuState(const bool state) { mIsPauseMenuActive = state; }
 
+    float GetLevelPixelWidth() const { return mCurrentLevelPixelWidth; }
+    float GetLevelPixelHeight() const { return mCurrentLevelPixelHeight; }
+    const Vector2& GetLevelOffset() const { return mCurrentLevelOffset; }
 private:
     void ProcessInput();
     void UpdateGame();
@@ -179,4 +182,8 @@ private:
 
     // Pause menu
     bool mIsPauseMenuActive;
+
+    float mCurrentLevelPixelWidth;
+    float mCurrentLevelPixelHeight;
+    Vector2 mCurrentLevelOffset;
 };
