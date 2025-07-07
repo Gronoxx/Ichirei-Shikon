@@ -41,6 +41,7 @@ private:
     float mWorkingTime;       // Tracks how long the demon has been in working mode
     float mEntranceTimer;     // Timer for the sinusoidal entrance movement
     bool mIsFlyingAway;       // True when the demon is in the process of flying away
+    int mShootsMade;
 
     class RigidBodyComponent* mRigidBodyComponent;
     class DrawAnimatedComponent* mDrawComponent;

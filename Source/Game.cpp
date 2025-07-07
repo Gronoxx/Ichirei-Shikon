@@ -20,10 +20,12 @@
 #include "Actors/FlyingDemon.h"
 #include "Actors/Trigger.h"
 #include "Actors/Spawner.h"
+#include "Actors/BlockSpriteSheet.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
-#include "Components/DrawComponents/DrawAnimatedComponent.h"
 #include "Components/ColliderComponents/AABBColliderComponent.h"
+#include "Components/DrawComponents/DrawAnimatedComponent.h"
+#include "Actors/InvisibleBlock.h"
 
 const float BOSS_LEVEL_WIDTH = 938.0f;
 const float BOSS_LEVEL_HEIGHT = 366.0f;
@@ -251,6 +253,10 @@ void Game::ChangeScene()
         SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
 
         LoadLevel("Assets/Levels/Level2.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
+    }
+    else if (mNextScene == GameScene::Level2)
+    {
+        LoadBossLevel();
     }
 
     // Set a new scene
@@ -611,24 +617,60 @@ void Game::UpdateLevelTime(const float deltaTime)
     }
 
     if (static_cast<float>(mGameTimeLimit) <= 0.0f) {
-        if (mPlayer) mPlayer->Kill();
+        mPlayer->Kill();
     }
 }
 
 void Game::UpdateCamera()
 {
-    if (!mPlayer) return;
-
-    float horizontalCameraPos = mPlayer->GetPosition().x - (static_cast<float>(mWindowWidth) / 2.0f);
-
-    if (horizontalCameraPos > mCameraPos.x && !mIsCameraLocked)
+    // Etapa 0: Verificações iniciais
+    if (!mPlayer || mIsCameraLocked)
     {
-        // Limit the camera to the right side of the level
-        const float maxCameraPos = static_cast<float>(LEVEL_WIDTH * TILE_SIZE) - static_cast<float>(mWindowWidth);
-        horizontalCameraPos = Math::Clamp(horizontalCameraPos, 0.0f, maxCameraPos);
-
-        mCameraPos.x = horizontalCameraPos;
+        return;
     }
+
+    // ETAPA 1 e 2: A lógica da "Dead Zone" para calcular cameraDelta permanece a mesma.
+    // ... (código da dead zone que você já tem) ...
+    const Vector2 playerWorldCenter(mPlayer->GetPosition().x + (Game::TILE_SIZE / 2.0f), mPlayer->GetPosition().y + (Game::TILE_SIZE / 2.0f));
+    const Vector2 playerScreenCenter(playerWorldCenter.x - mCameraPos.x, playerWorldCenter.y - mCameraPos.y);
+    const float DEAD_ZONE_PERCENT_X = 0.4f;
+    const float DEAD_ZONE_PERCENT_Y = 0.3f;
+    const float deadZoneWidth = static_cast<float>(mWindowWidth) * DEAD_ZONE_PERCENT_X;
+    const float deadZoneHeight = static_cast<float>(mWindowHeight) * DEAD_ZONE_PERCENT_Y;
+    const float deadZoneLeft = (static_cast<float>(mWindowWidth) - deadZoneWidth) / 2.0f;
+    const float deadZoneRight = deadZoneLeft + deadZoneWidth;
+    const float deadZoneTop = (static_cast<float>(mWindowHeight) - deadZoneHeight) / 2.0f;
+    const float deadZoneBottom = deadZoneTop + deadZoneHeight;
+    Vector2 cameraDelta = Vector2::Zero;
+    if (playerScreenCenter.x < deadZoneLeft) { cameraDelta.x = playerScreenCenter.x - deadZoneLeft; }
+    else if (playerScreenCenter.x > deadZoneRight) { cameraDelta.x = playerScreenCenter.x - deadZoneRight; }
+    if (playerScreenCenter.y < deadZoneTop) { cameraDelta.y = playerScreenCenter.y - deadZoneTop; }
+    else if (playerScreenCenter.y > deadZoneBottom) { cameraDelta.y = playerScreenCenter.y - deadZoneBottom; }
+
+
+    // --- ETAPA 3: APLICAR O MOVIMENTO E LIMITES (VERSÃO CORRIGIDA) ---
+
+    // Aplica o movimento desejado à câmera
+    mCameraPos.x += cameraDelta.x;
+    mCameraPos.y += cameraDelta.y;
+
+    // Calcula os limites da câmera usando as variáveis do nível ATUAL
+    const float minCameraX = mCurrentLevelOffset.x;
+    const float minCameraY = mCurrentLevelOffset.y;
+    const float maxCameraX = mCurrentLevelOffset.x + mCurrentLevelPixelWidth - static_cast<float>(mWindowWidth);
+    const float maxCameraY = mCurrentLevelOffset.y + mCurrentLevelPixelHeight - static_cast<float>(mWindowHeight);
+
+    // Garante que a câmera não saia dos limites do nível.
+    // Esta lógica funciona para níveis grandes e pequenos (centralizados).
+    mCameraPos.x = Math::Clamp(mCameraPos.x, minCameraX, (maxCameraX < minCameraX ? minCameraX : maxCameraX));
+    mCameraPos.y = Math::Clamp(mCameraPos.y, minCameraY, (maxCameraY < minCameraY ? minCameraY : maxCameraY));
+
+    // --- ETAPA 4: LOG DE DEPURAÇÃO ---
+    SDL_Log("--- Frame Câmera ---");
+    SDL_Log("Offset Nível: (%.2f, %.2f)", mCurrentLevelOffset.x, mCurrentLevelOffset.y);
+    SDL_Log("Câmera Limites Y: Min=%.2f, Max=%.2f", minCameraY, maxCameraY);
+    SDL_Log("Pos Final Câmera: (%.2f, %.2f)", mCameraPos.x, mCameraPos.y);
+    SDL_Log("----------------------\n");
 }
 
 void Game::UpdateActors(float deltaTime)
@@ -648,6 +690,7 @@ void Game::UpdateActors(float deltaTime)
 
     for (auto actor : actorsOnCamera)
         actor->Update(deltaTime);
+
 
     std::vector<Actor*> actorsToDestroy;
     for (auto actor : actorsOnCamera)
@@ -881,4 +924,108 @@ void Game::Shutdown()
     SDL_DestroyRenderer(mRenderer);
     SDL_DestroyWindow(mWindow);
     SDL_Quit();
+}
+
+void Game::CreateLevelBoundaries(int levelWidthInTiles, int levelHeightInTiles, const Vector2& offset)
+{
+    const float TILE_SIZE_F = static_cast<float>(TILE_SIZE);
+    float levelWidthPixels = levelWidthInTiles * TILE_SIZE_F;
+    float levelHeightPixels = levelHeightInTiles * TILE_SIZE_F;
+
+    // Barreiras superior e inferior
+    for (int x = -1; x <= levelWidthInTiles; ++x)
+    {
+        // Posição relativa ao canto + deslocamento
+        Vector2 topPos(x * TILE_SIZE_F + offset.x, -TILE_SIZE_F + offset.y);
+        auto* topBlock = new InvisibleBlock(this);
+        topBlock->SetPosition(topPos);
+
+        Vector2 bottomPos(x * TILE_SIZE_F + offset.x, levelHeightPixels + offset.y);
+        auto* bottomBlock = new InvisibleBlock(this);
+        bottomBlock->SetPosition(bottomPos);
+    }
+
+    // Barreiras laterais
+    for (int y = 0; y < levelHeightInTiles; ++y)
+    {
+        Vector2 leftPos(-TILE_SIZE_F + offset.x, y * TILE_SIZE_F + offset.y);
+        auto* leftBlock = new InvisibleBlock(this);
+        leftBlock->SetPosition(leftPos);
+
+        Vector2 rightPos(levelWidthPixels + offset.x, y * TILE_SIZE_F + offset.y);
+        auto* rightBlock = new InvisibleBlock(this);
+        rightBlock->SetPosition(rightPos);
+    }
+}
+
+// Em Game.cpp
+// Em Game.cpp
+void Game::LoadBossLevel()
+{
+    // Dimensões do nível do chefe
+    mCurrentLevelPixelWidth = BOSS_LEVEL_WIDTH;
+    mCurrentLevelPixelHeight = BOSS_LEVEL_HEIGHT;
+
+    // --- AJUSTE DE POSICIONAMENTO ---
+    const float verticalBias = 10.0f; // Ajuste para empurrar a arena para baixo
+
+    // Calcula o deslocamento para centralizar a arena
+    mCurrentLevelOffset.x = (static_cast<float>(mWindowWidth) - mCurrentLevelPixelWidth) / 2.0f;
+    mCurrentLevelOffset.y = (static_cast<float>(mWindowHeight) - mCurrentLevelPixelHeight) / 2.0f + verticalBias;
+
+    // Garante que o offset não seja negativo
+    if (mCurrentLevelOffset.x < 0.0f) mCurrentLevelOffset.x = 0.0f;
+    if (mCurrentLevelOffset.y < 0.0f) mCurrentLevelOffset.y = 0.0f;
+
+    // --- ETAPA CRÍTICA: TRAVAR A CÂMERA NA ORIGEM ---
+    mCameraPos = Vector2::Zero;
+    // mIsCameraLocked = true; // Impede que UpdateCamera mova a câmera
+
+    // --- Configurações de Áudio e HUD ---
+    mAudio->StopAllSounds();
+    mAudio->PlayMusic("FinalFight_FullConfesion.mp3", true, 13);
+    if (!mHUD) { mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer); }
+    mGameTimeLimit = 999;
+
+    // --- Configurar o Cenário (com offset) ---
+    SetBackgroundImage("Assets/Sprites/spr_chinatown_backroom_bg.png",
+                       mCurrentLevelOffset, // Posição no mundo
+                       Vector2(mCurrentLevelPixelWidth, mCurrentLevelPixelHeight));
+
+    const int widthInTiles = static_cast<int>(ceil(mCurrentLevelPixelWidth / TILE_SIZE));
+    const int heightInTiles = static_cast<int>(ceil(mCurrentLevelPixelHeight / TILE_SIZE));
+    CreateLevelBoundaries(widthInTiles, heightInTiles, mCurrentLevelOffset);
+    CreateArenaFloorAndCeiling(mCurrentLevelPixelWidth, mCurrentLevelPixelHeight, mCurrentLevelOffset);
+
+    // --- Criar Jogador e Chefe (com offset) ---
+    mPlayer = new Player(this);
+    mPlayer->SetPosition(Vector2(100.0f, mCurrentLevelPixelHeight - (3.0f * TILE_SIZE)) + mCurrentLevelOffset);
+
+    auto* boss = new DemonBoss(this);
+    boss->SetPosition(Vector2(mCurrentLevelPixelWidth - (6.0f * TILE_SIZE), mCurrentLevelPixelHeight - (4.0f * TILE_SIZE)) + mCurrentLevelOffset);
+}
+
+// Em Game.cpp
+void Game::CreateArenaFloorAndCeiling(float arenaWidth, float arenaHeight, const Vector2& arenaOffset)
+{
+    const float TILE_SIZE_F = static_cast<float>(TILE_SIZE);
+    const int tilesAcross = static_cast<int>(arenaWidth / TILE_SIZE_F);
+
+    // Cria a fileira superior (teto)
+    for (int i = 0; i <= tilesAcross; ++i)
+    {
+        auto* ceilingBlock = new InvisibleBlock(this);
+        // Posição Y no topo da arena + offset
+        ceilingBlock->SetPosition(Vector2(i * TILE_SIZE_F + arenaOffset.x, arenaOffset.y));
+    }
+
+    // Cria a fileira inferior (chão)
+    for (int i = 0; i <= tilesAcross; ++i)
+    {
+        auto* floorBlock = new InvisibleBlock(this);
+        // Posição Y na base da arena, menos um tile de altura + offset
+        floorBlock->SetPosition(Vector2(i * TILE_SIZE_F + arenaOffset.x, arenaOffset.y + arenaHeight - TILE_SIZE_F));
+    }
+
+    SDL_Log("Chão e teto invisíveis da arena criados.");
 }
