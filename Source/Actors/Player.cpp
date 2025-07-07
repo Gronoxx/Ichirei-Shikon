@@ -139,7 +139,6 @@ void Player::HandleInput(const uint8_t* state, const SDL_Event* event) {
 
 void Player::OnUpdate(float deltaTime) {
     // Camera
-    mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
     mPosition.x = Math::Min(mPosition.x, mGame->GetCameraPos().x + mGame->GetWindowWidth() - Game::TILE_SIZE);
 
     if (mIsHurt) {
@@ -161,11 +160,6 @@ void Player::OnUpdate(float deltaTime) {
 
     if (!mIsOnGround && !mIsJumping) {
         mIsFalling = true;
-    }
-
-    // Death
-    if (mGame->GetGamePlayState() == Game::GamePlayState::Playing && mPosition.y > mGame->GetWindowHeight()) {
-        Kill();
     }
 
     //Stop
@@ -207,6 +201,48 @@ void Player::OnUpdate(float deltaTime) {
             mDrawComponent->SetAnimation("run");
         }
     }
+
+    std::vector<std::string> states;
+
+    if (mIsHurt) {
+        states.push_back("machucado");
+    }
+    if (mIsRolling) {
+        states.push_back("rolando");
+    }
+    if (mIsAttacking) {
+        states.push_back("atacando");
+    }
+    if (mIsJumping) {
+        states.push_back("pulando");
+    }
+    if (mIsFalling) {
+        states.push_back("caindo");
+    }
+    if (mIsRunning) {
+        states.push_back("correndo");
+    }
+    if (mIsStartingToRun) {
+        states.push_back("iniciando corrida");
+    }
+    if (!mIsRunning && mIsOnGround && !mIsRolling && !mIsJumping && !mIsFalling && !mIsAttacking && !mIsHurt) {
+        states.push_back("parado");
+    }
+
+    // Monta a string com os estados
+    std::string stateDesc;
+    for (size_t i = 0; i < states.size(); ++i) {
+        stateDesc += states[i];
+        if (i < states.size() - 1) {
+            stateDesc += ", ";
+        }
+    }
+
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Player está: %s | Posição: (%.2f, %.2f) | Velocidade: (%.2f, %.2f)",
+        stateDesc.c_str(),
+        mPosition.x, mPosition.y,
+        mRigidBodyComponent ? mRigidBodyComponent->GetVelocity().x : 0.0f,
+        mRigidBodyComponent ? mRigidBodyComponent->GetVelocity().y : 0.0f);
 
     ManageAnimations();
 }

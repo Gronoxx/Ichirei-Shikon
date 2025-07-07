@@ -321,15 +321,15 @@ void Game::BuildLevel(int** levelData, int width, int height)
             {8, "Assets/Sprites/Blocks/japan/woodengate2.png"}
     };
 
-    for (int y = 0; y < LEVEL_HEIGHT; ++y)
+    for (int y = 0; y < height; ++y)
     {
-        for (int x = 0; x < LEVEL_WIDTH; ++x)
+        for (int x = 0; x < width; ++x)
         {
             int tile = levelData[y][x];
 
             if(tile == 9) // Samurai
             {
-                mPlayer = new Player(this);
+                if (!mPlayer) mPlayer = new Player(this);
                 mPlayer->SetPosition(Vector2((static_cast<float>(x)) * TILE_SIZE, (static_cast<float>(y)) * TILE_SIZE));
             }
             if(tile == 11) // Flying Demon
@@ -642,25 +642,16 @@ void Game::UpdateCamera()
     // Esta lógica funciona para níveis grandes e pequenos (centralizados).
     mCameraPos.x = Math::Clamp(mCameraPos.x, minCameraX, (maxCameraX < minCameraX ? minCameraX : maxCameraX));
     mCameraPos.y = Math::Clamp(mCameraPos.y, minCameraY, (maxCameraY < minCameraY ? minCameraY : maxCameraY));
-
-    // --- ETAPA 4: LOG DE DEPURAÇÃO ---
-    SDL_Log("--- Frame Câmera ---");
-    SDL_Log("Offset Nível: (%.2f, %.2f)", mCurrentLevelOffset.x, mCurrentLevelOffset.y);
-    SDL_Log("Câmera Limites Y: Min=%.2f, Max=%.2f", minCameraY, maxCameraY);
-    SDL_Log("Pos Final Câmera: (%.2f, %.2f)", mCameraPos.x, mCameraPos.y);
-    SDL_Log("----------------------\n");
 }
 
 void Game::UpdateActors(float deltaTime)
 {
     std::vector<Actor*> actorsOnCamera;
-    // if (mGameScene == GameScene::Level1) {
-    //     actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
-    // }
-
     if (mGameScene == GameScene::Level1) {
-        SDL_Log(" Querying for Level2");
+         actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+    }
 
+    if (mGameScene == GameScene::Level2) {
         actorsOnCamera = mSpatialHashing->QueryOnCamera(Vector2{0, 0},
         BOSS_LEVEL_WIDTH,
         BOSS_LEVEL_HEIGHT);
