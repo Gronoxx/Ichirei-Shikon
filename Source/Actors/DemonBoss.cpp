@@ -7,7 +7,7 @@
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 
-const float JUMP_FORCE = 50000.0f;
+const float JUMP_FORCE = 23000.0f;
 const float JUMP_COOLDOWN = 2.5f;
 const int INITIAL_HEALTH = 20;
 
@@ -24,12 +24,8 @@ DemonBoss::DemonBoss(Game *game, float attackCooldown, float unvulnerableCooldow
       , mHealth(INITIAL_HEALTH)
       , mIsGrounded(true)
       , mIsFacingLeft(true) {
-
-    float size = Game::TILE_SIZE * 3.0f;
-
     // Set up physics
-    mRigidBodyComponent = new RigidBodyComponent(this, 1.5f, 10.0f, true);
-    // mColliderComponent = new AABBColliderComponent(this, 0, 0, size, size - 10, ColliderLayer::Boss);
+    mRigidBodyComponent = new RigidBodyComponent(this, 2.8f, 10.0f, true);
 
     // Set up animations
     std::vector<Vector2> vertices;
@@ -119,8 +115,6 @@ void DemonBoss::UpdateWaiting(float deltaTime) {
     auto playerPos = mGame->GetPlayer()->GetPosition();
 
     if (playerPos.x - mPosition.x < mGame->GetWindowWidth() - Game::TILE_SIZE * 10) {
-        SDL_Log("Boss: stop waiting");
-
         mCurrentState = State::Moving;
         mGame->LockCamera();
     }
@@ -162,6 +156,13 @@ void DemonBoss::SpawnMinions() {
 }
 
 void DemonBoss::ManageAnimations() {
+    if (!mIsGrounded) {
+        mDrawComponent->SetAnimation("jump");
+    } else if (mAttackTimer <= mVulnerableCooldown) {
+        mDrawComponent->SetAnimation("invoking");
+    } else {
+        mDrawComponent->SetAnimation("idle");
+    }
 }
 
 bool DemonBoss::IsSamuraiOnLeft() const {
@@ -252,7 +253,9 @@ void DemonBoss::OnVerticalCollision(const float minOverlap, AABBColliderComponen
     AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
 
     if (owner && collider->GetLayer() == ColliderLayer::Blocks) {
-        mIsGrounded = true;
-        mRigidBodyComponent->SetApplyFriction(true);
+        if (minOverlap > 0.0f) {
+            mIsGrounded = true;
+            mRigidBodyComponent->SetApplyFriction(true);
+        }
     }
 }
