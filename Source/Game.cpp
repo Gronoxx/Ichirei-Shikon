@@ -237,7 +237,7 @@ void Game::ChangeScene()
         mGameTimeLimit = 400;
 
         mAudio->StopAllSounds();
-        mAudio->PlayMusic("FinalFight_Inferia.mp3",true,13);
+        mAudio->PlayMusic("FinalFight_FullConfession.mp3",true,13);
 
         // Set background color
         mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
