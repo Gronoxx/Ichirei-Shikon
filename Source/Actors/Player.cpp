@@ -252,6 +252,9 @@ void Player::Kill() {
     mGame->GetAudio()->StopAllSounds();
     mGame->GetAudio()->PlaySound("Dead.wav");
 
+    auto screen = new UIScreen(mGame, "Assets/Fonts/SMB.ttf");
+    screen->AddImage("Assets/Sprites/Death.png", Vector2(0,150), Vector2(640,108));
+
     mGame->ResetGameScene(3.5f); // Reset the game scene after 3 seconds
     mGame->UnlockCamera();
 }
