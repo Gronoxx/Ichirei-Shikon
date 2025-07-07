@@ -52,20 +52,39 @@ UIHud::~UIHud()
 
 void UIHud::TakeDamage()
 {
+    // Garante que há barras para remover
     if (!mBatteryBars.empty())
     {
-        const auto* lastBar = mBatteryBars.back();
-        mBatteryBars.pop_back();
+        // Pega o ponteiro da barra principal (azul) que queremos remover
+        UIRect* mainBar = mBatteryBars.back();
+        mBatteryBars.pop_back(); // Remove da lista de controle
 
-        // Remove também da lista interna de retângulos
-        if (const auto it = std::find(mRects.begin(), mRects.end(), lastBar); it != mRects.end())
-            mRects.erase(it); // Remove o ponteiro da lista
+        // Encontra a barra principal na lista geral de retângulos a serem desenhados
+        auto it = std::find(mRects.begin(), mRects.end(), mainBar);
 
-        delete lastBar;
+        // Se encontrou a barra E existe um elemento logo após ela (o brilho)
+        if (it != mRects.end() && (it + 1) != mRects.end())
+        {
+            // O brilho é o próximo elemento. Guarda o ponteiro dele.
+            UIRect* shineBar = *(it + 1);
+
+            // Apaga AMBOS os retângulos da lista de desenho.
+            // É importante apagar na ordem inversa para não invalidar o iterador 'it'.
+            // Primeiro o brilho (it + 1), depois a barra principal (it).
+            mRects.erase(it + 1);
+            mRects.erase(it);
+
+            // Deleta os objetos da memória para evitar memory leak
+            delete shineBar;
+            delete mainBar;
+        }
+
+        // Atualiza o contador lógico de barras, se for maior que zero
+        if (currentBars > 0)
+        {
+            currentBars--;
+        }
     }
-
-    // Atualiza contador lógico
-    currentBars--;
 }
 
 void UIHud::Update(const float deltaTime) {

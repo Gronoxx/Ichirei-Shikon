@@ -26,6 +26,7 @@
 #include "Components/ColliderComponents/AABBColliderComponent.h"
 #include "Components/DrawComponents/DrawAnimatedComponent.h"
 #include "Actors/InvisibleBlock.h"
+#include "Components/ColliderComponents/PolygonColliderComponent.h"
 
 Game::Game(const int windowWidth, const int windowHeight)
         :mSceneManagerState(SceneManagerState::None)
@@ -328,6 +329,8 @@ void Game::LoadLevel(const LevelData& data)
     int tileSize = 32;
     int spritesheetColumns = 16;
 
+    CreateLevelBoundaries(data.width, data.height);
+
     // Carrega a camada de fundo (background)
     LoadTilemapLayer(data.backgroundTilemapFile, data.backgroundSpritesheet, tileSize, spritesheetColumns, 5);
 
@@ -350,7 +353,7 @@ void Game::BuildLevel(const std::vector<std::vector<int>>& levelData)
                 mPlayer->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
                 if (auto* drawComp = mPlayer->GetComponent<DrawAnimatedComponent>())
                 {
-                    drawComp->SetDrawOrder(10);
+                    drawComp->SetDrawOrder(20);
                 }
             }
             else if (tile == 11) // Flying Demon
@@ -575,18 +578,94 @@ void Game::UpdateLevelTime(const float deltaTime)
 
 void Game::UpdateCamera()
 {
-    if (!mPlayer) return;
-
-    float horizontalCameraPos = mPlayer->GetPosition().x - (static_cast<float>(mWindowWidth) / 2.0f);
-
-    if (horizontalCameraPos > mCameraPos.x && !mIsCameraLocked)
+    // Etapa 0: Verificações iniciais
+    if (!mPlayer || mIsCameraLocked)
     {
-        // Limit the camera to the right side of the level
-        const float maxCameraPos = static_cast<float>(LEVEL_WIDTH * TILE_SIZE) - static_cast<float>(mWindowWidth);
-        horizontalCameraPos = Math::Clamp(horizontalCameraPos, 0.0f, maxCameraPos);
-
-        mCameraPos.x = horizontalCameraPos;
+        return;
     }
+
+    // --- ETAPA 1: DEFINIR COORDENADAS E ZONAS ---
+
+    // Posição do centro do jogador nas coordenadas do MUNDO
+    const Vector2 playerWorldCenter(
+        mPlayer->GetPosition().x + (Game::TILE_SIZE / 2.0f),
+        mPlayer->GetPosition().y + (Game::TILE_SIZE / 2.0f)
+    );
+
+    // Posição do centro do jogador na TELA.
+    // Esta é a chave: convertemos a posição do jogador para o mesmo
+    // sistema de coordenadas da nossa "dead zone".
+    const Vector2 playerScreenCenter(
+        playerWorldCenter.x - mCameraPos.x,
+        playerWorldCenter.y - mCameraPos.y
+    );
+
+    // Definição da "Dead Zone" (Caixa Invisível no centro da tela)
+    // Usamos porcentagens da tela para que funcione em qualquer resolução.
+    const float DEAD_ZONE_PERCENT_X = 0.4f; // 40% da largura da tela
+    const float DEAD_ZONE_PERCENT_Y = 0.3f; // 30% da altura da tela
+
+    const float deadZoneWidth = static_cast<float>(mWindowWidth) * DEAD_ZONE_PERCENT_X;
+    const float deadZoneHeight = static_cast<float>(mWindowHeight) * DEAD_ZONE_PERCENT_Y;
+
+    // Coordenadas da Dead Zone NA TELA (valores fixos em relação à janela)
+    const float deadZoneLeft = (static_cast<float>(mWindowWidth) - deadZoneWidth) / 2.0f;
+    const float deadZoneRight = deadZoneLeft + deadZoneWidth;
+    const float deadZoneTop = (static_cast<float>(mWindowHeight) - deadZoneHeight) / 2.0f;
+    const float deadZoneBottom = deadZoneTop + deadZoneHeight;
+
+
+    // --- ETAPA 2: CALCULAR O MOVIMENTO NECESSÁRIO ---
+
+    // `cameraDelta` guarda o quanto a câmera precisa se mover neste frame.
+    // Começamos com zero.
+    Vector2 cameraDelta = Vector2::Zero;
+
+    // Lógica Horizontal (usando as coordenadas de tela)
+    if (playerScreenCenter.x < deadZoneLeft)
+    {
+        cameraDelta.x = playerScreenCenter.x - deadZoneLeft;
+    }
+    else if (playerScreenCenter.x > deadZoneRight)
+    {
+        cameraDelta.x = playerScreenCenter.x - deadZoneRight;
+    }
+
+    // Lógica Vertical (usando as coordenadas de tela)
+    if (playerScreenCenter.y < deadZoneTop)
+    {
+        // O jogador está acima da zona, então o delta é negativo (move a câmera para cima)
+        cameraDelta.y = playerScreenCenter.y - deadZoneTop;
+    }
+    else if (playerScreenCenter.y > deadZoneBottom)
+    {
+        // O jogador está abaixo da zona, então o delta é positivo (move a câmera para baixo)
+        cameraDelta.y = playerScreenCenter.y - deadZoneBottom;
+    }
+
+    // --- ETAPA 3: APLICAR O MOVIMENTO E LIMITES ---
+
+    // Aplica o movimento calculado diretamente (sem suavização por enquanto)
+    mCameraPos.x += cameraDelta.x;
+    mCameraPos.y += cameraDelta.y;
+
+    // Garante que a câmera não saia dos limites do nível
+    const float maxCameraX = static_cast<float>(LEVEL_WIDTH * TILE_SIZE) - static_cast<float>(mWindowWidth);
+    const float maxCameraY = static_cast<float>(LEVEL_HEIGHT * TILE_SIZE) - static_cast<float>(mWindowHeight);
+
+    mCameraPos.x = Math::Clamp(mCameraPos.x, 0.0f, maxCameraX);
+    mCameraPos.y = Math::Clamp(mCameraPos.y, 0.0f, maxCameraY);
+
+
+    // --- ETAPA 4: LOG DE DEPURAÇÃO DETALHADO ---
+    // Este log é a ferramenta mais importante agora.
+    SDL_Log("--- Frame Câmera ---");
+    SDL_Log("Player [Mundo]: (%.2f, %.2f)", playerWorldCenter.x, playerWorldCenter.y);
+    SDL_Log("Player [Tela]:  (%.2f, %.2f)", playerScreenCenter.x, playerScreenCenter.y);
+    SDL_Log("Dead Zone Y [Tela]: Top=%.2f, Bottom=%.2f", deadZoneTop, deadZoneBottom);
+    SDL_Log(">> Delta Câmera Y Calculado: %.2f", cameraDelta.y); // O valor mais importante!
+    SDL_Log("Pos Final Câmera: (%.2f, %.2f)", mCameraPos.x, mCameraPos.y);
+    SDL_Log("----------------------\n");
 }
 
 void Game::UpdateActors(float deltaTime)
@@ -830,6 +909,24 @@ void Game::Shutdown()
     SDL_Quit();
 }
 
+bool IsCollisionExempt(int tileID)
+{
+    // Verifica se o ID está na primeira faixa (240 a 271)
+    if (tileID >= 240 && tileID <= 271) {
+        return true;
+    }
+    // Verifica se o ID está na segunda faixa (288 a 303)
+    if (tileID >= 288 && tileID <= 303) {
+        return true;
+    }
+    // Verifica se o ID está na terceira faixa (304 a 319)
+    if (tileID >= 304 && tileID <= 319) {
+        return true;
+    }
+    // Se não estiver em nenhuma das faixas, não é isento
+    return false;
+}
+
 void Game::LoadTilemapLayer(const std::string& csvPath,
                             const std::string& spritesheetPath,
                             int tileSize,
@@ -863,7 +960,7 @@ void Game::LoadTilemapLayer(const std::string& csvPath,
                                                               tileSize,
                                                               spritesheetColumns,
                                                               drawOrder);
-                if (drawOrder == 15)
+                if (drawOrder == 15 && !IsCollisionExempt(currentTileID))
                 {
                     auto* solidBlock = new InvisibleBlock(this);
                     solidBlock->SetPosition(Vector2(x * tileSize, y * tileSize));
@@ -954,4 +1051,37 @@ std::vector<std::vector<int>> Game::LoadMapFromCSV(const std::string& filePath)
 
     file.close();
     return mapData;
+}
+
+void Game::CreateLevelBoundaries(int levelWidthInTiles, int levelHeightInTiles)
+{
+    const float TILE_SIZE_F = static_cast<float>(TILE_SIZE);
+
+    // Cria as barreiras horizontais (superior e inferior)
+    // O loop vai de -1 a levelWidth para garantir que os cantos sejam cobertos.
+    for (int x = -1; x <= levelWidthInTiles; ++x)
+    {
+        // Barreira superior (acima da área visível)
+        auto* topBlock = new InvisibleBlock(this);
+        topBlock->SetPosition(Vector2(x * TILE_SIZE_F, -TILE_SIZE_F));
+
+        // Barreira inferior (abaixo da área visível)
+        auto* bottomBlock = new InvisibleBlock(this);
+        bottomBlock->SetPosition(Vector2(x * TILE_SIZE_F, levelHeightInTiles * TILE_SIZE_F));
+    }
+
+    // Cria as barreiras verticais (esquerda e direita)
+    // O loop vai de 0 a height-1, pois os cantos já foram criados.
+    for (int y = 0; y < levelHeightInTiles; ++y)
+    {
+        // Barreira esquerda
+        auto* leftBlock = new InvisibleBlock(this);
+        leftBlock->SetPosition(Vector2(-TILE_SIZE_F, y * TILE_SIZE_F));
+
+        // Barreira direita
+        auto* rightBlock = new InvisibleBlock(this);
+        rightBlock->SetPosition(Vector2(levelWidthInTiles * TILE_SIZE_F, y * TILE_SIZE_F));
+    }
+
+    SDL_Log("Barreiras invisiveis criadas ao redor do nivel (%d x %d).", levelWidthInTiles, levelHeightInTiles);
 }

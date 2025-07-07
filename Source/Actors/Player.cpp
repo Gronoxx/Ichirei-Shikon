@@ -139,7 +139,6 @@ void Player::HandleInput(const uint8_t* state, const SDL_Event* event) {
 
 void Player::OnUpdate(float deltaTime) {
     // Camera
-    mPosition.x = Math::Max(mPosition.x, mGame->GetCameraPos().x);
     mPosition.x = Math::Min(mPosition.x, mGame->GetCameraPos().x + mGame->GetWindowWidth() - Game::TILE_SIZE);
 
     if (mIsHurt) {
@@ -161,11 +160,6 @@ void Player::OnUpdate(float deltaTime) {
 
     if (!mIsOnGround && !mIsJumping) {
         mIsFalling = true;
-    }
-
-    // Death
-    if (mGame->GetGamePlayState() == Game::GamePlayState::Playing && mPosition.y > mGame->GetWindowHeight()) {
-        Kill();
     }
 
     //Stop
