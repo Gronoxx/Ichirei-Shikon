@@ -135,9 +135,14 @@ public:
 
     // Set Pause Menu State
     void SetPauseMenuState(const bool state) { mIsPauseMenuActive = state; }
-    void CreateLevelBoundaries(int levelWidthInTiles, int levelHeightInTiles);
+
+    float GetLevelPixelWidth() const { return mCurrentLevelPixelWidth; }
+    float GetLevelPixelHeight() const { return mCurrentLevelPixelHeight; }
+    const Vector2& GetLevelOffset() const { return mCurrentLevelOffset; }
 
 private:
+    void CreateLevelBoundaries(int levelWidthInTiles, int levelHeightInTiles, const Vector2& offset = Vector2::Zero);
+    void LoadBossLevel();
     void ProcessInput();
     void UpdateGame();
     void UpdateCamera();
@@ -206,4 +211,9 @@ private:
 
     // Pause menu
     bool mIsPauseMenuActive;
+
+    float mCurrentLevelPixelWidth;
+    float mCurrentLevelPixelHeight;
+    Vector2 mCurrentLevelOffset;
+    void CreateArenaFloorAndCeiling(float arenaWidth, float arenaHeight, const Vector2& arenaOffset); // <-- ADICIONE ESTA LINHA
 };
