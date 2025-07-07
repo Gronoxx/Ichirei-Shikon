@@ -59,7 +59,7 @@ void FlyingDemon::OnUpdate(float deltaTime) {
         mWorkingTime += deltaTime;
 
         // Check if it's time to fly away
-        if (mShootsMade >= 3) {
+        if (mShootsMade >= 5) {
             StartFlyingAway();
         } else {
             UpdateWorkingMode(deltaTime);

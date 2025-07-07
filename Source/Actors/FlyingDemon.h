@@ -19,7 +19,7 @@ public:
 
 private:
     static const int POLE_SLIDE_TIME = 1; // Time in seconds to slide down the pole
-    const float ATTACK_TIME = 3.5f;
+    const float ATTACK_TIME = 2.5f;
 
     void ManageAnimations();
     void UpdateWorkingMode(float deltaTime);
