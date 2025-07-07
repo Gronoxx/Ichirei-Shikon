@@ -6,7 +6,7 @@
 
 #include "Player.h"
 #include "../Game.h"
-#include "../Actors/Goomba.h"
+#include "../Actors/Ghost.h"
 #include "../Components/DrawComponents/DrawSpriteComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
@@ -33,16 +33,6 @@ void Block::OnUpdate(float deltaTime)
 
 void Block::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other)
 {
-    // If collide against enemy, apply bump force
-    if (other->GetLayer() == ColliderLayer::Enemy)
-    {
-        Goomba* goomba = static_cast<Goomba*>(other->GetOwner());
-        goomba->BumpKill();
-
-        mRigidBodyComponent->SetVelocity(Vector2::NegUnitY * BUMP_FORCE);
-        mRigidBodyComponent->SetApplyGravity(true);
-        mOriginalPosition.Set(mPosition.x, mPosition.y);
-    }
 
 }
 

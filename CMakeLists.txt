@@ -27,7 +27,7 @@ add_executable(${PROJECT_NAME}
         Source/Components/ColliderComponents/AABBColliderComponent.cpp
         Source/Components/DrawComponents/DrawAnimatedComponent.cpp
         Source/Actors/Block.cpp
-        Source/Actors/Goomba.cpp
+        Source/Actors/Ghost.cpp
         Source/Actors/Spawner.cpp
         Source/Actors/FlyingDemon.cpp
         Source/Actors/Particle.cpp
@@ -52,6 +52,8 @@ add_executable(${PROJECT_NAME}
         Source/Actors/BlockSpriteSheet.h
         Source/Actors/InvisibleBlock.cpp
         Source/Actors/InvisibleBlock.h
+        Source/PerlinNoise.h
+        Source/PerlinNoise.cpp
 )
 
 # Inclui os diretórios de cabeçalho para que o compilador os encontre
