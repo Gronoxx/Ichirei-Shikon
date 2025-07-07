@@ -7,7 +7,7 @@
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
 #include "../Components/DrawComponents/DrawPolygonComponent.h"
 
-const float JUMP_FORCE = 23000.0f;
+const float JUMP_FORCE = 43000.0f;
 const float JUMP_COOLDOWN = 2.5f;
 const int INITIAL_HEALTH = 20;
 
@@ -86,7 +86,7 @@ void DemonBoss::OnUpdate(float deltaTime) {
         mRigidBodyComponent->SetVelocity(velocity);
     }
 
-    mPosition.x = Math::Clamp(mPosition.x, minX, maxX);
+    // mPosition.x = Math::Clamp(mPosition.x, minX, maxX);
 }
 
 void DemonBoss::UpdateMoving(float deltaTime) {
@@ -101,13 +101,10 @@ void DemonBoss::UpdateMoving(float deltaTime) {
 
     FaceTowardsSamurai();
 
-    if (mAttackTimer >= mAttackCooldown) {
-        StartAttack();
-        return;
-    }
-
     if (CanJump()) {
         Jump(true);
+    } else if (mAttackTimer >= mAttackCooldown) {
+        StartAttack();
     }
 }
 
@@ -152,13 +149,14 @@ void DemonBoss::SpawnMinions() {
         // Adicionamos um pouco de margem (padding) para não irem direto para as bordas.
         const float padding = Game::TILE_SIZE * 2.0f;
         float targetX = Random::GetFloatRange(levelLeft + padding, levelRight - padding);
-        float targetY = Random::GetFloatRange(levelTop + padding, levelTop + levelHeight / 2.0f); // Mira na metade superior da arena
+        float targetY = Random::GetFloatRange(levelTop + padding, levelTop + levelHeight / 2.0f);
+        // Mira na metade superior da arena
 
         Vector2 targetPos(targetX, targetY);
 
         // Cria e posiciona o lacaio
         auto *minion = new FlyingDemon(mGame, targetPos, 6.0f, 400.0f);
-        minion->SetPosition(Vector2(spawnX, spawnY));
+        minion->SetPosition(targetPos);
     }
 }
 
@@ -221,7 +219,11 @@ void DemonBoss::Jump(bool towardsPlayer) {
 }
 
 bool DemonBoss::CanJump() const {
-    return mIsGrounded && mJumpTimer <= 0.0f;
+    Vector2 cameraPos = mGame->GetCameraPos();
+    float minX = cameraPos.x + Game::TILE_SIZE * 0.1f;
+    float maxX = cameraPos.x + mGame->GetWindowWidth() - Game::TILE_SIZE * 3.0f;
+
+    return mIsGrounded && mJumpTimer <= 0.0f || mIsGrounded && mPosition.x < minX || mIsGrounded && mPosition.x > maxX;
 }
 
 void DemonBoss::Kill() {

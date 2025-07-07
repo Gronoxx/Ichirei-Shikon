@@ -29,6 +29,26 @@
       ],
       "fps": 10.0
     },
+    "spawn": {
+      "texturePath": "Assets/Sprites/FlyingDemon/Death/death.png",
+      "dataPath": "Assets/Sprites/FlyingDemon/Death/death.json",
+      "frameOrder": [
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        5,
+        4,
+        3,
+        2,
+        1,
+        0
+      ],
+      "fps": 10.0
+    },
     "flying": {
       "texturePath": "Assets/Sprites/FlyingDemon/Flying/flying.png",
       "dataPath": "Assets/Sprites/FlyingDemon/Flying/flying.json",

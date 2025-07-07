@@ -77,53 +77,53 @@ void FlyingDemon::OnUpdate(float deltaTime) {
 }
 
 void FlyingDemon::MoveToTargetPosition(float deltaTime) {
-    mEntranceTimer += deltaTime;
-
-    // Calculate direction and distance to the target
-    Vector2 direction = mTargetPosition - mPosition;
-    float distance = direction.Length();
-
-    // Check if we've arrived at the target position
-    if (distance <= mArrivalThreshold) {
-        mInWorkingMode = true;
-        mIsRunning = false;
-        mRigidBodyComponent->SetVelocity(Vector2::Zero); // Stop completely on arrival
-        return;
-    }
-
-    // --- SINUSOIDAL ENTRANCE ---
-    // Normalize the direction vector
-    if (distance > 0) {
-        direction.Normalize();
-    }
-
-    // Use a speed boost that decreases as the demon gets closer to the target
-    const float maxRushSpeed = mForwardSpeed * 0.75f;
-    const float minRushSpeed = mForwardSpeed * 0.3f;
-    const float decelerationRadius = 200.0f;
-    float speed;
-    if (distance > decelerationRadius) {
-        speed = maxRushSpeed;
-    } else {
-        speed = Math::Lerp(minRushSpeed, maxRushSpeed, distance / decelerationRadius);
-    }
-
-    // Calculate the sinusoidal velocity component
-    const float sineAmplitude = 40.0f; // How wide the wave is
-    const float sineFrequency = 2.0f; // How fast the wave oscillates
-    Vector2 perpendicularDir(-direction.y, direction.x);
-    float sinusoidalSpeed = sineAmplitude * sineFrequency * cos(mEntranceTimer * sineFrequency);
-
-    // Combine forward velocity with the sinusoidal velocity
-    Vector2 finalVelocity = (direction * speed) + (perpendicularDir * sinusoidalSpeed);
-    mRigidBodyComponent->SetVelocity(finalVelocity);
-
-    // Update facing direction based on movement
-    if (std::abs(direction.x) > 0.1f) {
-        mRotation = (direction.x < 0) ? 0.0f : Math::Pi;
-    }
-
-    mIsRunning = true;
+    // mEntranceTimer += deltaTime;
+    //
+    // // Calculate direction and distance to the target
+    // Vector2 direction = mTargetPosition - mPosition;
+    // float distance = direction.Length();
+    //
+    // // Check if we've arrived at the target position
+    // if (distance <= mArrivalThreshold) {
+    //     mInWorkingMode = true;
+    //     mIsRunning = false;
+    //     mRigidBodyComponent->SetVelocity(Vector2::Zero); // Stop completely on arrival
+    //     return;
+    // }
+    //
+    // // --- SINUSOIDAL ENTRANCE ---
+    // // Normalize the direction vector
+    // if (distance > 0) {
+    //     direction.Normalize();
+    // }
+    //
+    // // Use a speed boost that decreases as the demon gets closer to the target
+    // const float maxRushSpeed = mForwardSpeed * 0.75f;
+    // const float minRushSpeed = mForwardSpeed * 0.3f;
+    // const float decelerationRadius = 200.0f;
+    // float speed;
+    // if (distance > decelerationRadius) {
+    //     speed = maxRushSpeed;
+    // } else {
+    //     speed = Math::Lerp(minRushSpeed, maxRushSpeed, distance / decelerationRadius);
+    // }
+    //
+    // // Calculate the sinusoidal velocity component
+    // const float sineAmplitude = 40.0f; // How wide the wave is
+    // const float sineFrequency = 2.0f; // How fast the wave oscillates
+    // Vector2 perpendicularDir(-direction.y, direction.x);
+    // float sinusoidalSpeed = sineAmplitude * sineFrequency * cos(mEntranceTimer * sineFrequency);
+    //
+    // // Combine forward velocity with the sinusoidal velocity
+    // Vector2 finalVelocity = (direction * speed) + (perpendicularDir * sinusoidalSpeed);
+    // mRigidBodyComponent->SetVelocity(finalVelocity);
+    //
+    // // Update facing direction based on movement
+    // if (std::abs(direction.x) > 0.1f) {
+    //     mRotation = (direction.x < 0) ? 0.0f : Math::Pi;
+    // }
+    //
+    // mIsRunning = true;
 }
 
 void FlyingDemon::StartFlyingAway() {
@@ -219,16 +219,32 @@ void FlyingDemon::UpdateWorkingMode(float deltaTime) {
 }
 
 void FlyingDemon::ManageAnimations() {
-
     if (mIsDying) {
         return;
     }
-    if (mAttackStart) {
+
+    if (!mInWorkingMode) {
+        mDrawComponent->SetAnimation("spawn");
+        mDrawComponent->SetLoop(false);
+
+        if (mDrawComponent->IsAnimationFinished()) {
+            mDrawComponent->SetAnimation("idle");
+            mDrawComponent->SetLoop(true);
+
+            mIsAttacking = true;
+            mAttackStart = true;
+            mAttackTimer = 1.0f;
+            mInWorkingMode = true;
+        }
+    } else if (mAttackStart) {
         mDrawComponent->SetAnimation("attack");
+        mDrawComponent->SetLoop(true);
     } else if (mIsRunning) {
         mDrawComponent->SetAnimation("flying");
+        mDrawComponent->SetLoop(true);
     } else {
         mDrawComponent->SetAnimation("idle");
+        mDrawComponent->SetLoop(true);
     }
 }
 

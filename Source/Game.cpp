@@ -28,6 +28,9 @@
 #include "Actors/InvisibleBlock.h"
 #include "Components/ColliderComponents/PolygonColliderComponent.h"
 
+const float BOSS_LEVEL_WIDTH = 938.0f;
+const float BOSS_LEVEL_HEIGHT = 366.0f;
+
 Game::Game(const int windowWidth, const int windowHeight)
         :mSceneManagerState(SceneManagerState::None)
         ,mSceneManagerTimer(0.0f)
@@ -621,10 +624,22 @@ void Game::UpdateCamera()
 
 void Game::UpdateActors(float deltaTime)
 {
-    auto actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+    std::vector<Actor*> actorsOnCamera;
+    // if (mGameScene == GameScene::Level1) {
+    //     actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+    // }
+
+    if (mGameScene == GameScene::Level1) {
+        SDL_Log(" Querying for Level2");
+
+        actorsOnCamera = mSpatialHashing->QueryOnCamera(Vector2{0, 0},
+        BOSS_LEVEL_WIDTH,
+        BOSS_LEVEL_HEIGHT);
+    }
 
     for (auto actor : actorsOnCamera)
         actor->Update(deltaTime);
+
 
     std::vector<Actor*> actorsToDestroy;
     for (auto actor : actorsOnCamera)
@@ -1041,8 +1056,8 @@ void Game::CreateLevelBoundaries(int levelWidthInTiles, int levelHeightInTiles, 
 void Game::LoadBossLevel()
 {
     // Dimensões do nível do chefe
-    mCurrentLevelPixelWidth = 938.0f;
-    mCurrentLevelPixelHeight = 366.0f;
+    mCurrentLevelPixelWidth = BOSS_LEVEL_WIDTH;
+    mCurrentLevelPixelHeight = BOSS_LEVEL_HEIGHT;
 
     // --- AJUSTE DE POSICIONAMENTO ---
     const float verticalBias = 10.0f; // Ajuste para empurrar a arena para baixo
@@ -1057,7 +1072,7 @@ void Game::LoadBossLevel()
 
     // --- ETAPA CRÍTICA: TRAVAR A CÂMERA NA ORIGEM ---
     mCameraPos = Vector2::Zero;
-    mIsCameraLocked = true; // Impede que UpdateCamera mova a câmera
+    // mIsCameraLocked = true; // Impede que UpdateCamera mova a câmera
 
     // --- Configurações de Áudio e HUD ---
     mAudio->StopAllSounds();
