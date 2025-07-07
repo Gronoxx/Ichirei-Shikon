@@ -5,56 +5,49 @@
 #include "../Components/DrawComponents/DrawAnimatedComponent.h"
 #include "../Components/RigidBodyComponent.h"
 #include "../Components/ColliderComponents/AABBColliderComponent.h"
-#include "../GameMath.h" // Para Math::Pi
+#include "../GameMath.h" // For Math constants
 #include "../Actors/Player.h"
 
-Ghost::Ghost(Game *game, float forwardSpeed, float deathTime)
-    : Actor(game)
-      , mDyingTimer(deathTime)
-      , mIsDying(false)
-      , mForwardSpeed(forwardSpeed)
-      , mSeekingRadius(250.0f)
-      , mPatrolRadius(150.0f) // Pode patrulhar até 150 pixels de distância do seu ponto inicial
-      , mPatrolDirectionChangeInterval(3.0f) // Muda de direção a cada 3 segundos
-      , mPatrolTimer(0.0f) // Começa com 0 para escolher uma direção imediatamente
-      , mCurrentPatrolDirection(Vector2::Zero)
-      , mRandomGenerator(std::random_device()()) // Semeia o gerador
-      , mDistribution(0.0f, Math::TwoPi)
-      , mCurrentState(GhostState::Patrolling)
-      , mRetreatTimer(0.0f)
-      , mSpawnGracePeriod(0.2f)
-      , mPerlin(std::random_device()())
-      , mNoiseInput(0.0f)
-      , mNoiseScale(0.7f) // Um bom valor para começar
-      , mNoiseStrength(0.8f)
-      , mTurnSpeed(4.0f)                // Um valor entre 3 e 8 costuma ser bom
-      , mOscillationFrequency(3.0f)
-      , mOscillationAmplitude(15.0f)
+Ghost::Ghost(Game* game, float patrolSpeed, float chasingSpeed, float deathTime)
+    : Actor(game),
+      mDyingTimer(deathTime),
+      mIsDying(false),
+      mPatrolSpeed(patrolSpeed),
+      mChasingSpeed(chasingSpeed),
+      mCurrentState(GhostState::Patrolling),
+      mSeePlayerDistance(200.0f),
+      mLosePlayerDistance(350.0f),
+      mSpawnGracePeriod(0.2f),
+      mPatrolRadius(50.0f),
+      mPerlin(std::random_device()()),
+      mNoiseInput(0.0f),
+      mNoiseScale(0.7f),
+      mNoiseStrength(0.8f),
+      mTurnSpeed(4.0f),
+      mOscillationFrequency(3.0f),
+      mOscillationAmplitude(15.0f)
 {
-    // A ordem de criação dos componentes está correta
+    // The order of component creation is important
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f);
-    mRigidBodyComponent->SetVelocity(Vector2(-mForwardSpeed, 0.0f));
+    mRigidBodyComponent->SetApplyGravity(false); // Ghosts don't fall
 
     mColliderComponent = new AABBColliderComponent(this, 0, 0,
                                                    Game::TILE_SIZE, Game::TILE_SIZE,
                                                    ColliderLayer::Enemy);
-    mRigidBodyComponent->SetApplyGravity(false);
 
     mDrawComponent = new DrawAnimatedComponent(this, 150);
-
     mDrawComponent->LoadCharacterAnimations("Assets/Sprites/Ghost/Ghost.json");
-
-    // Define a animação inicial
     mDrawComponent->SetAnimation("idle");
     SetScale(1.25);
 
-    mPatrolAnchorPoint = GetPosition();
+    // Set initial patrol state
+    mPatrolStartPoint = GetPosition();
+    mRigidBodyComponent->SetVelocity(Vector2(-mPatrolSpeed, 0.0f));
 }
 
 void Ghost::Kill() {
     mIsDying = true;
 
-    // Agora é simples: basta dizer o nome da animação a ser tocada.
     if (mDrawComponent) {
         mDrawComponent->SetAnimation("dying");
     }
@@ -63,14 +56,12 @@ void Ghost::Kill() {
     mColliderComponent->SetEnabled(false);
 }
 
-
-// O resto do Goomba.cpp (OnUpdate, colisões, etc.) permanece o mesmo.
 void Ghost::OnUpdate(float deltaTime) {
-    // Timers de controle
+    // Control timers
     if (mSpawnGracePeriod > 0.0f) mSpawnGracePeriod -= deltaTime;
     mNoiseInput += deltaTime;
 
-    // Lógica de Morte
+    // Death logic
     if (mIsDying) {
         mRigidBodyComponent->SetVelocity(Vector2::Zero);
         mDyingTimer -= deltaTime;
@@ -78,139 +69,101 @@ void Ghost::OnUpdate(float deltaTime) {
         return;
     }
 
-    // Se cair do mundo
+    // Fall out of the world
     if (GetPosition().y > GetGame()->GetWindowHeight() + 100) {
         mState = ActorState::Destroy;
     }
 
-    // Vira o sprite com base na direção da velocidade
+    // Flip sprite based on velocity direction
     if (mRigidBodyComponent->GetVelocity().x < -1.0f) {
-        mRotation = Math::Pi; // Esquerda
+        mRotation = Math::Pi; // Left
     } else if (mRigidBodyComponent->GetVelocity().x > 1.0f) {
-        mRotation = 0; // Direita
+        mRotation = 0; // Right
     }
 
-    // --- LÓGICA DA MÁQUINA DE ESTADOS ---
+    // --- STATE MACHINE LOGIC ---
 
     Player* player = GetGame()->GetPlayer();
     Vector2 ghostPos = GetPosition();
-    Vector2 playerPos = player ? player->GetPosition() : ghostPos;
-    float distance = player && player->GetState() == ActorState::Active ? (playerPos - ghostPos).Length() : mSeekingRadius + 1.0f;
+    float distanceToPlayer = mSeePlayerDistance + 1.0f; // Default distance if no player
 
-    // 1. VERIFICA TRANSIÇÕES DE ESTADO
-    if (mCurrentState == GhostState::Pursuing && distance >= mSeekingRadius) {
-        mCurrentState = GhostState::Retreating;
-        mRetreatTimer = 1.5f; // Duração do recuo
-    }
-    else if (mCurrentState == GhostState::Retreating) {
-        mRetreatTimer -= deltaTime;
-        if (mRetreatTimer <= 0.0f) {
-            mCurrentState = GhostState::Patrolling;
-            mPatrolAnchorPoint = GetPosition();
-        }
-    }
-    else if (distance < mSeekingRadius && mCurrentState != GhostState::Retreating) {
-        mCurrentState = GhostState::Pursuing;
+    if (player && player->GetState() == ActorState::Active) {
+        distanceToPlayer = (player->GetPosition() - ghostPos).Length();
     }
 
-    // 2. CALCULA A VELOCIDADE DESEJADA COM BASE NO ESTADO ATUAL
+    // 1. STATE TRANSITIONS
+    if (mCurrentState == GhostState::Patrolling && distanceToPlayer < mSeePlayerDistance) {
+        mCurrentState = GhostState::Chasing;
+    } else if (mCurrentState == GhostState::Chasing && distanceToPlayer > mLosePlayerDistance) {
+        mCurrentState = GhostState::Patrolling;
+    }
+
+    // 2. CALCULATE DESIRED VELOCITY BASED ON CURRENT STATE
     Vector2 desiredVelocity = Vector2::Zero;
 
     switch (mCurrentState) {
-        case GhostState::Pursuing: {
+        case GhostState::Chasing: {
+            Vector2 playerPos = player->GetPosition();
             Vector2 mainDirection = playerPos - ghostPos;
             mainDirection.Normalize();
+
+            // Add Perlin noise for a more unpredictable movement
             double noise = mPerlin.noise(mNoiseInput * mNoiseScale, 0.0, 0.0);
             float noiseAngle = static_cast<float>(noise) * Math::TwoPi;
             Vector2 noiseDirection = Vector2(Math::Cos(noiseAngle), Math::Sin(noiseAngle));
             Vector2 desiredDirection = mainDirection + noiseDirection * mNoiseStrength;
             desiredDirection.Normalize();
 
-            desiredVelocity = desiredDirection * mForwardSpeed;
-
-            float verticalOscillation = Math::Sin(mNoiseInput * mOscillationFrequency) * mOscillationAmplitude;
-            desiredVelocity.y += verticalOscillation;
-            break;
-        }
-        case GhostState::Retreating: {
-            Vector2 retreatDirection = ghostPos - playerPos;
-            if (retreatDirection.LengthSq() < 1.0f) retreatDirection = Vector2(1.0f, 0.0f);
-            retreatDirection.Normalize();
-            desiredVelocity = retreatDirection * mForwardSpeed;
+            desiredVelocity = desiredDirection * mChasingSpeed; // Use chasing speed
             break;
         }
         case GhostState::Patrolling: {
-            mPatrolTimer -= deltaTime;
-            if (mPatrolTimer <= 0.0f) {
-                mPatrolTimer = mPatrolDirectionChangeInterval;
-                float distFromAnchor = (ghostPos - mPatrolAnchorPoint).Length();
-                if (distFromAnchor > mPatrolRadius) {
-                    mCurrentPatrolDirection = mPatrolAnchorPoint - ghostPos;
-                } else {
-                    float randomAngle = mDistribution(mRandomGenerator);
-                    mCurrentPatrolDirection = Vector2(Math::Cos(randomAngle), Math::Sin(randomAngle));
-                }
-                mCurrentPatrolDirection.Normalize();
+            float distFromStart = GetPosition().x - mPatrolStartPoint.x;
+            Vector2 currentVelocity = mRigidBodyComponent->GetVelocity();
+
+            // If at the edge of patrol radius, turn around
+            if ((distFromStart > mPatrolRadius && currentVelocity.x > 0.0f) ||
+                (distFromStart < -mPatrolRadius && currentVelocity.x < 0.0f)) {
+                currentVelocity.x *= -1.0f; // Reverse horizontal direction
             }
-            const float patrolSpeed = mForwardSpeed * 0.5f;
-            desiredVelocity = mCurrentPatrolDirection * patrolSpeed;
+            // If velocity is very low (e.g., after stopping), give it a push
+            else if (Math::Abs(currentVelocity.x) < 1.0f) {
+                currentVelocity.x = -mPatrolSpeed;
+            }
+
+            desiredVelocity = Vector2(currentVelocity.x, 0.0f);
+            if (desiredVelocity.LengthSq() > 0.0f) {
+                desiredVelocity.Normalize();
+            }
+            desiredVelocity *= mPatrolSpeed; // Use patrol speed
             break;
         }
     }
 
-    // 3. APLICA A VELOCIDADE DE FORMA SUAVIZADA (LERP)
+    // Apply vertical oscillation to both states for a "wavy" movement
+    float verticalOscillation = Math::Sin(mNoiseInput * mOscillationFrequency) * mOscillationAmplitude;
+    desiredVelocity.y += verticalOscillation;
+
+    // 3. SMOOTHLY APPLY THE VELOCITY (LERP)
     Vector2 currentVelocity = mRigidBodyComponent->GetVelocity();
     Vector2 smoothedVelocity = Vector2::Lerp(currentVelocity, desiredVelocity, deltaTime * mTurnSpeed);
     mRigidBodyComponent->SetVelocity(smoothedVelocity);
 }
 
-void Ghost::OnHorizontalCollision(const float minOverlap, AABBColliderComponent *other) {
-    if (other->GetLayer() == ColliderLayer::Blocks ||
-        other->GetLayer() == ColliderLayer::Enemy ||
-        other->GetLayer() == ColliderLayer::Player) {
-        if (minOverlap > 0) {
-            mRigidBodyComponent->SetVelocity(Vector2(-mForwardSpeed, 0.0f));
-        } else {
-            mRigidBodyComponent->SetVelocity(Vector2(mForwardSpeed, 0.0f));
-        }
-    }
-
-    auto owner = other->GetOwner();
-    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Slash) {
-        Kill();
-    }
-
+void Ghost::OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other) {
     if (other->GetLayer() == ColliderLayer::Blocks) {
-        // Inverte a direção horizontal da patrulha
-        mCurrentPatrolDirection.x *= -1.0f;
-
-        // Reinicia o timer da patrulha para que a nova direção dure um pouco
-        mPatrolTimer = mPatrolDirectionChangeInterval;
-
-        // Aplica imediatamente a nova velocidade para que ele se afaste da parede
-        const float patrolSpeed = mForwardSpeed * 0.5f;
-        mRigidBodyComponent->SetVelocity(mCurrentPatrolDirection * patrolSpeed);
+        Vector2 currentVel = mRigidBodyComponent->GetVelocity();
+        // Reverse horizontal direction upon hitting a wall
+        currentVel.x *= -1.0f;
+        mRigidBodyComponent->SetVelocity(currentVel);
     }
-
 }
 
-void Ghost::OnVerticalCollision(const float minOverlap, AABBColliderComponent *other) {
-    auto owner = other->GetOwner();
-    AABBColliderComponent *collider = owner->GetComponent<AABBColliderComponent>();
-    if (owner && collider->GetLayer() == ColliderLayer::Player) {
-        Kill();
-    }
-
+void Ghost::OnVerticalCollision(const float minOverlap, AABBColliderComponent* other) {
     if (other->GetLayer() == ColliderLayer::Blocks) {
-        // Inverte a direção vertical da patrulha
-        mCurrentPatrolDirection.y *= -1.0f;
-
-        // Reinicia o timer da patrulha
-        mPatrolTimer = mPatrolDirectionChangeInterval;
-
-        // Aplica imediatamente a nova velocidade
-        const float patrolSpeed = mForwardSpeed * 0.5f;
-        mRigidBodyComponent->SetVelocity(mCurrentPatrolDirection * patrolSpeed);
+        Vector2 currentVel = mRigidBodyComponent->GetVelocity();
+        // Negate the vertical velocity from oscillation to prevent "sticking" to ceilings/floors
+        currentVel.y *= -0.5f;
+        mRigidBodyComponent->SetVelocity(currentVel);
     }
 }
