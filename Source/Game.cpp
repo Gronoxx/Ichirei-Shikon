@@ -20,6 +20,7 @@
 #include "Actors/FlyingDemon.h"
 #include "Actors/Trigger.h"
 #include "Actors/Spawner.h"
+#include "Actors/Ghost.h"
 #include "Actors/BlockSpriteSheet.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
@@ -370,8 +371,8 @@ void Game::BuildLevel(const std::vector<std::vector<int>>& levelData)
             }
             else if (tile == 10) // Spawner
             {
-                auto* spawner = new Spawner(this, SPAWN_DISTANCE);
-                spawner->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
+                auto* ghost = new Ghost(this);
+                ghost->SetPosition(Vector2(static_cast<float>(x) * TILE_SIZE, static_cast<float>(y) * TILE_SIZE));
             }
             else if (tile == 13) // End level trigger
             {

@@ -18,7 +18,7 @@ Ghost::Ghost(Game* game, float patrolSpeed, float chasingSpeed, float deathTime)
       mSeePlayerDistance(200.0f),
       mLosePlayerDistance(350.0f),
       mSpawnGracePeriod(0.2f),
-      mPatrolRadius(50.0f),
+      mPatrolRadius(10.0f),
       mPerlin(std::random_device()()),
       mNoiseInput(0.0f),
       mNoiseScale(0.7f),
