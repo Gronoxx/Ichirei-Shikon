@@ -12,6 +12,8 @@ public:
     UIElement(const Vector2 &pos, const Vector2 &size, const Vector3 &color);
     UIElement(const Vector2 &pos, const Vector2 &size, const Vector4 &color);
 
+    virtual ~UIElement() = default;
+
     // Getters/setters
     const Vector2& GetPosition() const { return mPosition; }
     void SetPosition(const Vector2 &pos) { mPosition = pos; }

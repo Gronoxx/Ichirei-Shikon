@@ -530,12 +530,9 @@ void Game::UpdateGame()
         }
     }
 
-    // Update the camera position
     UpdateCamera();
 
-    // Update Scene Manager
     UpdateSceneManager(deltaTime);
-
 
     if (mGameScene != GameScene::Intro && mGameScene != GameScene::MainMenu && mGamePlayState == GamePlayState::Playing)
         UpdateLevelTime(deltaTime);
@@ -688,7 +685,6 @@ void Game::GenerateOutput() const {
     // Get a list of drawables in draw order
     std::vector<DrawComponent*> drawables;
 
-    // Collect all drawables that are visible
     for (auto actor : actorsOnCamera)
     {
         auto drawable = actor->GetComponent<DrawComponent>();
@@ -716,7 +712,6 @@ void Game::GenerateOutput() const {
         ui->Draw(mRenderer);
     }
 
-    // Draw fade effect if needed
     if (SceneManagerState::FadeOut == mSceneManagerState){
         float alpha = (TRANSITION_TIME - mSceneManagerTimer) / TRANSITION_TIME;
         alpha = std::clamp(alpha, 0.0f, 1.0f); // Usar std::clamp é mais moderno
@@ -738,7 +733,6 @@ void Game::GenerateOutput() const {
 
 void Game::SetBackgroundImage(const std::string& texturePath, const Vector2 &position, const Vector2 &size)
 {
-    // Load the background texture
     mBackgroundTexture = LoadTexture(texturePath);
     if (!mBackgroundTexture) {
         SDL_Log("Failed to load background texture: %s", texturePath.c_str());
@@ -812,9 +806,6 @@ void Game::UnloadScene()
 
     // Delete UI screens
     for (const auto ui : mUIStack) {
-        if (ui == mHUD) {
-            mHUD = nullptr;
-        }
         delete ui;
     }
     mUIStack.clear();
