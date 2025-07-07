@@ -59,6 +59,6 @@ private:
     bool mIsFacingLeft;
 
     RigidBodyComponent *mRigidBodyComponent;
-    DrawSpriteComponent *mDrawComponent;
+    DrawAnimatedComponent *mDrawComponent;
     AABBColliderComponent *mColliderComponent;
 };
