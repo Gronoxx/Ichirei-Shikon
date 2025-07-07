@@ -116,7 +116,7 @@ void DemonBoss::UpdateWaiting(float deltaTime) {
 
     if (playerPos.x - mPosition.x < mGame->GetWindowWidth() - Game::TILE_SIZE * 10) {
         mCurrentState = State::Moving;
-        mGame->LockCamera();
+        //mGame->LockCamera();
     }
 }
 
@@ -133,23 +133,30 @@ void DemonBoss::StartAttack() {
 }
 
 void DemonBoss::SpawnMinions() {
-    // Get screen bounds
-    float screenLeft = mGame->GetCameraPos().x;
-    float screenRight = screenLeft + mGame->GetWindowWidth();
-    float screenTop = mGame->GetCameraPos().y;
+    // --- LÓGICA CORRIGIDA ---
+    // Obtenha os limites reais do nível, em vez dos limites da câmera.
+    const Vector2 levelOffset = mGame->GetLevelOffset();
+    const float levelWidth = mGame->GetLevelPixelWidth();
+    const float levelHeight = mGame->GetLevelPixelHeight();
+
+    const float levelLeft = levelOffset.x;
+    const float levelRight = levelOffset.x + levelWidth;
+    const float levelTop = levelOffset.y;
 
     for (int i = 0; i < 3; ++i) {
-        // Randomize spawn position (just above the screen)
-        float spawnX = Random::GetFloatRange(screenLeft, screenRight);
-        float spawnY = screenTop - Game::TILE_SIZE;
+        // Posição de spawn aleatória ao longo da largura do nível, um pouco acima do topo.
+        float spawnX = Random::GetFloatRange(levelLeft, levelRight);
+        float spawnY = levelTop - Game::TILE_SIZE; // Nasce fora da tela, acima
 
-        // Randomize target position (within the screen)
-        float targetX = Random::GetFloatRange(screenLeft + Game::TILE_SIZE * 2, screenRight - Game::TILE_SIZE * 2);
-        float targetY = Random::GetFloatRange(Game::TILE_SIZE * 3, Game::TILE_SIZE * 5);
+        // Posição alvo aleatória DENTRO dos limites da arena.
+        // Adicionamos um pouco de margem (padding) para não irem direto para as bordas.
+        const float padding = Game::TILE_SIZE * 2.0f;
+        float targetX = Random::GetFloatRange(levelLeft + padding, levelRight - padding);
+        float targetY = Random::GetFloatRange(levelTop + padding, levelTop + levelHeight / 2.0f); // Mira na metade superior da arena
 
         Vector2 targetPos(targetX, targetY);
 
-        // Create and position the minion
+        // Cria e posiciona o lacaio
         auto *minion = new FlyingDemon(mGame, targetPos, 6.0f, 400.0f);
         minion->SetPosition(Vector2(spawnX, spawnY));
     }
