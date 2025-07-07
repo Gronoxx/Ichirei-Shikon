@@ -1,16 +1,10 @@
-//
-// Created by Lucas N. Ferreira on 08/12/23.
-//
-
 #include "UIHud.h"
 #include "../Game.h"
 #include "UIText.h"
 #include "UIRect.h"
 #include "UITimerBar.h"
 
-
-
-UIHud::UIHud(class Game* game, const std::string& fontName, SDL_Renderer* renderer)
+UIHud::UIHud(Game* game, const std::string& fontName, SDL_Renderer*)
     : UIScreen(game, fontName),
         mTimerBar(nullptr){
     // Imagens base
@@ -29,7 +23,7 @@ UIHud::UIHud(class Game* game, const std::string& fontName, SDL_Renderer* render
 
     // Barras internas da bateria (preenchidas com azul e brilho)
     int padding = 1;
-    int barWidth = (barArea.w - (maxBars + 1) * padding) / maxBars;
+    int barWidth = (barArea.w - (MAX_BARS + 1) * padding) / MAX_BARS;
     int barHeight = barArea.h - 2 * padding;
 
     for (int i = 0; i < currentBars; ++i)
@@ -38,10 +32,10 @@ UIHud::UIHud(class Game* game, const std::string& fontName, SDL_Renderer* render
         float y = barArea.y + padding;
 
         // Azul principal
-        auto* bar = AddRect(Vector2(x, y), Vector2(barWidth, barHeight), Vector3(91, 187, 255));
+        auto* bar = AddRect(Vector2(x, y), Vector2(barWidth, barHeight), Vector4(91, 187, 255, 255));
         mBatteryBars.push_back(bar);
 
-        AddRect(Vector2(x, y), Vector2(barWidth, barHeight / 3), Vector3(200, 240, 255));
+        AddRect(Vector2(x, y), Vector2(barWidth, barHeight / 3), Vector4(200, 240, 255, 255));
     }
 
     AddTimerBar(Vector2(mGame->GetWindowWidth() / 2 - TIMER_WIDTH / 2 + 18, 3),
@@ -50,54 +44,31 @@ UIHud::UIHud(class Game* game, const std::string& fontName, SDL_Renderer* render
 
 UIHud::~UIHud()
 {
-    if (mTimerBar)
+    if (mTimerBar) {
         delete mTimerBar;
-    mTimerBar = nullptr;
-}
-
-void UIHud::SetTime(int time)
-{
-    std::string timeStr = std::to_string(time);
-
-    int numDigits = timeStr.length();
-    float newWidth = numDigits * CHAR_WIDTH;
-    Vector2 newSize(newWidth, WORD_HEIGHT);
-
-    float newPosX = mGame->GetWindowWidth() - WORD_OFFSET - (numDigits * CHAR_WIDTH);
-
-    float newPosY = HUD_POS_Y * 2.0f + WORD_HEIGHT;
-    Vector2 newPosition(newPosX, newPosY);
-
-    // 4. Atualizar o objeto de texto com os novos valores.
-
+        mTimerBar = nullptr;
+    }
 }
 
 void UIHud::TakeDamage()
 {
     if (!mBatteryBars.empty())
     {
-        auto* lastBar = mBatteryBars.back();
+        const auto* lastBar = mBatteryBars.back();
         mBatteryBars.pop_back();
 
         // Remove também da lista interna de retângulos
-        auto it = std::find(mRects.begin(), mRects.end(), lastBar);
-        if (it != mRects.end())
+        if (const auto it = std::find(mRects.begin(), mRects.end(), lastBar); it != mRects.end())
             mRects.erase(it); // Remove o ponteiro da lista
 
-        delete lastBar; // Agora sim é seguro deletar
+        delete lastBar;
     }
 
     // Atualiza contador lógico
     currentBars--;
-
-    if (currentBars <= 0)
-    {
-        // Se necessário, pode logar algo
-        SDL_Log("Player está sem energia!");
-    }
 }
 
-void UIHud::Update(float deltaTime) {
+void UIHud::Update(const float deltaTime) {
     if(mTimerBar)
         mTimerBar->Update(deltaTime);
 }
@@ -105,7 +76,6 @@ void UIHud::Update(float deltaTime) {
 void UIHud::Draw(SDL_Renderer *renderer) {
     for (int i=0;i<mTexts.size();i++)
         mTexts[i]->Draw(renderer,mPos);
-
 
     for (int i=0;i<mButtons.size();i++)
         mButtons[i]->Draw(renderer,mPos);
@@ -122,7 +92,7 @@ void UIHud::Draw(SDL_Renderer *renderer) {
         mTimerBar->Draw(renderer,mPos);
 }
 
-UITimerBar* UIHud::AddTimerBar(const Vector2& pos, const Vector2& size, float duration)
+UITimerBar* UIHud::AddTimerBar(const Vector2& pos, const Vector2& size, const float duration)
 {
     if (mTimerBar)
     {

@@ -52,6 +52,8 @@ add_executable(${PROJECT_NAME}
         Source/Actors/BlockSpriteSheet.h
         Source/Actors/InvisibleBlock.cpp
         Source/Actors/InvisibleBlock.h
+        Source/UIElements/UIPauseMenuScreen.cpp
+        Source/UIElements/UIPauseMenuScreen.h
         Source/PerlinNoise.h
         Source/PerlinNoise.cpp
 )

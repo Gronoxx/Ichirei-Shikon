@@ -17,9 +17,6 @@ public:
 
     void OnUpdate(float deltaTime) override;
 
-    void OnHorizontalCollision(const float minOverlap, AABBColliderComponent* other) override;
-    void OnVerticalCollision(const float minOverlap, AABBColliderComponent* other) override;
-
 private:
     static const int POLE_SLIDE_TIME = 1; // Time in seconds to slide down the pole
     const float ATTACK_TIME = 3.5f;
@@ -42,6 +39,7 @@ private:
     float mArrivalThreshold;  // How close we need to be to consider target reached
     float mTimeToLive;        // How long the demon stays in working mode before flying away
     float mWorkingTime;       // Tracks how long the demon has been in working mode
+    float mEntranceTimer;     // Timer for the sinusoidal entrance movement
     bool mIsFlyingAway;       // True when the demon is in the process of flying away
 
     class RigidBodyComponent* mRigidBodyComponent;

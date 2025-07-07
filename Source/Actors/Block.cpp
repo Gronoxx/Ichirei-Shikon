@@ -1,9 +1,4 @@
-//
-// Created by Lucas N. Ferreira on 03/08/23.
-//
-
 #include "Block.h"
-
 #include "Player.h"
 #include "../Game.h"
 #include "../Actors/Ghost.h"

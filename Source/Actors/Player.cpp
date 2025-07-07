@@ -6,7 +6,6 @@
 #include "../Json.h"
 #include <../UIElements/UIHud.h>
 #include <string>
-
 #include "Slash.h"
 
 Player::Player(Game *game, const float forwardSpeed, const float jumpSpeed)
@@ -257,7 +256,7 @@ void Player::Kill() {
     mGame->UnlockCamera();
 }
 
-void Player::Win(AABBColliderComponent *poleCollider) {
+void Player::Win() const {
     mGame->SetGamePlayState(Game::GamePlayState::LevelComplete);
 }
 
@@ -266,7 +265,7 @@ void Player::OnHorizontalCollision(const float minOverlap, AABBColliderComponent
         Hurt();
         KnockBack();
     } else if (other->GetLayer() == ColliderLayer::EndLevel) {
-        Win(other);
+        Win();
     }
 }
 
@@ -300,7 +299,7 @@ void Player::Hurt() {
     // mGame->GetAudio()->PlaySound("Hit.wav");
 }
 
-void Player::KnockBack() {
-    auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
+void Player::KnockBack() const {
+    const auto xComponent = mRotation == Math::Pi ? 1.0f : -1.0f;
     mRigidBodyComponent->SetVelocity(Vector2(xComponent * 300.0f, -300.0f));
 }

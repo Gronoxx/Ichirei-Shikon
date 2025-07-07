@@ -30,8 +30,17 @@ public:
     // Collider ignore map
     const std::map<ColliderLayer, const std::set<ColliderLayer>> ColliderIgnoreMap = {
         {ColliderLayer::Player, {ColliderLayer::Slash}},
-        {ColliderLayer::Boss, {}},
-        {ColliderLayer::Enemy,  {}},
+        {ColliderLayer::Boss, {
+            ColliderLayer::Enemy,
+            ColliderLayer:: EnemyProjectile,
+            ColliderLayer::Slash
+        }},
+        {ColliderLayer::Enemy,  {
+            ColliderLayer::Boss,
+            ColliderLayer::Enemy,
+            ColliderLayer:: EnemyProjectile,
+            ColliderLayer::Slash
+        }},
         {ColliderLayer::Blocks, {ColliderLayer::Blocks}},
         {ColliderLayer::Slash, {
             ColliderLayer::Player,
@@ -39,7 +48,9 @@ public:
             }},
         { ColliderLayer::EnemyProjectile, {
             ColliderLayer::Enemy,
+            ColliderLayer::Boss,
             ColliderLayer::Blocks,
+            ColliderLayer::EnemyProjectile
             }},
         {ColliderLayer::EndLevel,{}}
     };
@@ -54,6 +65,7 @@ public:
     float DetectVertialCollision(RigidBodyComponent *rigidBody);
 
     void SetStatic(bool isStatic) { mIsStatic = isStatic; }
+    void Update(float deltaTime) override;
 
     Vector2 GetMin() const;
     Vector2 GetMax() const;

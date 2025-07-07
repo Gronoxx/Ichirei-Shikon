@@ -1,11 +1,3 @@
-// ----------------------------------------------------------------
-// From Game Programming in C++ by Sanjay Madhav
-// Copyright (C) 2017 Sanjay Madhav. All rights reserved.
-// 
-// Released under the BSD License
-// See LICENSE in root directory for full details.
-// ----------------------------------------------------------------
-
 #include "Actor.h"
 #include "../Game.h"
 #include "../Components/Component.h"
@@ -31,6 +23,8 @@ Actor::~Actor()
         delete component;
     }
     mComponents.clear();
+
+    mGame = nullptr;
 }
 
 void Actor::SetPosition(const Vector2& pos)
