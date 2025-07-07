@@ -13,6 +13,44 @@
         6,
         7
       ],
+      "fps": 10.0
+    },
+    "invoking": {
+      "texturePath": "Assets/Sprites/DemonBoss/invoking/invoking.png",
+      "dataPath": "Assets/Sprites/DemonBoss/invoking/invoking.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "fps": 7.0
+    },
+    "jump": {
+      "texturePath": "Assets/Sprites/DemonBoss/jump/jump.png",
+      "dataPath": "Assets/Sprites/DemonBoss/jump/jump.json",
+      "frameOrder": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
       "fps": 12.0
     }
   },
