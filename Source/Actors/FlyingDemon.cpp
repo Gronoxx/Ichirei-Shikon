@@ -27,6 +27,7 @@ FlyingDemon::FlyingDemon(Game *game, const Vector2 &targetPosition, float lifeti
       , mTimeToLive(lifetime)
       , mWorkingTime(0.0f)
       , mEntranceTimer(0.5f)
+      , mShootsMade(0)
       , mIsFlyingAway(false) {
     mRigidBodyComponent = new RigidBodyComponent(this, 1.0f, 5.0f, false);
 
@@ -58,7 +59,7 @@ void FlyingDemon::OnUpdate(float deltaTime) {
         mWorkingTime += deltaTime;
 
         // Check if it's time to fly away
-        if (mWorkingTime >= mTimeToLive) {
+        if (mShootsMade >= 3) {
             StartFlyingAway();
         } else {
             UpdateWorkingMode(deltaTime);
@@ -177,8 +178,10 @@ void FlyingDemon::UpdateWorkingMode(float deltaTime) {
     // Update facing direction based on player's horizontal position
     mRotation = (playerPos.x < mPosition.x) ? 0.0f : Math::Pi;
 
-    // Attack if cooldown is over
-    if (!mIsAttacking) {
+    // Attack if cooldown is over and in range
+    const float attackDistanceThreshold = 25.0f; // Only attack if close to the hover position
+    if (!mIsAttacking && distanceToTarget <= attackDistanceThreshold) {
+        mShootsMade++;
         mIsAttacking = true;
         mAttackStart = true;
         mAttackTimer = ATTACK_TIME;

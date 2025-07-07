@@ -210,7 +210,7 @@ void Game::ChangeScene()
     {
         LoadMainMenu();
     }
-    else if (mNextScene == GameScene::Level2)
+    else if (mNextScene == GameScene::Level1)
     {
         mGameTimeLimit = 400;
 
@@ -237,7 +237,7 @@ void Game::ChangeScene()
         // Chame a função genérica para carregar o nível
         LoadLevel(level1_data);
     }
-    else if (mNextScene == GameScene::Level1)
+    else if (mNextScene == GameScene::Level2)
     {
         LoadBossLevel();
     }
@@ -625,13 +625,11 @@ void Game::UpdateCamera()
 void Game::UpdateActors(float deltaTime)
 {
     std::vector<Actor*> actorsOnCamera;
-    // if (mGameScene == GameScene::Level1) {
-    //     actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
-    // }
-
     if (mGameScene == GameScene::Level1) {
-        SDL_Log(" Querying for Level2");
+        actorsOnCamera = mSpatialHashing->QueryOnCamera(mCameraPos, static_cast<float>(mWindowWidth), static_cast<float>(mWindowHeight));
+    }
 
+    if (mGameScene == GameScene::Level2) {
         actorsOnCamera = mSpatialHashing->QueryOnCamera(Vector2{0, 0},
         BOSS_LEVEL_WIDTH,
         BOSS_LEVEL_HEIGHT);
