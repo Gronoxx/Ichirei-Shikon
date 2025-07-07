@@ -208,10 +208,13 @@ void Game::ChangeScene()
     }
     else if (mNextScene == GameScene::Level1)
     {
+        mGameTimeLimit = 400;
+
         // Crie o HUD apenas uma vez, se necessário
         if (!mHUD)
         {
             mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
+            SDL_Log("mHUD: %p", mHUD);
         }
 
         // Defina todos os dados para o Nível 1
@@ -233,9 +236,6 @@ void Game::ChangeScene()
     // else if (mNextScene == GameScene::Level2)
     // {
     //     mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
-    //
-    //     mGameTimeLimit = 400;
-    //     mHUD->SetTime(mGameTimeLimit);
     //
     //     mAudio->StopAllSounds();
     //     mAudio->PlayMusic("FinalFight_Inferia.mp3",true,13);
@@ -303,8 +303,6 @@ void Game::ShowTutorialScreen()
 void Game::LoadLevel(const LevelData& data)
 {
     // --- Etapa 1: Configurar HUD e Áudio ---
-    mGameTimeLimit = data.timeLimit;
-    mHUD->SetTime(mGameTimeLimit);
 
     mAudio->StopAllSounds();
     mAudio->PlayMusic(data.musicFile, true, 13);
@@ -478,10 +476,10 @@ void Game::UpdateGame()
     // Update the game scenes
     UpdateScenes();
 
-    // Reinsert audio system
+    // Update audio system
     mAudio->Update(deltaTime);
 
-    // Reinsert UI screens
+    // Update all UI elements
     for (auto ui : mUIStack) {
         if (ui->GetState() == UIScreen::UIState::Active) {
             ui->Update(deltaTime);
@@ -499,9 +497,12 @@ void Game::UpdateGame()
         }
     }
 
+    // Update the camera position
     UpdateCamera();
 
+    // Update Scene Manager
     UpdateSceneManager(deltaTime);
+
 
     if (mGameScene != GameScene::Intro && mGameScene != GameScene::MainMenu && mGamePlayState == GamePlayState::Playing)
         UpdateLevelTime(deltaTime);
@@ -565,7 +566,6 @@ void Game::UpdateLevelTime(const float deltaTime)
     if (mGameTimer >= 1.0) {
         mGameTimer = 0.0f;
         mGameTimeLimit -= 1.0f;
-        mHUD->SetTime(mGameTimeLimit);
     }
 
     if (static_cast<float>(mGameTimeLimit) <= 0.0f) {
@@ -655,6 +655,7 @@ void Game::GenerateOutput() const {
     // Get a list of drawables in draw order
     std::vector<DrawComponent*> drawables;
 
+    // Collect all drawables that are visible
     for (auto actor : actorsOnCamera)
     {
         auto drawable = actor->GetComponent<DrawComponent>();
@@ -682,6 +683,7 @@ void Game::GenerateOutput() const {
         ui->Draw(mRenderer);
     }
 
+    // Draw fade effect if needed
     if (SceneManagerState::FadeOut == mSceneManagerState){
         float alpha = (TRANSITION_TIME - mSceneManagerTimer) / TRANSITION_TIME;
         alpha = std::clamp(alpha, 0.0f, 1.0f); // Usar std::clamp é mais moderno
@@ -703,6 +705,7 @@ void Game::GenerateOutput() const {
 
 void Game::SetBackgroundImage(const std::string& texturePath, const Vector2 &position, const Vector2 &size)
 {
+    // Load the background texture
     mBackgroundTexture = LoadTexture(texturePath);
     if (!mBackgroundTexture) {
         SDL_Log("Failed to load background texture: %s", texturePath.c_str());
@@ -776,6 +779,9 @@ void Game::UnloadScene()
 
     // Delete UI screens
     for (const auto ui : mUIStack) {
+        if (ui == mHUD) {
+            mHUD = nullptr;
+        }
         delete ui;
     }
     mUIStack.clear();

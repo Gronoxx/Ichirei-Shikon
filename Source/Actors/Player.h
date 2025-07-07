@@ -24,7 +24,7 @@ public:
     void Kill() override;
     void Hurt() override;
 
-    void Win(AABBColliderComponent *poleCollider);
+    void Win() const;
 
     void LoadAnimationsFromFile(const std::string& filePath);
     bool isPlayerAttacking() {return  mIsAttacking;};
@@ -39,7 +39,7 @@ private:
     const int SPLASH_WIDTH = 106;
 
     void ManageAnimations();
-    void KnockBack();
+    void KnockBack() const;
 
     float mForwardSpeed;
     float mJumpSpeed;
