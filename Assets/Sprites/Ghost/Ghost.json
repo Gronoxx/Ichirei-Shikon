@@ -1,0 +1,47 @@
+{
+  "animations": {
+    "attacking": {
+      "frames": [
+        "Assets/Sprites/Ghost/Attacking/00_Ghost Attacking.png",
+        "Assets/Sprites/Ghost/Attacking/01_Ghost Attacking.png"
+      ],
+      "fps": 2
+    },
+    "dying": {
+      "frames": [
+        "Assets/Sprites/Ghost/Dying/00_Ghost Dying.png",
+        "Assets/Sprites/Ghost/Dying/01_Ghost Dying.png",
+        "Assets/Sprites/Ghost/Dying/02_Ghost Dying.png"
+      ],
+      "fps": 3
+    },
+    "preparing": {
+      "frames": [
+        "Assets/Sprites/Ghost/Ghost Preparing/00_Ghost Preparing.png",
+        "Assets/Sprites/Ghost/Ghost Preparing/01_Ghost Preparing.png",
+        "Assets/Sprites/Ghost/Ghost Preparing/02_Ghost Preparing.png"
+      ],
+      "fps": 3
+    },
+    "idle": {
+      "frames": [
+        "Assets/Sprites/Ghost/Idle/00_Ghost Idle.png",
+        "Assets/Sprites/Ghost/Idle/01_Ghost Idle.png",
+        "Assets/Sprites/Ghost/Idle/02_Ghost Idle.png",
+        "Assets/Sprites/Ghost/Idle/03_Ghost Idle.png"
+      ],
+      "fps": 4
+    },
+    "takingdamage": {
+      "frames": [
+        "Assets/Sprites/Ghost/TakingDamage/00_Ghost Taking Damage.png",
+        "Assets/Sprites/Ghost/TakingDamage/01_Ghost Taking Damage.png"
+      ],
+      "fps": 2
+    }
+  },
+  "renderOffset": {
+    "x": 0.0,
+    "y": 0.0
+  }
+}
