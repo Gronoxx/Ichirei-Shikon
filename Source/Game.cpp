@@ -22,6 +22,7 @@
 #include "Actors/Spawner.h"
 #include "UIElements/UIScreen.h"
 #include "Components/DrawComponents/DrawComponent.h"
+#include "Components/DrawComponents/DrawAnimatedComponent.h"
 #include "Components/ColliderComponents/AABBColliderComponent.h"
 
 Game::Game(const int windowWidth, const int windowHeight)
@@ -203,30 +204,10 @@ void Game::ChangeScene()
     {
         LoadMainMenu();
     }
-    else if (mNextScene == GameScene::Level1)
+    else if (mNextScene == GameScene::Level2)
     {
         mGameTimeLimit = 400;
 
-        mAudio->StopAllSounds();
-        mAudio->PlayMusic("Level1_NhacNhatBanHay.mp3",true,13);
-
-        // Crie o HUD apenas uma vez, se necessário
-        if (!mHUD)
-        {
-            mHUD = new UIHud(this, "Assets/Fonts/SMB.ttf", mRenderer);
-            SDL_Log("mHUD: %p", mHUD);
-        }
-        // Set background color
-        mBackgroundColor.Set(245.0f, 230.0f, 190.0f);
-
-        // Set background color
-        SetBackgroundImage("Assets/Sprites/level1-background.png", Vector2(TILE_SIZE,0), Vector2(6784,448));
-
-        // Initialize actors
-        LoadLevel("Assets/Levels/Level1.csv", LEVEL_WIDTH, LEVEL_HEIGHT);
-    }
-    else if (mNextScene == GameScene::Level2)
-    {
         // Crie o HUD apenas uma vez, se necessário
         if (!mHUD)
         {
@@ -509,10 +490,10 @@ void Game::UpdateGame()
     // Update the game scenes
     UpdateScenes();
 
-    // Reinsert audio system
+    // Update audio system
     mAudio->Update(deltaTime);
 
-    // Reinsert UI screens
+    // Update all UI elements
     for (auto ui : mUIStack) {
         if (ui->GetState() == UIScreen::UIState::Active) {
             ui->Update(deltaTime);
@@ -530,9 +511,12 @@ void Game::UpdateGame()
         }
     }
 
+    // Update the camera position
     UpdateCamera();
 
+    // Update Scene Manager
     UpdateSceneManager(deltaTime);
+
 
     if (mGameScene != GameScene::Intro && mGameScene != GameScene::MainMenu && mGamePlayState == GamePlayState::Playing)
         UpdateLevelTime(deltaTime);
@@ -685,6 +669,7 @@ void Game::GenerateOutput() const {
     // Get a list of drawables in draw order
     std::vector<DrawComponent*> drawables;
 
+    // Collect all drawables that are visible
     for (auto actor : actorsOnCamera)
     {
         auto drawable = actor->GetComponent<DrawComponent>();
@@ -712,6 +697,7 @@ void Game::GenerateOutput() const {
         ui->Draw(mRenderer);
     }
 
+    // Draw fade effect if needed
     if (SceneManagerState::FadeOut == mSceneManagerState){
         float alpha = (TRANSITION_TIME - mSceneManagerTimer) / TRANSITION_TIME;
         alpha = std::clamp(alpha, 0.0f, 1.0f); // Usar std::clamp é mais moderno
@@ -733,6 +719,7 @@ void Game::GenerateOutput() const {
 
 void Game::SetBackgroundImage(const std::string& texturePath, const Vector2 &position, const Vector2 &size)
 {
+    // Load the background texture
     mBackgroundTexture = LoadTexture(texturePath);
     if (!mBackgroundTexture) {
         SDL_Log("Failed to load background texture: %s", texturePath.c_str());
@@ -806,6 +793,9 @@ void Game::UnloadScene()
 
     // Delete UI screens
     for (const auto ui : mUIStack) {
+        if (ui == mHUD) {
+            mHUD = nullptr;
+        }
         delete ui;
     }
     mUIStack.clear();
