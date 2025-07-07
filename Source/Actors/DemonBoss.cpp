@@ -24,20 +24,25 @@ DemonBoss::DemonBoss(Game *game, float attackCooldown, float unvulnerableCooldow
       , mHealth(INITIAL_HEALTH)
       , mIsGrounded(true)
       , mIsFacingLeft(true) {
+
     float size = Game::TILE_SIZE * 3.0f;
 
     // Set up physics
     mRigidBodyComponent = new RigidBodyComponent(this, 1.5f, 10.0f, true);
-    mColliderComponent = new AABBColliderComponent(this, 0, 0, size, size - 10, ColliderLayer::Boss);
+    // mColliderComponent = new AABBColliderComponent(this, 0, 0, size, size - 10, ColliderLayer::Boss);
 
     // Set up animations
     std::vector<Vector2> vertices;
 
-    mDrawComponent = new DrawSpriteComponent(this, "Assets/Sprites/DemonBoss/DemonBoss.png", size, size - 10);
-    SetScale(1.0f);
+    mDrawComponent = new DrawAnimatedComponent(this, 150);
+    mDrawComponent->LoadCharacterAnimations("Assets/Sprites/DemonBoss/DemonBoss.json");
+    mDrawComponent->SetAnimation("idle");
 
-    // Start with moving animation
-    // mDrawComponent->SetAnimation("idle");
+    // Get the animation size to set the collider
+    Vector2 animSize = mDrawComponent->GetAnimationSize("idle");
+
+    mColliderComponent = new AABBColliderComponent(this, 0, 0, animSize.x, animSize.y,
+                                                   ColliderLayer::Boss);
 
     Random::Init();
 }
