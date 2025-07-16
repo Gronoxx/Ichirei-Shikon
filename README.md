@@ -8,15 +8,6 @@
   <em>A 2D action-adventure game featuring tactical combat and a narrative centered on redemption, inspired by classics like Hollow Knight and Dark Souls.</em>
 </p>
 
-<p align="center">
-  <a href="#-about-the-project">About</a> •
-  <a href="#-features">Features</a> •
-  <a href="#-tech-stack">Tech Stack</a> •
-  <a href="#-getting-started">Getting Started</a> •
-  <a href="#-team--acknowledgments">Team</a>
-</p>
-
-
 ## Gameplay Demo
 
 | Movement & Combat | Boss Battle |
