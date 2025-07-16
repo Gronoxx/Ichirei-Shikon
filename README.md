@@ -1,44 +1,72 @@
-# Ichirei Shikon
+# Ichirei Shikon (一霊四魂)
 
-## Screenshots
+![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)
+![SDL2](https://img.shields.io/badge/SDL2-242424?style=for-the-badge&logo=sdl&logoColor=white)
+![Status](https://img.shields.io/badge/Status-In%20Development-orange.svg)
 
-![Tela do menu principal do jogo](screenshot_mainmenu.png)
-![Cenário de exploração do jogo](screenshot_cenario.png)
-![Jogador em combate com um inimigo](screenshot_combate.png)
+<p align="center">
+  <em>A 2D action-adventure game featuring tactical combat and a narrative centered on redemption, inspired by classics like Hollow Knight and Dark Souls.</em>
+</p>
 
-## Descrição
+<p align="center">
+  <a href="#-about-the-project">About</a> •
+  <a href="#-features">Features</a> •
+  <a href="#-tech-stack">Tech Stack</a> •
+  <a href="#-getting-started">Getting Started</a> •
+  <a href="#-team--acknowledgments">Team</a>
+</p>
 
-*Ichirei Shikon* é um jogo single-player de ação e aventura inspirado em jogos metroidvania com referências de  *Hollow Knight* e *Dark Souls* para criar uma atmosfera densa e introspectiva. A história mergulha o jogador na jornada de uma alma sem nome, amaldiçoada a reviver os pecados que cometeu em múltiplas vidas. Com uma narrativa focada em temas como redenção, culpa e o ciclo de vida e morte. Ao mesmo tempo, propõe uma experiência mais ágil e dinâmica, com mecânicas de movimentação fluida e combate tático que visam aprofundar a estratégia e a intensidade da ação.
 
-O objetivo do jogador é desvendar a origem da maldição que o assola, revivendo vidas passadas para compreender o impacto real de suas ações. A jogabilidade é centrada em um sistema de combate preciso, que inclui ataques fracos e fortes, e um dash com frames de invencibilidade. O uso do dash é uma ferramenta crítica tanto para a mobilidade ofensiva quanto para a esquiva defensiva, exigindo que o jogador domine seu tempo de execução para superar os desafios. A progressão não se baseia apenas em atributos, mas na habilidade do jogador em dominar essas mecânicas.
+## Gameplay Demo
 
-A história começa quando o protagonista, após morrer em uma vida como um rebelde cyberpunk, desperta em um limbo melancólico. Guiado por um espírito misterioso — que mais tarde se revela ser a deusa Izanami, a quem ele assassinou em sua primeira vida — o jogador precisa reviver suas memórias. A jornada culmina em um confronto final contra o deus Izanagi, não por orgulho, mas para proteger o filho de Izanami, Kagutsuchi, e finalmente quebrar o ciclo de vingança e destruição. Não há uma condição de derrota tradicional; o avanço se dá pela superação dos desafios e pela conclusão do arco narrativo de redenção.
+| Movement & Combat | Boss Battle |
+| :---: | :---: |
+| ![Character Movement](https://github.com/user-attachments/assets/ce794bce-3337-4388-9987-02242703a3f9) | ![Final Boss Fight](https://github.com/user-attachments/assets/15fe516e-d7af-48aa-90a6-f79a47db4ece) |
 
-## Funcionalidades a serem testadas
+## About The Project
 
-Durante o playtesting, pedimos que observem com atenção as seguintes funcionalidades:
+*Ichirei Shikon* (One Spirit, Four Souls) immerses the player in the journey of a cursed soul forced to relive the sins of its past lives. With an introspective narrative focused on **redemption, guilt, and the cycle of life and death**, the game combines a dense atmosphere with fast-paced, dynamic gameplay.
 
-* **Movimentação básica:** Avaliar a fluidez e responsividade ao andar, correr e pular.
-* **Sistema de combate:** Testar a eficácia e o balanceamento dos ataques fracos e fortes.
-* **Mecânica de dash:** Observar o uso dos frames de invencibilidade para esquiva e posicionamento ofensivo.
-* **Inimigos e IA:** Analisar o comportamento dos inimigos e o balanceamento geral da dificuldade.
-* **Fluxo de jogo:** Observar a progressão entre as diferentes áreas e atos da história.
-* **Interações:** Testar as interações com objetos do cenário e personagens não jogáveis (NPCs).
-* **Feedback audiovisual:** Prestar atenção em como a trilha sonora e os efeitos sonoros contribuem para a experiência, especialmente os sons de impacto durante o combate.
+Progression is skill-based, requiring the player to master a system of precise combat and fluid movement to uncover the origin of their curse and finally break the cycle of vengeance.
 
-## TODO
-* Criar mais inimigos
-* Corrigir morte de inimigos
-* Trocar os sprites provisórios de cenário
-* Adicionar animação de morte do jogador e inimigos
-* Adicionar mais níveis
+## Implemented Features
 
-## **Importante**
-É necessário adicionar `` $PROJECT_DIR$ `` ao Working Directory do Clion IDE para que o jogo funcione corretamente.
+* **Tactical Combat System:** A mechanic of weak and strong attacks that demand precise timing and strategy to overcome enemies.
+* **Fluid Movement:** A responsive control system for walking, running, and jumping, allowing for agile exploration of the environment.
+* **Dash with Invincibility Frames:** An essential dodge mechanic with *iframes*, serving both defensive and offensive repositioning purposes.
+* **Basic Enemy AI:** Enemies with behavioral patterns that challenge the player.
+* **Narrative & Interactions:** Dialogue with NPCs and world objects that reveal the game's story.
+* **Audio-Visual Feedback:** Impact sound effects and a compelling soundtrack that enhance immersion and combat intensity.
 
-Para isso, vá em **Run -> Edit Configurations** e adicione o diretório do projeto na opção Working Directory.
+## Tech Stack
 
-## Grupo
+* **Language:** **C++**
+* **Graphics & Multimedia Library:** **SDL2** (Simple DirectMedia Layer) for rendering, audio, and input management.
+* **IDE:** **CLion**
+
+## Getting Started
+
+This project was developed using the **CLion IDE**. To run it correctly, you must configure the working directory.
+
+1.  Clone the repository:
+    ```bash
+    git clone [https://github.com/your-username/Ichirei-Shikon.git](https://github.com/your-username/Ichirei-Shikon.git)
+    ```
+2.  Open the project in CLion.
+3.  Go to **Run -> Edit Configurations...**
+4.  In the **Working Directory** field, add the `$PROJECT_DIR$` variable. This ensures the executable can find the `Assets` folder.
+
+## Future Work
+
+* [ ] Expanding the bestiary with more enemy types.
+* [ ] Refining the death and respawn cycle for the player and enemies.
+* [ ] Replacing placeholder environment sprites with final art.
+* [ ] Adding more levels and an intermediate boss.
+
+## Team & Acknowledgments
+
+This project was developed as a team for the [Course Name] course at UFMG (Universidade Federal de Minas Gerais).
+
 * Gustavo Dias Apolinário
 * Leonardo Borges de Oliveira
 * Lucas Albano Olive Cruz
