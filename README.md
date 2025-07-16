@@ -41,7 +41,7 @@ This project was developed using the **CLion IDE**. To run it correctly, you mus
 
 1.  Clone the repository:
     ```bash
-    git clone [https://github.com/your-username/Ichirei-Shikon.git](https://github.com/your-username/Ichirei-Shikon.git)
+    git clone https://github.com/Gronoxx/Ichirei-Shikon.git
     ```
 2.  Open the project in CLion.
 3.  Go to **Run -> Edit Configurations...**
